@@ -78,7 +78,7 @@ class StockSearchService {
   /// 熔断机制：连续失败后进入冷却期，不再发请求
   int _consecutiveFailures = 0;
   DateTime? _cooldownUntil;
-  static const int _failureThreshold = 3;  // 失败 1 次就熔断
+  static const int _failureThreshold = 3;  // 失败 3 次就熔断
   static const Duration _cooldownDuration = Duration(minutes: 5); // 冷却 5 分钟（IP被封需要更长恢复时间）
 
   /// 是否在冷却中
