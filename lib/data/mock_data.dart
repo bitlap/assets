@@ -10,10 +10,10 @@ class MockDataGenerator {
         symbol: 'AAPL',
         companyName: 'Apple Inc.',
         currentPrice: 1795.52,
-        shares: 100,
-        totalValue: 179552,
+        shares: 100.0,
+        totalValue: 179552.0,
         profitLossPercent: 18.5,
-        profitLossAmount: 28019,
+        profitLossAmount: 28019.0,
         isPositive: true,
         logoUrl: 'https://logo.clearbit.com/apple.com',
         marketType: '美股',
@@ -22,10 +22,10 @@ class MockDataGenerator {
         symbol: 'TSLA',
         companyName: 'Tesla Inc.',
         currentPrice: 2200.96,
-        shares: 50,
-        totalValue: 110048,
+        shares: 50.0,
+        totalValue: 110048.0,
         profitLossPercent: -5.2,
-        profitLossAmount: -6009,
+        profitLossAmount: -6009.0,
         isPositive: false,
         logoUrl: 'https://logo.clearbit.com/tesla.com',
         marketType: '美股',
@@ -41,8 +41,8 @@ class MockDataGenerator {
         date: DateTime.now().subtract(Duration(days: i * 3)),
         type: i % 3 == 0 ? '买入' : '卖出',
         description: '${i % 3 == 0 ? "建仓" : "减仓"} $symbol',
-        amount: 1000 + i * 50,
-        shares: 10 + i * 2,
+        amount: 1000.0 + i * 50,
+        shares: 10.0 + i * 2,
       ));
     }
     return records;
@@ -54,7 +54,7 @@ class MockDataGenerator {
     for (int i = 0; i < 25; i++) {
       records.add(DividendRecord(
         date: DateTime.now().subtract(Duration(days: i * 90)),
-        amount: 100 + i * 10,
+        amount: 100.0 + i * 10,
         currency: 'CNY',
       ));
     }

@@ -2,14 +2,21 @@
 class StockModel {
   final String symbol;
   final String companyName;
-  final double currentPrice; // USD价格
-  final int shares;
-  final double totalValue; // USD总值
+  final double currentPrice; // 股票自身币种价格
+  final double shares;
+  final double totalValue; // 股票自身币种总值
   final double profitLossPercent;
-  final double profitLossAmount; // USD盈亏
+  final double profitLossAmount; // 股票自身币种盈亏
   final bool isPositive;
   final String? logoUrl; // Logo URL
   final String marketType; // 市场类型：美股、港股
+  final String? _currency; // 股票币种（美股=USD，港股=HKD）
+  String get currency => _currency ?? (marketType == '港股' ? 'HKD' : 'USD');
+  final String? secid; // 东方财富 secid（用于获取行情）
+  final double? peRatio; // 市盈率
+  final double? marketCap; // 总市值（股票自身币种）
+  final double? dividendYield; // 股息率(%)
+  final double? annualDividend; // 每股股息（股票自身币种）
 
   StockModel({
     required this.symbol,
@@ -22,20 +29,32 @@ class StockModel {
     required this.isPositive,
     this.logoUrl,
     this.marketType = '美股',
-  });
+    String? currency,
+    this.secid,
+    this.peRatio,
+    this.marketCap,
+    this.dividendYield,
+    this.annualDividend,
+  }) : _currency = currency;
 
   /// 复制并修改
   StockModel copyWith({
     String? symbol,
     String? companyName,
     double? currentPrice,
-    int? shares,
+    double? shares,
     double? totalValue,
     double? profitLossPercent,
     double? profitLossAmount,
     bool? isPositive,
     String? logoUrl,
     String? marketType,
+    String? currency,
+    String? secid,
+    double? peRatio,
+    double? marketCap,
+    double? dividendYield,
+    double? annualDividend,
   }) {
     return StockModel(
       symbol: symbol ?? this.symbol,
@@ -48,6 +67,12 @@ class StockModel {
       isPositive: isPositive ?? this.isPositive,
       logoUrl: logoUrl ?? this.logoUrl,
       marketType: marketType ?? this.marketType,
+      currency: currency ?? this.currency,
+      secid: secid ?? this.secid,
+      peRatio: peRatio ?? this.peRatio,
+      marketCap: marketCap ?? this.marketCap,
+      dividendYield: dividendYield ?? this.dividendYield,
+      annualDividend: annualDividend ?? this.annualDividend,
     );
   }
 }
@@ -58,7 +83,7 @@ class OperationRecord {
   final String type;
   final String description;
   final double amount;
-  final int shares;
+  final double shares;
 
   OperationRecord({
     required this.date,

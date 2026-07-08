@@ -177,9 +177,9 @@ class _AssetCardState extends State<AssetCard> {
             style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w500, height: 1.2),
           ),
           const SizedBox(height: 8),
-          // 总金额
+          // 总金额（已经是目标币种，直接格式化）
           Text(
-            '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${format.format(CurrencyHelper.convertFromUSD(widget.totalAssets, widget.selectedCurrency))}',
+            '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatCompact(widget.totalAssets)}',
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
           ),
           const SizedBox(height: 8),
@@ -249,9 +249,8 @@ class _AssetCardState extends State<AssetCard> {
   }
 
   Widget _buildProfitText(NumberFormat format) {
-    final converted = CurrencyHelper.convertFromUSD(widget.totalProfit, widget.selectedCurrency);
     return Text(
-      '${widget.totalProfit >= 0 ? '+' : ''}${format.format(converted)}',
+      '${widget.totalProfit >= 0 ? '+' : ''}${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatCompact(widget.totalProfit)}',
       style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
@@ -274,9 +273,8 @@ class _AssetCardState extends State<AssetCard> {
   }
 
   Widget _buildDividendText(NumberFormat format) {
-    final converted = CurrencyHelper.convertFromUSD(widget.totalDividends, widget.selectedCurrency);
     return Text(
-      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${format.format(converted)}',
+      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatCompact(widget.totalDividends)}',
       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
     );
   }

@@ -4,10 +4,12 @@ import 'package:intl/intl.dart';
 import 'models/stock_model.dart';
 import 'data/mock_data.dart';
 import 'utils/currency_helper.dart';
+import 'utils/center_toast.dart';
 import 'widgets/asset_card.dart';
 import 'widgets/stock_card.dart';
 import 'widgets/records_dialog.dart';
 import 'widgets/edit_delete_dialogs.dart';
+import 'widgets/search_stock_dialog.dart';
 
 void main() {
   runApp(const MyApp());
@@ -56,10 +58,18 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   String selectedCurrency = 'CNY';
   bool _isExchangeRateExpanded = false;
   String? _expandedStockSymbol;
+  // 每只股票的操作记录
+  final Map<String, List<OperationRecord>> _operationRecords = {};
 
   // ========== 计算属性 ==========
-  double get totalAssets => stocks.fold(0, (sum, stock) => sum + stock.totalValue);
-  double get totalProfit => stocks.fold(0, (sum, stock) => sum + stock.profitLossAmount);
+  /// 将股票自身币种金额转换为目标币种
+  double _convertToSelected(double amount, String stockCurrency) {
+    final amountInUSD = amount / CurrencyHelper.getExchangeRate(stockCurrency);
+    return amountInUSD * CurrencyHelper.getExchangeRate(selectedCurrency);
+  }
+
+  double get totalAssets => stocks.fold(0.0, (sum, stock) => sum + _convertToSelected(stock.totalValue, stock.currency));
+  double get totalProfit => stocks.fold(0.0, (sum, stock) => sum + _convertToSelected(stock.profitLossAmount, stock.currency));
   double get totalDividends => 38756;
   double get exchangeRate => CurrencyHelper.getExchangeRate(selectedCurrency);
 
@@ -74,26 +84,61 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     });
   }
 
-  void _onEditStock(StockModel updatedStock) {
+  void _onEditStock(StockModel updatedStock, OperationRecord? record, bool isClosed) {
     setState(() {
-      final index = stocks.indexWhere((s) => s.symbol == updatedStock.symbol);
-      if (index != -1) stocks[index] = updatedStock;
+      if (isClosed) {
+        // 平仓：删除股票
+        stocks.removeWhere((s) => s.symbol == updatedStock.symbol);
+      } else {
+        // 加仓或减仓：更新股票
+        final index = stocks.indexWhere((s) => s.symbol == updatedStock.symbol);
+        if (index != -1) stocks[index] = updatedStock;
+      }
+      // 添加操作记录
+      if (record != null) {
+        _operationRecords.putIfAbsent(updatedStock.symbol, () => []);
+        _operationRecords[updatedStock.symbol]!.insert(0, record);
+      }
     });
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('已将 ${updatedStock.symbol} 持股数量更新为 ${updatedStock.shares} 股')),
-    );
+    if (record != null) {
+      String action;
+      if (isClosed) {
+        action = '平仓';
+      } else if (_operationRecords[updatedStock.symbol]?.length == 1) {
+        action = '开仓';
+      } else {
+        action = record.type == '买入' ? '加仓' : '减仓';
+      }
+      CenterToast.success(context, '$action成功');
+    }
   }
 
   void _onDeleteStock(StockModel stock) {
     setState(() => stocks.remove(stock));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('删除成功')),
-    );
+    CenterToast.success(context, '删除成功');
   }
 
   void _showRecordsDialog(StockModel stock) {
-    showDialog(context: context, builder: (_) => RecordsDialog(stock: stock, currency: selectedCurrency));
+    final records = _operationRecords[stock.symbol] ?? [];
+    showDialog(
+      context: context,
+      builder: (_) => RecordsDialog(
+        stock: stock,
+        operationRecords: records,
+        onDeleteOperationRecord: (symbol, index) {
+          setState(() {
+            final list = _operationRecords[symbol];
+            if (list != null && index < list.length) {
+              list.removeAt(index);
+            }
+          });
+        },
+        onDeleteDividendRecord: (symbol, index) {
+          // 派息记录目前为模拟数据，暂无需同步状态
+        },
+      ),
+    );
   }
 
   void _showMoreOptions(StockModel stock) {
@@ -101,19 +146,22 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
       context: context,
       builder: (_) => MoreOptionsDialog(
         stock: stock,
-        onEdit: () => _showEditDialog(stock),
+        onAdd: () => _showEditDialog(stock, isAdd: true),
+        onReduce: () => _showEditDialog(stock, isAdd: false),
         onDelete: () => _showDeleteDialog(stock),
       ),
     );
   }
 
-  void _showEditDialog(StockModel stock) {
+  void _showEditDialog(StockModel stock, {required bool isAdd}) {
+    final records = _operationRecords[stock.symbol] ?? [];
     showDialog(
       context: context,
       builder: (_) => EditStockDialog(
         stock: stock,
-        selectedCurrency: selectedCurrency,
         onSave: _onEditStock,
+        isAdd: isAdd,
+        operationRecords: records,
       ),
     );
   }
@@ -126,6 +174,31 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
         onDelete: () => _onDeleteStock(stock),
       ),
     );
+  }
+
+  void _showSearchStockDialog() {
+    final existingSymbols = stocks.map((s) => s.symbol).toSet();
+    showDialog(
+      context: context,
+      builder: (_) => SearchStockDialog(
+        existingSymbols: existingSymbols,
+        onStockAdded: (newStock, buyRecord) {
+          setState(() {
+            stocks.add(newStock);
+            _operationRecords[newStock.symbol] = [buyRecord];
+          });
+          CenterToast.success(context, '添加成功');
+        },
+      ),
+    );
+  }
+
+  /// 格式化股数
+  String _formatShares(double shares) {
+    if (shares == shares.toInt()) {
+      return shares.toInt().toString();
+    }
+    return shares.toStringAsFixed(4).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
 
   // ========== 页面组装 ==========
@@ -161,11 +234,11 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                   final stock = stocks[index];
                   return StockCard(
                     stock: stock,
-                    selectedCurrency: selectedCurrency,
                     isExpanded: _expandedStockSymbol == stock.symbol,
                     onTap: () => _onStockTap(stock),
                     onRecordTap: () => _showRecordsDialog(stock),
                     onMoreTap: () => _showMoreOptions(stock),
+                    operationRecords: _operationRecords[stock.symbol] ?? [],
                   );
                 },
               ),
@@ -220,7 +293,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 Text('盈亏', textAlign: TextAlign.right, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[500], height: 1.2)),
                 const SizedBox(width: 8),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: _showSearchStockDialog,
                   child: Container(
                     width: 28, height: 28,
                     decoration: BoxDecoration(

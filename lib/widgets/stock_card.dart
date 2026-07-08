@@ -7,26 +7,27 @@ import '../utils/currency_helper.dart';
 /// 股票卡片组件（纯UI展示）
 class StockCard extends StatelessWidget {
   final StockModel stock;
-  final String selectedCurrency;
   final bool isExpanded;
   final VoidCallback onTap;
   final VoidCallback onRecordTap;
   final VoidCallback onMoreTap;
+  final List<OperationRecord> operationRecords;
 
   const StockCard({
     super.key,
     required this.stock,
-    required this.selectedCurrency,
     required this.isExpanded,
     required this.onTap,
     required this.onRecordTap,
     required this.onMoreTap,
+    this.operationRecords = const [],
   });
 
   @override
   Widget build(BuildContext context) {
     final format = NumberFormat('#,##0.00');
-    final detail = MockDataGenerator.generateStockDetail(stock);
+    // 使用真实数据，无数据时回退到 mock
+    final detail = _buildStockDetail(stock);
 
     return GestureDetector(
       onTap: onTap,
@@ -67,7 +68,7 @@ class StockCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '${CurrencyHelper.getSymbol(selectedCurrency)}${format.format(CurrencyHelper.convertFromUSD(stock.totalValue, selectedCurrency))}',
+                  '${CurrencyHelper.getSymbol(stock.currency)}${format.format(stock.totalValue)}',
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2),
                 ),
               ],
@@ -193,10 +194,10 @@ class StockCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('${stock.shares}股', style: TextStyle(fontSize: 12, color: Colors.grey[400], height: 1.2)),
+        Text('${_formatShares(stock.shares)}股', style: TextStyle(fontSize: 12, color: Colors.grey[400], height: 1.2)),
         const SizedBox(height: 4),
         Text(
-          format.format(CurrencyHelper.convertFromUSD(stock.currentPrice, selectedCurrency)),
+          '${CurrencyHelper.getSymbol(stock.currency)}${format.format(stock.currentPrice)}',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[400], height: 1.2),
         ),
       ],
@@ -219,7 +220,7 @@ class StockCard extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '${stock.profitLossAmount > 0 ? '+' : ''}${format.format(CurrencyHelper.convertFromUSD(stock.profitLossAmount.abs(), selectedCurrency))}',
+          '${stock.profitLossAmount > 0 ? '+' : ''}${CurrencyHelper.getSymbol(stock.currency)}${CurrencyHelper.formatCompact(stock.profitLossAmount.abs())}',
           style: TextStyle(
             fontSize: 12,
             color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
@@ -231,26 +232,59 @@ class StockCard extends StatelessWidget {
     );
   }
 
+  StockDetailData _buildStockDetail(StockModel stock) {
+    // 从操作记录计算平均成本
+    double avgCost = stock.currentPrice * 0.85; // 默认回退
+    if (operationRecords.isNotEmpty) {
+      final buyRecords = operationRecords.where((r) => r.type == '买入');
+      double totalCost = 0;
+      double totalShares = 0;
+      for (final r in buyRecords) {
+        totalCost += r.amount * r.shares;
+        totalShares += r.shares;
+      }
+      if (totalShares > 0) {
+        avgCost = totalCost / totalShares;
+      }
+    }
+    // 使用真实基本面数据
+    final dividendYield = stock.dividendYield ?? 0.0;
+    final dividendPerShare = stock.annualDividend ?? 0.0;
+    final peRatio = stock.peRatio ?? 0.0;
+    final marketCap = stock.marketCap ?? 0.0;
+    final annualDividend = dividendPerShare * stock.shares;
+
+    return StockDetailData(
+      avgCost: avgCost,
+      dividendPerShare: dividendPerShare,
+      dividendYield: dividendYield,
+      peRatio: peRatio,
+      marketCap: marketCap,
+      annualDividend: annualDividend,
+      lastDividendDate: '-',
+    );
+  }
+
   Widget _buildDetailSection(NumberFormat format, StockDetailData detail) {
     return Column(
       children: [
         Row(
           children: [
-            Expanded(child: _buildDetailItem('平均成本', format.format(CurrencyHelper.convertFromUSD(detail.avgCost, selectedCurrency)))),
-            Expanded(child: _buildDetailItem('股息/率', '${format.format(CurrencyHelper.convertFromUSD(detail.dividendPerShare, selectedCurrency))} / ${detail.dividendYield.toStringAsFixed(1)}%')),
+            Expanded(child: _buildDetailItem('平均成本', '${CurrencyHelper.getSymbol(stock.currency)}${format.format(detail.avgCost)}')),
+            Expanded(child: _buildDetailItem('股息/率', '${CurrencyHelper.getSymbol(stock.currency)}${format.format(detail.dividendPerShare)} / ${detail.dividendYield.toStringAsFixed(1)}%')),
           ],
         ),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(child: _buildDetailItem('市盈率', detail.peRatio.toStringAsFixed(1))),
-            Expanded(child: _buildDetailItem('市值', format.format(CurrencyHelper.convertFromUSD(detail.marketCap, selectedCurrency)))),
+            Expanded(child: _buildDetailItem('市值', '${CurrencyHelper.getSymbol(stock.currency)}${CurrencyHelper.formatCompact(detail.marketCap)}')),
           ],
         ),
         const SizedBox(height: 8),
         Row(
           children: [
-            Expanded(child: _buildDetailItem('年股息', format.format(CurrencyHelper.convertFromUSD(detail.annualDividend, selectedCurrency)))),
+            Expanded(child: _buildDetailItem('年股息', '${CurrencyHelper.getSymbol(stock.currency)}${format.format(detail.annualDividend)}')),
             Expanded(child: _buildDetailItem('最近息日', detail.lastDividendDate)),
           ],
         ),
@@ -319,5 +353,12 @@ class StockCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatShares(double shares) {
+    if (shares == shares.toInt()) {
+      return shares.toInt().toString();
+    }
+    return shares.toStringAsFixed(4).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
 }

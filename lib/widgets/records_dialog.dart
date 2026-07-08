@@ -7,9 +7,17 @@ import '../utils/currency_helper.dart';
 /// 记录对话框（带Tab切换）
 class RecordsDialog extends StatefulWidget {
   final StockModel stock;
-  final String currency;
+  final List<OperationRecord> operationRecords;
+  final void Function(String symbol, int index)? onDeleteOperationRecord;
+  final void Function(String symbol, int index)? onDeleteDividendRecord;
 
-  const RecordsDialog({super.key, required this.stock, required this.currency});
+  const RecordsDialog({
+    super.key,
+    required this.stock,
+    this.operationRecords = const [],
+    this.onDeleteOperationRecord,
+    this.onDeleteDividendRecord,
+  });
 
   @override
   State<RecordsDialog> createState() => _RecordsDialogState();
@@ -35,10 +43,9 @@ class _RecordsDialogState extends State<RecordsDialog> with SingleTickerProvider
     return Dialog(
       backgroundColor: const Color(0xFF0C1117),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      insetPadding: EdgeInsets.zero,
       child: Container(
-        width: double.maxFinite,
-        height: MediaQuery.of(context).size.height * 0.7,
+        constraints: const BoxConstraints(maxWidth: 400),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: const Color(0xFF303631)),
@@ -110,8 +117,15 @@ class _RecordsDialogState extends State<RecordsDialog> with SingleTickerProvider
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _OperationRecordsTab(stock: widget.stock, currency: widget.currency),
-                  _DividendRecordsTab(stock: widget.stock, currency: widget.currency),
+                  _OperationRecordsTab(
+                    stock: widget.stock,
+                    operationRecords: widget.operationRecords,
+                    onDeleteRecord: widget.onDeleteOperationRecord,
+                  ),
+                  _DividendRecordsTab(
+                    stock: widget.stock,
+                    onDeleteRecord: widget.onDeleteDividendRecord,
+                  ),
                 ],
               ),
             ),
@@ -125,9 +139,10 @@ class _RecordsDialogState extends State<RecordsDialog> with SingleTickerProvider
 /// 操作记录Tab
 class _OperationRecordsTab extends StatefulWidget {
   final StockModel stock;
-  final String currency;
+  final List<OperationRecord> operationRecords;
+  final void Function(String symbol, int index)? onDeleteRecord;
 
-  const _OperationRecordsTab({required this.stock, required this.currency});
+  const _OperationRecordsTab({required this.stock, required this.operationRecords, this.onDeleteRecord});
 
   @override
   State<_OperationRecordsTab> createState() => _OperationRecordsTabState();
@@ -135,134 +150,134 @@ class _OperationRecordsTab extends StatefulWidget {
 
 class _OperationRecordsTabState extends State<_OperationRecordsTab> {
   late List<OperationRecord> allRecords;
-  final int pageSize = 10;
-  int currentPage = 1;
 
   @override
   void initState() {
     super.initState();
-    allRecords = MockDataGenerator.generateOperationRecords(widget.stock.symbol);
+    // 使用真实操作记录，如果没有则用模拟数据
+    if (widget.operationRecords.isNotEmpty) {
+      allRecords = List.from(widget.operationRecords);
+    } else {
+      allRecords = MockDataGenerator.generateOperationRecords(widget.stock.symbol);
+    }
   }
 
-  List<OperationRecord> get paginatedRecords {
-    final startIndex = (currentPage - 1) * pageSize;
-    final endIndex = startIndex + pageSize;
-    if (endIndex > allRecords.length) return allRecords.sublist(startIndex);
-    return allRecords.sublist(startIndex, endIndex);
+  String _formatShares(double shares) {
+    if (shares == shares.toInt()) {
+      return shares.toInt().toString();
+    }
+    return shares.toStringAsFixed(4).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
-
-  int get totalPages => (allRecords.length / pageSize).ceil();
 
   @override
   Widget build(BuildContext context) {
     final format = NumberFormat('#,##0.00');
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            itemCount: paginatedRecords.length,
-            itemBuilder: (context, index) {
-              final record = paginatedRecords[index];
-              final isBuy = record.type == '买入';
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF161B22),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF303631)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36, height: 36,
-                      decoration: BoxDecoration(
-                        color: isBuy ? Colors.red.withOpacity(0.15) : Colors.green.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(isBuy ? Icons.arrow_upward : Icons.arrow_downward, color: isBuy ? Colors.redAccent : Colors.greenAccent, size: 16),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(record.description, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 13)),
-                          const SizedBox(height: 2),
-                          Text(DateFormat('yyyy-MM-dd HH:mm').format(record.date), style: TextStyle(color: Colors.grey[600], fontSize: 11)),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('${record.shares}股', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${CurrencyHelper.getSymbol(widget.currency)}${format.format(CurrencyHelper.convertFromUSD(record.amount, widget.currency))}',
-                          style: TextStyle(color: isBuy ? Colors.redAccent : Colors.greenAccent, fontWeight: FontWeight.w500, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-        _buildPaginationBar(),
-      ],
-    );
-  }
-
-  Widget _buildPaginationBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
-        border: Border(top: BorderSide(color: const Color(0xFF303631))),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onTap: currentPage > 1 ? () => setState(() => currentPage--) : null,
-            child: Container(
-              width: 30, height: 30,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF303631)),
-                color: currentPage > 1 ? const Color(0xFF0C1117) : Colors.transparent,
-              ),
-              child: Icon(Icons.chevron_left, size: 16, color: currentPage > 1 ? Colors.white : Colors.grey[700]),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      itemCount: allRecords.length,
+      itemBuilder: (context, index) {
+        final record = allRecords[index];
+        final isBuy = record.type == '买入';
+        final isPriceChange = record.type == '改价';
+        final iconColor = isPriceChange ? Colors.blue : (isBuy ? Colors.redAccent : Colors.greenAccent);
+        final iconBgColor = isPriceChange ? Colors.blue.withOpacity(0.15) : (isBuy ? Colors.red.withOpacity(0.15) : Colors.green.withOpacity(0.15));
+        final icon = isPriceChange ? Icons.edit : (isBuy ? Icons.arrow_upward : Icons.arrow_downward);
+        return Dismissible(
+          key: ValueKey('op_${index}_${record.date.millisecondsSinceEpoch}'),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF0C1117),
-              borderRadius: BorderRadius.circular(8),
+              color: Colors.red.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.red.withOpacity(0.4)),
+            ),
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 16),
+            child: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+          ),
+          confirmDismiss: (_) async {
+            return await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                backgroundColor: const Color(0xFF161B22),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                title: const Text('确认删除', style: TextStyle(color: Colors.white, fontSize: 16)),
+                content: const Text('确定删除此条操作记录？', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消', style: TextStyle(color: Colors.grey))),
+                  TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('删除', style: TextStyle(color: Colors.redAccent))),
+                ],
+              ),
+            ) ?? false;
+          },
+          onDismissed: (_) {
+            setState(() => allRecords.removeAt(index));
+            widget.onDeleteRecord?.call(widget.stock.symbol, index);
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF161B22),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFF303631)),
             ),
-            child: Text('$currentPage / $totalPages', style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500)),
-          ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: currentPage < totalPages ? () => setState(() => currentPage++) : null,
-            child: Container(
-              width: 30, height: 30,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF303631)),
-                color: currentPage < totalPages ? const Color(0xFF0C1117) : Colors.transparent,
-              ),
-              child: Icon(Icons.chevron_right, size: 16, color: currentPage < totalPages ? Colors.white : Colors.grey[700]),
+            child: Row(
+              children: [
+                Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 16),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(record.description, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 13)),
+                      const SizedBox(height: 2),
+                      Text(DateFormat('yyyy-MM-dd HH:mm').format(record.date), style: TextStyle(color: Colors.grey[600], fontSize: 11)),
+                      if (record.amount > 0 && !isPriceChange) ...[  
+                        const SizedBox(height: 4),
+                        Text(
+                          '${format.format(record.amount)} \u00d7 ${_formatShares(record.shares)}股 = ${CurrencyHelper.getSymbol(widget.stock.currency)}${format.format(record.amount * record.shares)}',
+                          style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                        ),
+                      ],
+                      if (isPriceChange) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '新价格: ${CurrencyHelper.getSymbol(widget.stock.currency)}${format.format(record.amount)}',
+                          style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (!isPriceChange)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${isBuy ? "+" : "-"}${_formatShares(record.shares)}股',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${CurrencyHelper.getSymbol(widget.stock.currency)}${format.format(record.amount * record.shares)}',
+                        style: TextStyle(color: isBuy ? Colors.redAccent : Colors.greenAccent, fontWeight: FontWeight.w500, fontSize: 12),
+                      ),
+                    ],
+                  ),
+              ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -270,9 +285,9 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
 /// 派息记录Tab
 class _DividendRecordsTab extends StatefulWidget {
   final StockModel stock;
-  final String currency;
+  final void Function(String symbol, int index)? onDeleteRecord;
 
-  const _DividendRecordsTab({required this.stock, required this.currency});
+  const _DividendRecordsTab({required this.stock, this.onDeleteRecord});
 
   @override
   State<_DividendRecordsTab> createState() => _DividendRecordsTabState();
@@ -280,8 +295,6 @@ class _DividendRecordsTab extends StatefulWidget {
 
 class _DividendRecordsTabState extends State<_DividendRecordsTab> {
   late List<DividendRecord> allRecords;
-  final int pageSize = 10;
-  int currentPage = 1;
 
   @override
   void initState() {
@@ -289,117 +302,85 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
     allRecords = MockDataGenerator.generateDividendRecords();
   }
 
-  List<DividendRecord> get paginatedRecords {
-    final startIndex = (currentPage - 1) * pageSize;
-    final endIndex = startIndex + pageSize;
-    if (endIndex > allRecords.length) return allRecords.sublist(startIndex);
-    return allRecords.sublist(startIndex, endIndex);
-  }
-
-  int get totalPages => (allRecords.length / pageSize).ceil();
-
   @override
   Widget build(BuildContext context) {
     final format = NumberFormat('#,##0.00');
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            itemCount: paginatedRecords.length,
-            itemBuilder: (context, index) {
-              final record = paginatedRecords[index];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF161B22),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF303631)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36, height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.attach_money, color: Colors.orangeAccent, size: 16),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('派息 ${widget.stock.symbol}', style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 13)),
-                          const SizedBox(height: 2),
-                          Text(DateFormat('yyyy-MM-dd').format(record.date), style: TextStyle(color: Colors.grey[600], fontSize: 11)),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      '${CurrencyHelper.getSymbol(widget.currency)}${format.format(CurrencyHelper.convertFromUSD(record.amount, widget.currency))}',
-                      style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-        _buildDividendPaginationBar(),
-      ],
-    );
-  }
-
-  Widget _buildDividendPaginationBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
-        border: Border(top: BorderSide(color: const Color(0xFF303631))),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onTap: currentPage > 1 ? () => setState(() => currentPage--) : null,
-            child: Container(
-              width: 30, height: 30,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF303631)),
-                color: currentPage > 1 ? const Color(0xFF0C1117) : Colors.transparent,
-              ),
-              child: Icon(Icons.chevron_left, size: 16, color: currentPage > 1 ? Colors.white : Colors.grey[700]),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      itemCount: allRecords.length,
+      itemBuilder: (context, index) {
+        final record = allRecords[index];
+        return Dismissible(
+          key: ValueKey('div_${index}_${record.date.millisecondsSinceEpoch}'),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF0C1117),
-              borderRadius: BorderRadius.circular(8),
+              color: Colors.red.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.red.withOpacity(0.4)),
+            ),
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 16),
+            child: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+          ),
+          confirmDismiss: (_) async {
+            return await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                backgroundColor: const Color(0xFF161B22),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                title: const Text('确认删除', style: TextStyle(color: Colors.white, fontSize: 16)),
+                content: const Text('确定删除此条派息记录？', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消', style: TextStyle(color: Colors.grey))),
+                  TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('删除', style: TextStyle(color: Colors.redAccent))),
+                ],
+              ),
+            ) ?? false;
+          },
+          onDismissed: (_) {
+            setState(() => allRecords.removeAt(index));
+            widget.onDeleteRecord?.call(widget.stock.symbol, index);
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF161B22),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFF303631)),
             ),
-            child: Text('$currentPage / $totalPages', style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500)),
-          ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: currentPage < totalPages ? () => setState(() => currentPage++) : null,
-            child: Container(
-              width: 30, height: 30,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF303631)),
-                color: currentPage < totalPages ? const Color(0xFF0C1117) : Colors.transparent,
-              ),
-              child: Icon(Icons.chevron_right, size: 16, color: currentPage < totalPages ? Colors.white : Colors.grey[700]),
+            child: Row(
+              children: [
+                Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.attach_money, color: Colors.orangeAccent, size: 16),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('派息 ${widget.stock.symbol}', style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 13)),
+                      const SizedBox(height: 2),
+                      Text(DateFormat('yyyy-MM-dd').format(record.date), style: TextStyle(color: Colors.grey[600], fontSize: 11)),
+                    ],
+                  ),
+                ),
+                Text(
+                  '${CurrencyHelper.getSymbol(widget.stock.currency)}${format.format(record.amount)}',
+                  style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
