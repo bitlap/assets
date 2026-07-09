@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'models/stock_model.dart';
-import 'data/mock_data.dart';
 import 'utils/currency_helper.dart';
 import 'utils/center_toast.dart';
 import 'widgets/asset_card.dart';
