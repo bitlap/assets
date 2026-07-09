@@ -29,11 +29,6 @@ class StockQuote {
   final double changePercent;
   final String market;
   final String? logoUrl;
-  // 基本面数据
-  final double peRatio;        // 市盈率
-  final double marketCap;      // 总市值
-  final double dividendYield;  // 股息率(%)
-  final double annualDividend; // 每股股息
 
   StockQuote({
     required this.code,
@@ -42,10 +37,6 @@ class StockQuote {
     required this.changePercent,
     required this.market,
     this.logoUrl,
-    this.peRatio = 0,
-    this.marketCap = 0,
-    this.dividendYield = 0,
-    this.annualDividend = 0,
   });
 }
 
@@ -59,10 +50,8 @@ class StockSearchService {
 
   static const String _searchBaseUrl =
       'https://searchapi.eastmoney.com/api/suggest/get';
-  static const String _quoteBaseUrl =
-      'https://push2.eastmoney.com/api/qt/stock/get';
-  static const String _batchQuoteBaseUrl =
-      'https://push2.eastmoney.com/api/qt/ulist.np/get';
+  static const String _tencentQuoteBaseUrl =
+      'https://qt.gtimg.cn/q=';
   static const String _searchToken = 'D43BF722C8E33BDC906FB84D85E326E8';
 
   // 不再复用共享 Client，每次请求都新建，避免连接异常后持续失败
@@ -237,35 +226,31 @@ class StockSearchService {
 
     if (needFetch.isEmpty) return result;
 
-    // 2. 用批量 API 一次请求所有未缓存的
-    final batchResult = await _fetchBatchQuotes(needFetch);
-    result.addAll(batchResult);
+    // 2. 逐个请求未缓存的（腾讯API不支持batch）
+    for (final stock in needFetch) {
+      final quote = await _fetchTencentQuote(stock);
+      result[stock.secid] = quote;
+    }
 
     return result;
   }
 
-  /// 批量请求行情（单次 HTTP，使用 ulist.np 接口）
-  Future<Map<String, StockQuote?>> _fetchBatchQuotes(
-    List<StockSearchResult> stocks,
-  ) async {
-    final result = <String, StockQuote?>{};
-    // 建立 code -> secid 映射
-    final codeToSecid = {for (final s in stocks) s.code: s.secid};
-
+  /// 使用腾讯API获取单只股票行情
+  Future<StockQuote?> _fetchTencentQuote(StockSearchResult stock) async {
     // 熔断中，不发请求
     if (_isInCooldown) {
-      debugPrint('处于冷却期，跳过批量请求');
-      return result;
+      debugPrint('处于冷却期，跳过行情请求: ${stock.secid}');
+      return null;
     }
 
     try {
-      final secids = stocks.map((s) => s.secid).join(',');
-      final uri = Uri.parse(
-        '$_batchQuoteBaseUrl?secids=$secids'
-        '&fields=f43,f44,f45,f46,f47,f57,f58,f59,f116,f117,f162,f163,f167,f170,f171',
-      );
-
+      // 腾讯API格式：https://qt.gtimg.cn/q=usAAPL, hk00700
+      final prefix = stock.market == '美股' ? 'us' : 'hk';
+      final symbol = '$prefix${stock.code}';
+      
       final client = Client();
+      final uri = Uri.parse('$_tencentQuoteBaseUrl$symbol');
+
       final response = await client.get(uri).timeout(
         const Duration(seconds: 10),
       );
@@ -273,80 +258,85 @@ class StockSearchService {
       _onRequestSuccess();
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final diffList = data['data']?['diff'] as List?;
-        if (diffList != null) {
-          for (final dc in diffList) {
-            final code = dc['f57']?.toString() ?? '';
-            final secid = codeToSecid[code];
-            if (secid == null) continue;
-            final quote = _parseBatchQuoteItem(dc, stocks);
-            if (quote != null) {
-              result[secid] = quote;
-            }
-          }
-        }
+        final quote = _parseTencentQuote(response.body, stock);
+        _quoteCache[stock.secid] = (DateTime.now(), quote);
+        return quote;
       }
+      return null;
     } catch (e) {
-      debugPrint('批量获取行情失败: $e');
+      debugPrint('腾讯API获取行情失败: $e');
       _onRequestFailure();
-      // 批量失败不再逐个重试，避免加重封禁
+      return null;
     }
+  }
 
-    // 写入缓存
-    final now = DateTime.now();
-    for (final entry in result.entries) {
-      _quoteCache[entry.key] = (now, entry.value);
+  /// 根据股票代码和市场类型生成 Logo URL
+  /// 美股：使用 StockTwits CDN（免费、无需 API key）
+  /// 港股：暂无免费 CDN 支持，返回 null（UI 会显示 fallback）
+  static String? getLogoUrl(String code, String market) {
+    if (market == '美股') {
+      // StockTwits CDN: 免费美股 logo CDN，支持所有 US ticker
+      return 'https://logos.stocktwits-cdn.com/${code.toUpperCase()}.png?w=64';
+    } else if (market == '港股') {
+      // 港股暂无免费 CDN 支持，返回 null，UI 会显示首字母 fallback
+      // 大部分港股可能无法获取，UI 会显示 fallback
+      return null;
     }
-    // 未返回的也缓存（避免重复请求不存在的）
-    for (final stock in stocks) {
-      if (!result.containsKey(stock.secid)) {
-        _quoteCache[stock.secid] = (now, null);
+    return null;
+  }
+
+  /// 解析腾讯API返回的行情数据
+  /// 格式示例：v_usAAPL="1~Apple Inc~AAPL~173.50~..."
+  StockQuote? _parseTencentQuote(String responseBody, StockSearchResult stock) {
+    try {
+      // 提取引号内的内容
+      final match = RegExp(r'"([^"]+)"').firstMatch(responseBody);
+      if (match == null) return null;
+      
+      final content = match.group(1)!;
+      final parts = content.split('~');
+      
+      if (parts.length < 5) return null;
+      
+      // 注意：腾讯API返回的名称可能是GBK编码的中文，使用东方财富的名称
+      String name = stock.name;
+      // 腾讯API返回的代码可能带后缀，需要清理为原始代码
+      // 使用搜索结果中的原始代码，而不是API返回的代码
+      final code = stock.code;
+      final currentPrice = double.tryParse(parts[3]) ?? 0.0;
+      
+      if (currentPrice == 0.0) return null;
+      
+      // 涨跌幅
+      double changePercent = 0.0;
+      if (parts.length > 32) {
+        changePercent = double.tryParse(parts[32]) ?? 0.0;
       }
+
+      return StockQuote(
+        code: code,
+        name: name,
+        currentPrice: currentPrice,
+        changePercent: changePercent,
+        market: stock.market,
+        logoUrl: getLogoUrl(code, stock.market),
+      );
+    } catch (e) {
+      debugPrint('解析腾讯行情数据失败: $e');
+      return null;
     }
-
-    return result;
   }
 
-  /// 解析批量行情中的单条
-  StockQuote? _parseBatchQuoteItem(
-    Map<String, dynamic> dc,
-    List<StockSearchResult> stocks,
-  ) {
-    final rawPrice = _parseInt(dc['f43']);
-    if (rawPrice == 0) return null;
-    final decimals = _parseInt(dc['f59']).toInt();
-    final price = decimals > 0 ? rawPrice / _pow10(decimals) : rawPrice;
-    final changePercent = _parseDouble(dc['f170']) / 100;
-    final code = dc['f57']?.toString() ?? '';
-    final name = dc['f58']?.toString() ?? '';
-    final marketCap = _parseDouble(dc['f116']);
-    final rawPe = _parseDouble(dc['f163']);
-    final peRatio = rawPe > 0 ? rawPe / 100 : (_parseDouble(dc['f162']) / 100);
-    final dividendYield = _parseDouble(dc['f167']) / 10000;
-    final annualDividend = price * dividendYield / 100;
-
-    // 找到对应的 stock 以获取 market 信息
-    final matched = stocks.firstWhere(
-      (s) => s.code == code,
-      orElse: () => stocks.first,
-    );
-
-    return StockQuote(
-      code: code,
-      name: name,
-      currentPrice: price,
-      changePercent: changePercent,
-      market: matched.market,
-      logoUrl: 'https://logo.clearbit.com/${code.toLowerCase()}.com',
-      peRatio: peRatio,
-      marketCap: marketCap,
-      dividendYield: dividendYield,
-      annualDividend: annualDividend,
-    );
+  /// 获取缓存中的行情（不发起网络请求，仅查缓存）
+  StockQuote? getCachedQuote(String secid) {
+    final cached = _quoteCache[secid];
+    if (cached != null && DateTime.now().difference(cached.$1) < _cacheTTL) {
+      return cached.$2;
+    }
+    return null;
   }
 
-  /// 获取单只股票实时行情（无重试，带熔断 + 缓存）
+  /// 获取单只股票实时行情（使用腾讯API，无重试，带熔断 + 缓存）
   Future<StockQuote?> getStockQuote(StockSearchResult stock) async {
     // 先查缓存
     final cached = _quoteCache[stock.secid];
@@ -361,11 +351,12 @@ class StockSearchService {
     }
 
     try {
+      // 腾讯API格式：https://qt.gtimg.cn/q=usAAPL, hk00700
+      final prefix = stock.market == '美股' ? 'us' : 'hk';
+      final symbol = '$prefix${stock.code}';
+      
       final client = Client();
-      final uri = Uri.parse(
-        '$_quoteBaseUrl?secid=${stock.secid}'
-        '&fields=f43,f44,f45,f46,f47,f57,f58,f59,f116,f117,f162,f163,f167,f170,f171',
-      );
+      final uri = Uri.parse('$_tencentQuoteBaseUrl$symbol');
 
       final response = await client.get(uri).timeout(
         const Duration(seconds: 10),
@@ -374,83 +365,15 @@ class StockSearchService {
       _onRequestSuccess();
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final dc = data['data'];
-        if (dc == null) {
-          _quoteCache[stock.secid] = (DateTime.now(), null);
-          return null;
-        }
-
-        final rawPrice = _parseInt(dc['f43']);
-        final decimals = _parseInt(dc['f59']).toInt();
-        final price = decimals > 0 ? rawPrice / _pow10(decimals) : rawPrice;
-        final changePercent = _parseDouble(dc['f170']) / 100;
-        final name = dc['f58']?.toString() ?? stock.name;
-        final marketCap = _parseDouble(dc['f116']);
-        final rawPe = _parseDouble(dc['f163']);
-        final peRatio = rawPe > 0 ? rawPe / 100 : (_parseDouble(dc['f162']) / 100);
-        final dividendYield = _parseDouble(dc['f167']) / 10000;
-        final annualDividend = price * dividendYield / 100;
-
-        final quote = StockQuote(
-          code: stock.code,
-          name: name,
-          currentPrice: price,
-          changePercent: changePercent,
-          market: stock.market,
-          logoUrl: 'https://logo.clearbit.com/${stock.code.toLowerCase()}.com',
-          peRatio: peRatio,
-          marketCap: marketCap,
-          dividendYield: dividendYield,
-          annualDividend: annualDividend,
-        );
+        final quote = _parseTencentQuote(response.body, stock);
         _quoteCache[stock.secid] = (DateTime.now(), quote);
         return quote;
       }
       return null;
     } catch (e) {
-      debugPrint('获取行情失败: $e');
+      debugPrint('腾讯API获取行情失败: $e');
       _onRequestFailure();
       return null;
     }
-  }
-
-  /// 解析整数（东方财富返回的原始值）
-  double _parseInt(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    final parsed = double.tryParse(value.toString());
-    return parsed ?? 0.0;
-  }
-
-  /// 10的n次方
-  double _pow10(int n) {
-    double result = 1.0;
-    for (int i = 0; i < n; i++) {
-      result *= 10;
-    }
-    return result;
-  }
-
-  /// 解析价格
-  double _parsePrice(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    final parsed = double.tryParse(value.toString());
-    return parsed ?? 0.0;
-  }
-
-  double _parseDouble(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    final parsed = double.tryParse(value.toString());
-    return parsed ?? 0.0;
-  }
-
-  void dispose() {
-    // 不再需要关闭共享 client，每次请求已自行管理
   }
 }

@@ -15,7 +15,7 @@ class MockDataGenerator {
         profitLossPercent: 18.5,
         profitLossAmount: 28019.0,
         isPositive: true,
-        logoUrl: 'https://logo.clearbit.com/apple.com',
+        logoUrl: 'https://logos.stocktwits-cdn.com/AAPL.png?w=64',
         marketType: '美股',
       ),
       StockModel(
@@ -27,79 +27,19 @@ class MockDataGenerator {
         profitLossPercent: -5.2,
         profitLossAmount: -6009.0,
         isPositive: false,
-        logoUrl: 'https://logo.clearbit.com/tesla.com',
+        logoUrl: 'https://logos.stocktwits-cdn.com/TSLA.png?w=64',
         marketType: '美股',
       ),
     ];
   }
 
-  /// 生成模拟操作记录
-  static List<OperationRecord> generateOperationRecords(String symbol) {
-    final records = <OperationRecord>[];
-    for (int i = 0; i < 35; i++) {
-      records.add(OperationRecord(
-        date: DateTime.now().subtract(Duration(days: i * 3)),
-        type: i % 3 == 0 ? '买入' : '卖出',
-        description: '${i % 3 == 0 ? "建仓" : "减仓"} $symbol',
-        amount: 1000.0 + i * 50,
-        shares: 10.0 + i * 2,
-      ));
-    }
-    return records;
-  }
-
-  /// 生成模拟派息记录
-  static List<DividendRecord> generateDividendRecords() {
-    final records = <DividendRecord>[];
-    for (int i = 0; i < 25; i++) {
-      records.add(DividendRecord(
-        date: DateTime.now().subtract(Duration(days: i * 90)),
-        amount: 100.0 + i * 10,
-        currency: 'CNY',
-      ));
-    }
-    return records;
-  }
-
-  /// 模拟股票详细数据
-  static StockDetailData generateStockDetail(StockModel stock) {
-    final avgCost = stock.currentPrice * 0.85;
-    final dividendPerShare = stock.currentPrice * 0.025;
-    const dividendYield = 2.5;
-    const peRatio = 28.5;
-    final marketCap = stock.currentPrice * stock.shares * 150;
-    final annualDividend = dividendPerShare * stock.shares;
-    const lastDividendDate = '2025-06-15';
-
-    return StockDetailData(
-      avgCost: avgCost,
-      dividendPerShare: dividendPerShare,
-      dividendYield: dividendYield,
-      peRatio: peRatio,
-      marketCap: marketCap,
-      annualDividend: annualDividend,
-      lastDividendDate: lastDividendDate,
-    );
-  }
 }
 
 /// 股票详细数据（展开时展示）
 class StockDetailData {
   final double avgCost;
-  final double dividendPerShare;
-  final double dividendYield;
-  final double peRatio;
-  final double marketCap;
-  final double annualDividend;
-  final String lastDividendDate;
 
   StockDetailData({
     required this.avgCost,
-    required this.dividendPerShare,
-    required this.dividendYield,
-    required this.peRatio,
-    required this.marketCap,
-    required this.annualDividend,
-    required this.lastDividendDate,
   });
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import '../models/stock_model.dart';
 import '../utils/currency_helper.dart';
 import '../services/stock_search_service.dart';
@@ -132,7 +131,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
                   const SizedBox(height: 8),
                   _buildInfoRow(
                     '当前价格',
-                    '${CurrencyHelper.getSymbol(widget.stock.currency)}${NumberFormat('#,##0.00').format(widget.stock.currentPrice)}',
+                    '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(widget.stock.currentPrice)}',
                   ),
                   const SizedBox(height: 8),
                   _buildInfoRow('当前持股', '${_formatShares(widget.stock.shares)}股'),
@@ -140,7 +139,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
                     const SizedBox(height: 8),
                     _buildInfoRow(
                       '买入均价',
-                      '${CurrencyHelper.getSymbol(widget.stock.currency)}${NumberFormat('#,##0.00').format(_avgBuyPrice)}',
+                      '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(_avgBuyPrice)}',
                     ),
                   ],
                 ],
@@ -255,8 +254,8 @@ class _EditStockDialogState extends State<EditStockDialog> {
                       // 更新股票
                       final updatedStock = widget.stock.copyWith(
                         shares: newShares,
-                        currentPrice: newPrice,
-                        totalValue: newPrice * newShares,
+                        // 不更新 currentPrice，保持实时价格
+                        totalValue: widget.stock.currentPrice * newShares, // 使用实时价格计算总金额
                         profitLossAmount: profitLoss,
                       );
 

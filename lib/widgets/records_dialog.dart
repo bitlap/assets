@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/stock_model.dart';
-import '../data/mock_data.dart';
 import '../utils/currency_helper.dart';
 
 /// 记录对话框（带Tab切换）
@@ -154,12 +153,8 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
   @override
   void initState() {
     super.initState();
-    // 使用真实操作记录，如果没有则用模拟数据
-    if (widget.operationRecords.isNotEmpty) {
-      allRecords = List.from(widget.operationRecords);
-    } else {
-      allRecords = MockDataGenerator.generateOperationRecords(widget.stock.symbol);
-    }
+    // 直接使用传入的操作记录（已在主页面初始化）
+    allRecords = List.from(widget.operationRecords);
   }
 
   String _formatShares(double shares) {
@@ -171,7 +166,31 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
 
   @override
   Widget build(BuildContext context) {
-    final format = NumberFormat('#,##0.00');
+    // 如果操作记录为空，显示空状态
+    if (allRecords.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.list_alt, size: 48, color: Colors.grey[700]),
+              const SizedBox(height: 12),
+              Text(
+                '暂无操作记录',
+                style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '点击"记录"按钮添加第一次操作',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       itemCount: allRecords.length,
@@ -240,18 +259,18 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                     children: [
                       Text(record.description, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 13)),
                       const SizedBox(height: 2),
-                      Text(DateFormat('yyyy-MM-dd HH:mm').format(record.date), style: TextStyle(color: Colors.grey[600], fontSize: 11)),
+                      Text(DateFormat('yyyy-MM-dd HH:mm:ss').format(record.date), style: TextStyle(color: Colors.grey[600], fontSize: 11)),
                       if (record.amount > 0 && !isPriceChange) ...[  
                         const SizedBox(height: 4),
                         Text(
-                          '${format.format(record.amount)} \u00d7 ${_formatShares(record.shares)}股 = ${CurrencyHelper.getSymbol(widget.stock.currency)}${format.format(record.amount * record.shares)}',
+                          '${CurrencyHelper.formatRate(record.amount)} \u00d7 ${_formatShares(record.shares)}股 = ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
                           style: TextStyle(color: Colors.grey[500], fontSize: 11),
                         ),
                       ],
                       if (isPriceChange) ...[
                         const SizedBox(height: 4),
                         Text(
-                          '新价格: ${CurrencyHelper.getSymbol(widget.stock.currency)}${format.format(record.amount)}',
+                          '新价格: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}',
                           style: TextStyle(color: Colors.grey[500], fontSize: 11),
                         ),
                       ],
@@ -268,7 +287,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${CurrencyHelper.getSymbol(widget.stock.currency)}${format.format(record.amount * record.shares)}',
+                        '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
                         style: TextStyle(color: isBuy ? Colors.redAccent : Colors.greenAccent, fontWeight: FontWeight.w500, fontSize: 12),
                       ),
                     ],
@@ -299,12 +318,37 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
   @override
   void initState() {
     super.initState();
-    allRecords = MockDataGenerator.generateDividendRecords();
+    // 派息记录目前为空，后续可从后端获取
+    allRecords = [];
   }
 
   @override
   Widget build(BuildContext context) {
-    final format = NumberFormat('#,##0.00');
+    // 如果派息记录为空，显示空状态
+    if (allRecords.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.attach_money, size: 48, color: Colors.grey[700]),
+              const SizedBox(height: 12),
+              Text(
+                '暂无派息记录',
+                style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '当前股票还没有派息数据',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       itemCount: allRecords.length,
@@ -373,7 +417,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                   ),
                 ),
                 Text(
-                  '${CurrencyHelper.getSymbol(widget.stock.currency)}${format.format(record.amount)}',
+                  '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}',
                   style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ],

@@ -10,13 +10,10 @@ class StockModel {
   final bool isPositive;
   final String? logoUrl; // Logo URL
   final String marketType; // 市场类型：美股、港股
+  final double changePercent; // 日涨跌幅（%）
   final String? _currency; // 股票币种（美股=USD，港股=HKD）
   String get currency => _currency ?? (marketType == '港股' ? 'HKD' : 'USD');
   final String? secid; // 东方财富 secid（用于获取行情）
-  final double? peRatio; // 市盈率
-  final double? marketCap; // 总市值（股票自身币种）
-  final double? dividendYield; // 股息率(%)
-  final double? annualDividend; // 每股股息（股票自身币种）
 
   StockModel({
     required this.symbol,
@@ -29,12 +26,9 @@ class StockModel {
     required this.isPositive,
     this.logoUrl,
     this.marketType = '美股',
+    this.changePercent = 0.0,
     String? currency,
     this.secid,
-    this.peRatio,
-    this.marketCap,
-    this.dividendYield,
-    this.annualDividend,
   }) : _currency = currency;
 
   /// 复制并修改
@@ -49,12 +43,9 @@ class StockModel {
     bool? isPositive,
     String? logoUrl,
     String? marketType,
+    double? changePercent,
     String? currency,
     String? secid,
-    double? peRatio,
-    double? marketCap,
-    double? dividendYield,
-    double? annualDividend,
   }) {
     return StockModel(
       symbol: symbol ?? this.symbol,
@@ -67,12 +58,9 @@ class StockModel {
       isPositive: isPositive ?? this.isPositive,
       logoUrl: logoUrl ?? this.logoUrl,
       marketType: marketType ?? this.marketType,
+      changePercent: changePercent ?? this.changePercent,
       currency: currency ?? this.currency,
       secid: secid ?? this.secid,
-      peRatio: peRatio ?? this.peRatio,
-      marketCap: marketCap ?? this.marketCap,
-      dividendYield: dividendYield ?? this.dividendYield,
-      annualDividend: annualDividend ?? this.annualDividend,
     );
   }
 }

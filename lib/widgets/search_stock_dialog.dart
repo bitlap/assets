@@ -121,7 +121,8 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
               : '未找到相关股票';
         }
       });
-      // 不自动加载行情，等用户点击时才按需获取（避免请求过多被封IP）
+      // 从 service 缓存中恢复已有行情（单例缓存跨弹窗保留，无需新请求）
+      _restoreCachedQuotes();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -178,20 +179,17 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     final stockModel = StockModel(
       symbol: stock.code,
       companyName: quote?.name ?? stock.name,
-      currentPrice: price,
+      currentPrice: defaultPrice > 0 ? defaultPrice : price, // 优先使用真实价格，回退到用户输入
       shares: shares,
-      totalValue: totalValue,
+      totalValue: defaultPrice > 0 ? defaultPrice * shares : totalValue, // 使用真实价格计算总金额
       profitLossPercent: quote?.changePercent ?? 0.0,
-      profitLossAmount: 0.0,
+      profitLossAmount: 0.0, // 刚建仓，盈亏为0
       isPositive: (quote?.changePercent ?? 0.0) >= 0,
-      logoUrl: 'https://logo.clearbit.com/${stock.code.toLowerCase()}.com',
+      logoUrl: StockSearchService.getLogoUrl(stock.code, stock.market),
       marketType: stock.market,
+      changePercent: quote?.changePercent ?? 0.0,
       currency: CurrencyHelper.currencyForMarket(stock.market),
       secid: stock.secid,
-      peRatio: quote?.peRatio,
-      marketCap: quote?.marketCap,
-      dividendYield: quote?.dividendYield,
-      annualDividend: quote?.annualDividend,
     );
 
     // 创建建仓操作记录
@@ -366,6 +364,21 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     return results.where((s) => s.market == _selectedMarket).toList();
   }
 
+  /// 从 service 缓存中恢复已有行情（单例缓存跨弹窗保留，无需新 API 请求）
+  void _restoreCachedQuotes() {
+    bool found = false;
+    for (final stock in _allResults) {
+      if (!_quoteCache.containsKey(stock.secid)) {
+        final cached = _service.getCachedQuote(stock.secid);
+        if (cached != null) {
+          _quoteCache[stock.secid] = cached;
+          found = true;
+        }
+      }
+    }
+    if (found) setState(() {});
+  }
+
   /// 搜索结果列表
   Widget _buildResultsList() {
     if (_isLoading && _results.isEmpty) {
@@ -444,7 +457,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
   ) {
     final changePercent = quote?.changePercent ?? 0.0;
     final isPositive = changePercent >= 0;
-    final priceColor = isPositive ? const Color(0xFF4CAF50) : const Color(0xFFFF5252);
+    final priceColor = isPositive ? const Color(0xFFFF5252) : const Color(0xFF4CAF50);
 
     return InkWell(
       onTap: isExisting ? null : () => _addStock(stock),
@@ -467,25 +480,19 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  'https://logo.clearbit.com/${stock.code.toLowerCase()}.com',
-                  width: 36,
-                  height: 36,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container( // ignore: unnecessary_underscores
-                    color: const Color(0xFF2A3040),
-                    child: Center(
-                      child: Text(
-                        stock.code.substring(0, 1),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                child: () {
+                  final logoUrl = StockSearchService.getLogoUrl(stock.code, stock.market);
+                  if (logoUrl != null) {
+                    return Image.network(
+                      logoUrl,
+                      width: 36,
+                      height: 36,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildLogoFallback(stock), // ignore: unnecessary_underscores
+                    );
+                  }
+                  return _buildLogoFallback(stock);
+                }(),
               ),
             ),
             const SizedBox(width: 12),
@@ -590,14 +597,27 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     );
   }
 
+  Widget _buildLogoFallback(StockSearchResult stock) {
+    return Container(
+      color: const Color(0xFF2A3040),
+      child: Center(
+        child: Text(
+          stock.code.substring(0, 1),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+
   String _formatPrice(double price) {
     if (price >= 10000) {
-      return '${(price / 10000).toStringAsFixed(2)}万';
-    } else if (price >= 100) {
-      return price.toStringAsFixed(2);
-    } else {
-      return price.toStringAsFixed(3);
+      return '${CurrencyHelper.formatRate(price / 10000)}万';
     }
+    return CurrencyHelper.formatRate(price);
   }
 }
 
@@ -639,7 +659,7 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
     super.initState();
     _priceController = TextEditingController(
       text: widget.defaultPrice > 0
-          ? widget.defaultPrice.toStringAsFixed(widget.defaultPrice >= 100 ? 2 : 3)
+          ? CurrencyHelper.formatRate(widget.defaultPrice)
           : '',
     );
     _sharesController = TextEditingController();
@@ -691,7 +711,7 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
                   _buildInfoRow('市场', widget.market),
                   if (widget.defaultPrice > 0) ...[  
                     const SizedBox(height: 8),
-                    _buildInfoRow('实时价格', widget.defaultPrice.toStringAsFixed(widget.defaultPrice >= 100 ? 2 : 3)),
+                    _buildInfoRow('实时价格', CurrencyHelper.formatRate(widget.defaultPrice)),
                   ],
                 ],
               ),
