@@ -181,7 +181,9 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       companyName: quote?.name ?? stock.name,
       currentPrice: defaultPrice > 0 ? defaultPrice : price, // 优先使用真实价格，回退到用户输入
       shares: shares,
-      totalValue: defaultPrice > 0 ? defaultPrice * shares : totalValue, // 使用真实价格计算总金额
+      totalValue: defaultPrice > 0
+          ? defaultPrice * shares
+          : totalValue, // 使用真实价格计算总金额
       profitLossPercent: quote?.changePercent ?? 0.0,
       profitLossAmount: 0.0, // 刚建仓，盈亏为0
       isPositive: (quote?.changePercent ?? 0.0) >= 0,
@@ -222,9 +224,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
           children: [
             _buildSearchBar(),
             const Divider(height: 1, color: Color(0xFF303631)),
-            FlexibleChild(
-              child: _buildResultsList(),
-            ),
+            FlexibleChild(child: _buildResultsList()),
           ],
         ),
       ),
@@ -416,7 +416,11 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.tips_and_updates_outlined, color: Colors.grey, size: 48),
+              Icon(
+                Icons.tips_and_updates_outlined,
+                color: Colors.grey,
+                size: 48,
+              ),
               SizedBox(height: 12),
               Text(
                 '输入名称或代码搜索港股/美股',
@@ -457,7 +461,9 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
   ) {
     final changePercent = quote?.changePercent ?? 0.0;
     final isPositive = changePercent >= 0;
-    final priceColor = isPositive ? const Color(0xFFFF5252) : const Color(0xFF4CAF50);
+    final priceColor = isPositive
+        ? const Color(0xFFFF5252)
+        : const Color(0xFF4CAF50);
 
     return InkWell(
       onTap: isExisting ? null : () => _addStock(stock),
@@ -481,14 +487,19 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: () {
-                  final logoUrl = StockSearchService.getLogoUrl(stock.code, stock.market);
+                  final logoUrl = StockSearchService.getLogoUrl(
+                    stock.code,
+                    stock.market,
+                  );
                   if (logoUrl != null) {
                     return Image.network(
                       logoUrl,
                       width: 36,
                       height: 36,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildLogoFallback(stock), // ignore: unnecessary_underscores
+                      errorBuilder: (_, __, ___) => _buildLogoFallback(
+                        stock,
+                      ), // ignore: unnecessary_underscores
                     );
                   }
                   return _buildLogoFallback(stock);
@@ -513,7 +524,10 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 1,
+                        ),
                         decoration: BoxDecoration(
                           color: stock.market == '美股'
                               ? Colors.blue.withValues(alpha: 0.15)
@@ -571,16 +585,25 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
             const SizedBox(width: 12),
             if (isExisting)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.grey[800]!,
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text('已添加', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                child: const Text(
+                  '已添加',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               )
             else
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.blue.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
@@ -691,7 +714,11 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
             Center(
               child: Text(
                 '添加 ${widget.stockCode}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -709,20 +736,28 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
                   _buildInfoRow('股票名称', widget.stockName),
                   const SizedBox(height: 8),
                   _buildInfoRow('市场', widget.market),
-                  if (widget.defaultPrice > 0) ...[  
+                  if (widget.defaultPrice > 0) ...[
                     const SizedBox(height: 8),
-                    _buildInfoRow('实时价格', CurrencyHelper.formatRate(widget.defaultPrice)),
+                    _buildInfoRow(
+                      '实时价格',
+                      CurrencyHelper.formatRate(widget.defaultPrice),
+                    ),
                   ],
                 ],
               ),
             ),
             const SizedBox(height: 16),
             // 买入价格
-            const Text('买入价格', style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.2)),
+            const Text(
+              '买入价格',
+              style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.2),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: _priceController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
               ],
@@ -730,21 +765,38 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: const Color(0xFF161B22),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF303631))),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF303631))),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.blue)),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.blue),
+                ),
                 hintText: '请输入买入价格',
                 hintStyle: TextStyle(color: Colors.grey[600]),
               ),
             ),
             const SizedBox(height: 12),
             // 持股数量
-            const Text('持股数量', style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.2)),
+            const Text(
+              '持股数量',
+              style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.2),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: _sharesController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
               ],
@@ -752,10 +804,22 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: const Color(0xFF161B22),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF303631))),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF303631))),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.blue)),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.blue),
+                ),
                 hintText: '请输入持股数量',
                 hintStyle: TextStyle(color: Colors.grey[600]),
               ),
@@ -773,7 +837,16 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: const Color(0xFF303631)),
                       ),
-                      child: const Center(child: Text('取消', style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w500))),
+                      child: const Center(
+                        child: Text(
+                          '取消',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -785,9 +858,20 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        gradient: const LinearGradient(colors: [Color(0xFF1A56DB), Color(0xFF2962FF)]),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+                        ),
                       ),
-                      child: const Center(child: Text('确认添加', style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600))),
+                      child: const Center(
+                        child: Text(
+                          '确认添加',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -803,8 +887,23 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 70, child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13))),
-        Expanded(child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500))),
+        SizedBox(
+          width: 70,
+          child: Text(
+            label,
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
       ],
     );
   }

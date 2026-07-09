@@ -18,7 +18,17 @@ class CurrencyHelper {
 
   /// 支持的币种列表（用于过滤 API 返回的多余币种）
   static const Set<String> supportedCurrencies = {
-    'CNY', 'USD', 'HKD', 'EUR', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'KRW', 'SGD',
+    'CNY',
+    'USD',
+    'HKD',
+    'EUR',
+    'JPY',
+    'GBP',
+    'AUD',
+    'CAD',
+    'CHF',
+    'KRW',
+    'SGD',
   };
 
   /// 使用 API 返回的实时汇率更新
@@ -69,5 +79,4 @@ class CurrencyHelper {
         return 'USD';
     }
   }
-
 }

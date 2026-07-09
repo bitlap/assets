@@ -64,7 +64,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   String? _expandedStockSymbol;
   // 每只股票的操作记录
   final Map<String, List<OperationRecord>> _operationRecords = {};
-  
+
   // 行情服务实例和定时刷新
   final StockSearchService _searchService = StockSearchService();
   final ExchangeRateService _exchangeRateService = ExchangeRateService();
@@ -90,20 +90,20 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
       setState(() => selectedCurrency = saved);
     }
   }
-  
+
   @override
   void dispose() {
     _priceRefreshTimer?.cancel();
     super.dispose();
   }
-  
+
   /// 启动定时刷新（价格 + 汇率）
   void _startRefresh() {
     // 首次加载后延迟3秒刷新
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) _refreshAll();
     });
-    
+
     // 每300秒刷新一次价格和汇率
     _priceRefreshTimer = Timer.periodic(const Duration(seconds: 300), (_) {
       if (mounted) _refreshAll();
@@ -125,11 +125,11 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     await _refreshExchangeRates();
     await _refreshAllPrices();
   }
-  
+
   /// 刷新所有持仓股票的实时价格
   Future<void> _refreshAllPrices() async {
     if (stocks.isEmpty) return;
-    
+
     for (final stock in stocks) {
       try {
         // 构建搜索对象用于查询行情
@@ -137,12 +137,14 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
           code: stock.symbol,
           name: stock.companyName,
           market: stock.marketType,
-          secid: stock.secid ?? '${stock.marketType == '美股' ? '105' : '116'}.${stock.symbol}',
+          secid:
+              stock.secid ??
+              '${stock.marketType == '美股' ? '105' : '116'}.${stock.symbol}',
         );
-        
+
         // 获取最新行情
         final quote = await _searchService.getStockQuote(searchResult);
-        
+
         if (quote != null && mounted) {
           setState(() {
             // 更新当前价格和涨跌幅
@@ -163,7 +165,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
         debugPrint('刷新 ${stock.symbol} 价格失败: $e');
       }
     }
-    
+
     debugPrint('价格刷新完成');
   }
 
@@ -177,10 +179,10 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     final stock = stocks[stockIndex];
 
     // ========== 第一步：计算当前持仓和交易总额 ==========
-    double currentShares = 0;      // 当前持股数
-    double totalBuyAmount = 0.0;   // 所有买入操作的总金额
-    double totalSellAmount = 0.0;  // 所有卖出操作的总金额
-    
+    double currentShares = 0; // 当前持股数
+    double totalBuyAmount = 0.0; // 所有买入操作的总金额
+    double totalSellAmount = 0.0; // 所有卖出操作的总金额
+
     for (final record in records) {
       if (record.type == '买入') {
         currentShares += record.shares;
@@ -190,15 +192,14 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
         totalSellAmount += record.amount * record.shares;
       }
     }
-    
+
     // 防止浮点误差导致负数
     if (currentShares < 0) currentShares = 0;
 
     // ========== 第二步：计算当前总持仓金额 ==========
     // 核心公式：当前总金额 = 当前价格 × 当前数量
     final totalValue = stock.currentPrice * currentShares;
-    
-    
+
     // 如果当前没有持股，直接设为0
     if (currentShares == 0) {
       stocks[stockIndex] = stock.copyWith(
@@ -210,7 +211,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
       );
       return;
     }
-    
+
     // ========== 第三步：计算净成本 ==========
     // 净成本 = 总买入金额 - 总卖出金额
     // 解释：买入时花出去的钱 - 卖出时收回来的钱 = 当前持仓的实际成本
@@ -219,15 +220,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     // ========== 第四步：计算盈亏 ==========
     // 盈亏 = 当前总金额 - 净成本
     final profitLossAmount = totalValue - netCost;
-    
+
     // 平均成本价 = 净成本 ÷ 当前股数
     final avgCostPerShare = netCost / currentShares;
-    
+
     // 盈亏百分比 = (当前价 - 平均成本价) ÷ 平均成本价 × 100%
-    final double profitLossPercent = avgCostPerShare > 0 
+    final double profitLossPercent = avgCostPerShare > 0
         ? ((stock.currentPrice - avgCostPerShare) / avgCostPerShare * 100.0)
         : 0.0;
-    
+
     // 判断盈亏方向：操作记录总额 > 当前总额 = 亏本（绿色），否则 = 盈利（红色）
     final bool isPositive = netCost <= totalValue;
 
@@ -248,10 +249,18 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     return amountInUSD * CurrencyHelper.getExchangeRate(selectedCurrency);
   }
 
-  double get totalAssets => stocks.fold(0.0, (sum, stock) => sum + _convertToSelected(stock.totalValue, stock.currency));
-  double get totalProfit => stocks.fold(0.0, (sum, stock) => sum + _convertToSelected(stock.profitLossAmount, stock.currency));
+  double get totalAssets => stocks.fold(
+    0.0,
+    (sum, stock) => sum + _convertToSelected(stock.totalValue, stock.currency),
+  );
+  double get totalProfit => stocks.fold(
+    0.0,
+    (sum, stock) =>
+        sum + _convertToSelected(stock.profitLossAmount, stock.currency),
+  );
   double get totalDividends => 0;
-  double get totalProfitPercent => totalAssets > 0 ? (totalProfit / (totalAssets - totalProfit) * 100) : 0.0;
+  double get totalProfitPercent =>
+      totalAssets > 0 ? (totalProfit / (totalAssets - totalProfit) * 100) : 0.0;
   double get exchangeRate => CurrencyHelper.getExchangeRate(selectedCurrency);
 
   // ========== 排序 ==========
@@ -334,11 +343,17 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
   void _onStockTap(StockModel stock) {
     setState(() {
-      _expandedStockSymbol = _expandedStockSymbol == stock.symbol ? null : stock.symbol;
+      _expandedStockSymbol = _expandedStockSymbol == stock.symbol
+          ? null
+          : stock.symbol;
     });
   }
 
-  void _onEditStock(StockModel updatedStock, OperationRecord? record, bool isClosed) {
+  void _onEditStock(
+    StockModel updatedStock,
+    OperationRecord? record,
+    bool isClosed,
+  ) {
     setState(() {
       if (isClosed) {
         // 平仓：删除股票
@@ -478,68 +493,81 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 8),
-              AssetCard(
-                selectedCurrency: selectedCurrency,
-                totalAssets: totalAssets,
-                totalProfit: totalProfit,
-                totalProfitPercent: totalProfitPercent,
-                totalDividends: totalDividends,
-                exchangeRate: exchangeRate,
-                isExchangeRateExpanded: _isExchangeRateExpanded,
-                onToggleExchangeRate: () => setState(() => _isExchangeRateExpanded = !_isExchangeRateExpanded),
-                onCurrencyChanged: _onCurrencyChanged,
-              ),
-              const SizedBox(height: 10),
-              _buildStockListHeader(),
-              const SizedBox(height: 6),
-              if (_sortedStocks.isEmpty) ...[
-                // 空状态：暂无股票
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 60),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.show_chart, size: 64, color: Colors.grey[700]),
-                        const SizedBox(height: 16),
-                        Text(
-                          '暂无股票持仓',
-                          style: TextStyle(fontSize: 16, color: Colors.grey[500], fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '点击右上角 + 添加股票开始投资',
-                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                        ),
-                      ],
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 8),
+                AssetCard(
+                  selectedCurrency: selectedCurrency,
+                  totalAssets: totalAssets,
+                  totalProfit: totalProfit,
+                  totalProfitPercent: totalProfitPercent,
+                  totalDividends: totalDividends,
+                  exchangeRate: exchangeRate,
+                  isExchangeRateExpanded: _isExchangeRateExpanded,
+                  onToggleExchangeRate: () => setState(
+                    () => _isExchangeRateExpanded = !_isExchangeRateExpanded,
+                  ),
+                  onCurrencyChanged: _onCurrencyChanged,
+                ),
+                const SizedBox(height: 10),
+                _buildStockListHeader(),
+                const SizedBox(height: 6),
+                if (_sortedStocks.isEmpty) ...[
+                  // 空状态：暂无股票
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 60),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.show_chart,
+                            size: 64,
+                            color: Colors.grey[700],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            '暂无股票持仓',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[500],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '点击右上角 + 添加股票开始投资',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ] else ...[
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _sortedStocks.length,
-                  itemBuilder: (context, index) {
-                    final stock = _sortedStocks[index];
-                    return StockCard(
-                      stock: stock,
-                      isExpanded: _expandedStockSymbol == stock.symbol,
-                      onTap: () => _onStockTap(stock),
-                      onRecordTap: () => _showRecordsDialog(stock),
-                      onMoreTap: () => _showMoreOptions(stock),
-                      operationRecords: _operationRecords[stock.symbol] ?? [],
-                    );
-                  },
-                ),
+                ] else ...[
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _sortedStocks.length,
+                    itemBuilder: (context, index) {
+                      final stock = _sortedStocks[index];
+                      return StockCard(
+                        stock: stock,
+                        isExpanded: _expandedStockSymbol == stock.symbol,
+                        onTap: () => _onStockTap(stock),
+                        onRecordTap: () => _showRecordsDialog(stock),
+                        onMoreTap: () => _showMoreOptions(stock),
+                        operationRecords: _operationRecords[stock.symbol] ?? [],
+                      );
+                    },
+                  ),
+                ],
+                const SizedBox(height: 30),
               ],
-              const SizedBox(height: 30),
-            ],
-          ),
+            ),
           ),
         ),
       ),
@@ -557,9 +585,24 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('股票持仓', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2)),
+              const Text(
+                '股票持仓',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  height: 1.2,
+                ),
+              ),
               const SizedBox(height: 2),
-              Text('共 ${stocks.length} 只 · 实时更新', style: TextStyle(fontSize: 13, color: Colors.grey[400], height: 1.2)),
+              Text(
+                '共 ${stocks.length} 只 · 实时更新',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[400],
+                  height: 1.2,
+                ),
+              ),
             ],
           ),
           Row(
@@ -597,7 +640,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('股票', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[500], height: 1.2)),
+                  Text(
+                    '股票',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[500],
+                      height: 1.2,
+                    ),
+                  ),
                   _buildSortIndicator('name'),
                 ],
               ),
@@ -612,7 +663,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('持仓', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[500], height: 1.2)),
+                    Text(
+                      '持仓',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[500],
+                        height: 1.2,
+                      ),
+                    ),
                     _buildSortIndicator('holdings'),
                   ],
                 ),
@@ -628,7 +687,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('盈亏', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[500], height: 1.2)),
+                  Text(
+                    '盈亏',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[500],
+                      height: 1.2,
+                    ),
+                  ),
                   _buildSortIndicator('profit', alignRight: true),
                 ],
               ),

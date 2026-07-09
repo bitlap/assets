@@ -22,7 +22,8 @@ class RecordsDialog extends StatefulWidget {
   State<RecordsDialog> createState() => _RecordsDialogState();
 }
 
-class _RecordsDialogState extends State<RecordsDialog> with SingleTickerProviderStateMixin {
+class _RecordsDialogState extends State<RecordsDialog>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -58,28 +59,47 @@ class _RecordsDialogState extends State<RecordsDialog> with SingleTickerProvider
                 children: [
                   Text(
                     widget.stock.symbol,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.blue.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text('记录', style: TextStyle(fontSize: 12, color: Color(0xFF5B9CF6), fontWeight: FontWeight.w500)),
+                    child: const Text(
+                      '记录',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF5B9CF6),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
-                      width: 28, height: 28,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
                         color: const Color(0xFF161B22),
                         shape: BoxShape.circle,
                         border: Border.all(color: const Color(0xFF303631)),
                       ),
-                      child: const Icon(Icons.close, color: Colors.grey, size: 14),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.grey,
+                        size: 14,
+                      ),
                     ),
                   ),
                 ],
@@ -95,12 +115,21 @@ class _RecordsDialogState extends State<RecordsDialog> with SingleTickerProvider
                 ),
                 child: TabBar(
                   controller: _tabController,
-                  indicator: BoxDecoration(color: const Color(0xFF1A56DB), borderRadius: BorderRadius.circular(10)),
+                  indicator: BoxDecoration(
+                    color: const Color(0xFF1A56DB),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   indicatorSize: TabBarIndicatorSize.tab,
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.grey,
-                  labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                  unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
+                  labelStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                  ),
                   dividerColor: Colors.transparent,
                   splashBorderRadius: BorderRadius.circular(10),
                   tabs: const [
@@ -141,7 +170,11 @@ class _OperationRecordsTab extends StatefulWidget {
   final List<OperationRecord> operationRecords;
   final void Function(String symbol, int index)? onDeleteRecord;
 
-  const _OperationRecordsTab({required this.stock, required this.operationRecords, this.onDeleteRecord});
+  const _OperationRecordsTab({
+    required this.stock,
+    required this.operationRecords,
+    this.onDeleteRecord,
+  });
 
   @override
   State<_OperationRecordsTab> createState() => _OperationRecordsTabState();
@@ -161,7 +194,10 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
     if (shares == shares.toInt()) {
       return shares.toInt().toString();
     }
-    return shares.toStringAsFixed(4).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+    return shares
+        .toStringAsFixed(4)
+        .replaceAll(RegExp(r'0+$'), '')
+        .replaceAll(RegExp(r'\.$'), '');
   }
 
   @override
@@ -178,7 +214,11 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
               const SizedBox(height: 12),
               Text(
                 '暂无操作记录',
-                style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -190,7 +230,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
         ),
       );
     }
-    
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       itemCount: allRecords.length,
@@ -198,9 +238,17 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
         final record = allRecords[index];
         final isBuy = record.type == '买入';
         final isPriceChange = record.type == '改价';
-        final iconColor = isPriceChange ? Colors.blue : (isBuy ? Colors.redAccent : Colors.greenAccent);
-        final iconBgColor = isPriceChange ? Colors.blue.withOpacity(0.15) : (isBuy ? Colors.red.withOpacity(0.15) : Colors.green.withOpacity(0.15));
-        final icon = isPriceChange ? Icons.edit : (isBuy ? Icons.arrow_upward : Icons.arrow_downward);
+        final iconColor = isPriceChange
+            ? Colors.blue
+            : (isBuy ? Colors.redAccent : Colors.greenAccent);
+        final iconBgColor = isPriceChange
+            ? Colors.blue.withOpacity(0.15)
+            : (isBuy
+                  ? Colors.red.withOpacity(0.15)
+                  : Colors.green.withOpacity(0.15));
+        final icon = isPriceChange
+            ? Icons.edit
+            : (isBuy ? Icons.arrow_upward : Icons.arrow_downward);
         return Dismissible(
           key: ValueKey('op_${index}_${record.date.millisecondsSinceEpoch}'),
           direction: DismissDirection.endToStart,
@@ -217,18 +265,39 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
           ),
           confirmDismiss: (_) async {
             return await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                backgroundColor: const Color(0xFF161B22),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                title: const Text('确认删除', style: TextStyle(color: Colors.white, fontSize: 16)),
-                content: const Text('确定删除此条操作记录？', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消', style: TextStyle(color: Colors.grey))),
-                  TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('删除', style: TextStyle(color: Colors.redAccent))),
-                ],
-              ),
-            ) ?? false;
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    backgroundColor: const Color(0xFF161B22),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: const Text(
+                      '确认删除',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    content: const Text(
+                      '确定删除此条操作记录？',
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text(
+                          '取消',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text(
+                          '删除',
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
+                      ),
+                    ],
+                  ),
+                ) ??
+                false;
           },
           onDismissed: (_) {
             setState(() => allRecords.removeAt(index));
@@ -245,7 +314,8 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
             child: Row(
               children: [
                 Container(
-                  width: 36, height: 36,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     color: iconBgColor,
                     borderRadius: BorderRadius.circular(10),
@@ -257,21 +327,37 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(record.description, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 13)),
+                      Text(
+                        record.description,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(DateFormat('yyyy-MM-dd HH:mm:ss').format(record.date), style: TextStyle(color: Colors.grey[600], fontSize: 11)),
-                      if (record.amount > 0 && !isPriceChange) ...[  
+                      Text(
+                        DateFormat('yyyy-MM-dd HH:mm:ss').format(record.date),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                      ),
+                      if (record.amount > 0 && !isPriceChange) ...[
                         const SizedBox(height: 4),
                         Text(
                           '${CurrencyHelper.formatRate(record.amount)} \u00d7 ${_formatShares(record.shares)}股 = ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
-                          style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 11,
+                          ),
                         ),
                       ],
                       if (isPriceChange) ...[
                         const SizedBox(height: 4),
                         Text(
                           '新价格: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}',
-                          style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 11,
+                          ),
                         ),
                       ],
                     ],
@@ -283,12 +369,20 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                     children: [
                       Text(
                         '${isBuy ? "+" : "-"}${_formatShares(record.shares)}股',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Colors.white,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
-                        style: TextStyle(color: isBuy ? Colors.redAccent : Colors.greenAccent, fontWeight: FontWeight.w500, fontSize: 12),
+                        style: TextStyle(
+                          color: isBuy ? Colors.redAccent : Colors.greenAccent,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
@@ -336,7 +430,11 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
               const SizedBox(height: 12),
               Text(
                 '暂无派息记录',
-                style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -348,7 +446,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
         ),
       );
     }
-    
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       itemCount: allRecords.length,
@@ -370,18 +468,39 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
           ),
           confirmDismiss: (_) async {
             return await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                backgroundColor: const Color(0xFF161B22),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                title: const Text('确认删除', style: TextStyle(color: Colors.white, fontSize: 16)),
-                content: const Text('确定删除此条派息记录？', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消', style: TextStyle(color: Colors.grey))),
-                  TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('删除', style: TextStyle(color: Colors.redAccent))),
-                ],
-              ),
-            ) ?? false;
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    backgroundColor: const Color(0xFF161B22),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: const Text(
+                      '确认删除',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    content: const Text(
+                      '确定删除此条派息记录？',
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text(
+                          '取消',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text(
+                          '删除',
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
+                      ),
+                    ],
+                  ),
+                ) ??
+                false;
           },
           onDismissed: (_) {
             setState(() => allRecords.removeAt(index));
@@ -398,27 +517,46 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
             child: Row(
               children: [
                 Container(
-                  width: 36, height: 36,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     color: Colors.orange.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.attach_money, color: Colors.orangeAccent, size: 16),
+                  child: const Icon(
+                    Icons.attach_money,
+                    color: Colors.orangeAccent,
+                    size: 16,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('派息 ${widget.stock.symbol}', style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 13)),
+                      Text(
+                        '派息 ${widget.stock.symbol}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(DateFormat('yyyy-MM-dd').format(record.date), style: TextStyle(color: Colors.grey[600], fontSize: 11)),
+                      Text(
+                        DateFormat('yyyy-MM-dd').format(record.date),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                      ),
                     ],
                   ),
                 ),
                 Text(
                   '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}',
-                  style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(
+                    color: Colors.orangeAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),

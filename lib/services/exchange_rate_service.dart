@@ -97,7 +97,9 @@ class ExchangeRateService {
 
         _cachedRates = rates;
         _lastFetchTime = DateTime.now();
-        debugPrint('汇率更新成功: USD=${rates['USD']}, CNY=${rates['CNY']}, HKD=${rates['HKD']}');
+        debugPrint(
+          '汇率更新成功: USD=${rates['USD']}, CNY=${rates['CNY']}, HKD=${rates['HKD']}',
+        );
         return rates;
       }
       return _cachedRates;

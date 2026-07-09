@@ -4,7 +4,12 @@ import 'package:flutter/material.dart';
 class CenterToast {
   /// 显示成功提示（绿色）
   static void success(BuildContext context, String message) {
-    _show(context, message, Icons.check_circle_outline, const Color(0xFF2ECC71));
+    _show(
+      context,
+      message,
+      Icons.check_circle_outline,
+      const Color(0xFF2ECC71),
+    );
   }
 
   /// 显示错误提示（红色）
@@ -14,10 +19,20 @@ class CenterToast {
 
   /// 显示警告提示（橙色）
   static void warning(BuildContext context, String message) {
-    _show(context, message, Icons.warning_amber_rounded, const Color(0xFFF39C12));
+    _show(
+      context,
+      message,
+      Icons.warning_amber_rounded,
+      const Color(0xFFF39C12),
+    );
   }
 
-  static void _show(BuildContext context, String message, IconData icon, Color color) {
+  static void _show(
+    BuildContext context,
+    String message,
+    IconData icon,
+    Color color,
+  ) {
     final overlay = Overlay.of(context);
     late final OverlayEntry entry;
     entry = OverlayEntry(
@@ -63,9 +78,10 @@ class _CenterToastWidgetState extends State<_CenterToastWidget>
       reverseDuration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, -0.3),
       end: Offset.zero,
@@ -103,7 +119,10 @@ class _CenterToastWidgetState extends State<_CenterToastWidget>
                 child: Center(
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 40),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1E272E),
                       borderRadius: BorderRadius.circular(12),

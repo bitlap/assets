@@ -6,11 +6,11 @@ typedef _CachedAt = DateTime;
 
 /// 股票搜索结果模型
 class StockSearchResult {
-  final String code;       // 股票代码，如 AAPL, 00700
-  final String name;       // 股票名称
-  final String market;     // 市场标识：美股、港股
-  final String secid;      // 东方财富 secid，如 105.AAPL, 116.00700
-  final String? exchange;  // 交易所名称
+  final String code; // 股票代码，如 AAPL, 00700
+  final String name; // 股票名称
+  final String market; // 市场标识：美股、港股
+  final String secid; // 东方财富 secid，如 105.AAPL, 116.00700
+  final String? exchange; // 交易所名称
 
   StockSearchResult({
     required this.code,
@@ -50,8 +50,7 @@ class StockSearchService {
 
   static const String _searchBaseUrl =
       'https://searchapi.eastmoney.com/api/suggest/get';
-  static const String _tencentQuoteBaseUrl =
-      'https://qt.gtimg.cn/q=';
+  static const String _tencentQuoteBaseUrl = 'https://qt.gtimg.cn/q=';
   static const String _searchToken = 'D43BF722C8E33BDC906FB84D85E326E8';
 
   // 不再复用共享 Client，每次请求都新建，避免连接异常后持续失败
@@ -67,8 +66,10 @@ class StockSearchService {
   /// 熔断机制：连续失败后进入冷却期，不再发请求
   int _consecutiveFailures = 0;
   DateTime? _cooldownUntil;
-  static const int _failureThreshold = 3;  // 失败 3 次就熔断
-  static const Duration _cooldownDuration = Duration(minutes: 5); // 冷却 5 分钟（IP被封需要更长恢复时间）
+  static const int _failureThreshold = 3; // 失败 3 次就熔断
+  static const Duration _cooldownDuration = Duration(
+    minutes: 5,
+  ); // 冷却 5 分钟（IP被封需要更长恢复时间）
 
   /// 是否在冷却中
   bool get _isInCooldown {
@@ -99,10 +100,11 @@ class StockSearchService {
     _consecutiveFailures++;
     if (_consecutiveFailures >= _failureThreshold) {
       _cooldownUntil = DateTime.now().add(_cooldownDuration);
-      debugPrint('请求连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inSeconds}秒');
+      debugPrint(
+        '请求连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inSeconds}秒',
+      );
     }
   }
-
 
   /// 搜索股票（支持港股、美股，按名称或代码搜索）
   Future<List<StockSearchResult>> searchStocks(String keyword) async {
@@ -130,9 +132,9 @@ class StockSearchService {
       );
 
       client = Client();
-      final response = await client.get(uri).timeout(
-        const Duration(seconds: 10),
-      );
+      final response = await client
+          .get(uri)
+          .timeout(const Duration(seconds: 10));
       client.close();
       client = null;
 
@@ -193,13 +195,15 @@ class StockSearchService {
       }
 
       if (market != null && secid != null && code.isNotEmpty) {
-        results.add(StockSearchResult(
-          code: code,
-          name: name,
-          market: market,
-          secid: secid,
-          exchange: exchange,
-        ));
+        results.add(
+          StockSearchResult(
+            code: code,
+            name: name,
+            market: market,
+            secid: secid,
+            exchange: exchange,
+          ),
+        );
       }
     }
 
@@ -247,13 +251,13 @@ class StockSearchService {
       // 腾讯API格式：https://qt.gtimg.cn/q=usAAPL, hk00700
       final prefix = stock.market == '美股' ? 'us' : 'hk';
       final symbol = '$prefix${stock.code}';
-      
+
       final client = Client();
       final uri = Uri.parse('$_tencentQuoteBaseUrl$symbol');
 
-      final response = await client.get(uri).timeout(
-        const Duration(seconds: 10),
-      );
+      final response = await client
+          .get(uri)
+          .timeout(const Duration(seconds: 10));
       client.close();
       _onRequestSuccess();
 
@@ -292,21 +296,21 @@ class StockSearchService {
       // 提取引号内的内容
       final match = RegExp(r'"([^"]+)"').firstMatch(responseBody);
       if (match == null) return null;
-      
+
       final content = match.group(1)!;
       final parts = content.split('~');
-      
+
       if (parts.length < 5) return null;
-      
+
       // 注意：腾讯API返回的名称可能是GBK编码的中文，使用东方财富的名称
       String name = stock.name;
       // 腾讯API返回的代码可能带后缀，需要清理为原始代码
       // 使用搜索结果中的原始代码，而不是API返回的代码
       final code = stock.code;
       final currentPrice = double.tryParse(parts[3]) ?? 0.0;
-      
+
       if (currentPrice == 0.0) return null;
-      
+
       // 涨跌幅
       double changePercent = 0.0;
       if (parts.length > 32) {
@@ -354,13 +358,13 @@ class StockSearchService {
       // 腾讯API格式：https://qt.gtimg.cn/q=usAAPL, hk00700
       final prefix = stock.market == '美股' ? 'us' : 'hk';
       final symbol = '$prefix${stock.code}';
-      
+
       final client = Client();
       final uri = Uri.parse('$_tencentQuoteBaseUrl$symbol');
 
-      final response = await client.get(uri).timeout(
-        const Duration(seconds: 10),
-      );
+      final response = await client
+          .get(uri)
+          .timeout(const Duration(seconds: 10));
       client.close();
       _onRequestSuccess();
 

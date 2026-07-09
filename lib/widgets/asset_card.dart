@@ -73,7 +73,11 @@ class _AssetCardState extends State<AssetCard> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFF303631)),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 20, spreadRadius: 2),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.6),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
                   ],
                 ),
                 child: Column(
@@ -86,12 +90,20 @@ class _AssetCardState extends State<AssetCard> {
                         children: [
                           const Text(
                             '选择货币',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                           ),
                           const Spacer(),
                           GestureDetector(
                             onTap: _closeDropdown,
-                            child: Icon(Icons.close, size: 18, color: Colors.grey[500]),
+                            child: Icon(
+                              Icons.close,
+                              size: 18,
+                              color: Colors.grey[500],
+                            ),
                           ),
                         ],
                       ),
@@ -102,8 +114,11 @@ class _AssetCardState extends State<AssetCard> {
                       child: ListView(
                         padding: EdgeInsets.zero,
                         shrinkWrap: true,
-                        children: CurrencyHelper.exchangeRates.keys.map((currency) {
-                          final isSelected = currency == widget.selectedCurrency;
+                        children: CurrencyHelper.exchangeRates.keys.map((
+                          currency,
+                        ) {
+                          final isSelected =
+                              currency == widget.selectedCurrency;
                           final rate = CurrencyHelper.exchangeRates[currency]!;
                           final symbol = CurrencyHelper.getSymbol(currency);
                           return InkWell(
@@ -112,14 +127,23 @@ class _AssetCardState extends State<AssetCard> {
                               _closeDropdown();
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              color: isSelected ? Colors.blue.withOpacity(0.15) : Colors.transparent,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              color: isSelected
+                                  ? Colors.blue.withOpacity(0.15)
+                                  : Colors.transparent,
                               child: Row(
                                 children: [
                                   SizedBox(
                                     width: 16,
                                     child: isSelected
-                                        ? const Icon(Icons.check, size: 16, color: Color(0xFF5B9CF6))
+                                        ? const Icon(
+                                            Icons.check,
+                                            size: 16,
+                                            color: Color(0xFF5B9CF6),
+                                          )
                                         : null,
                                   ),
                                   const SizedBox(width: 10),
@@ -128,8 +152,12 @@ class _AssetCardState extends State<AssetCard> {
                                       currency,
                                       style: TextStyle(
                                         fontSize: 15,
-                                        color: isSelected ? const Color(0xFF5B9CF6) : Colors.white,
-                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                        color: isSelected
+                                            ? const Color(0xFF5B9CF6)
+                                            : Colors.white,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
                                       ),
                                     ),
                                   ),
@@ -137,7 +165,9 @@ class _AssetCardState extends State<AssetCard> {
                                     '$symbol ${CurrencyHelper.formatRate(rate)}',
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: isSelected ? const Color(0xFF5B9CF6) : Colors.grey[500],
+                                      color: isSelected
+                                          ? const Color(0xFF5B9CF6)
+                                          : Colors.grey[500],
                                     ),
                                   ),
                                 ],
@@ -201,7 +231,11 @@ class _AssetCardState extends State<AssetCard> {
             children: [
               const Text(
                 '资产总额',
-                style: TextStyle(fontSize: 13, color: Colors.white70, height: 1.2),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.white70,
+                  height: 1.2,
+                ),
               ),
               _buildCurrencyButton(),
             ],
@@ -210,21 +244,51 @@ class _AssetCardState extends State<AssetCard> {
           // 汇率信息
           Text(
             '1 USD = ${CurrencyHelper.formatRate(widget.exchangeRate)} ${widget.selectedCurrency}',
-            style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w500, height: 1.2),
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              height: 1.2,
+            ),
           ),
           const SizedBox(height: 8),
           // 总金额（已经是目标币种，直接格式化）
           Text(
             '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatRate(widget.totalAssets)}',
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              height: 1.1,
+            ),
           ),
           const SizedBox(height: 8),
           // 总盈亏和总股息
           Row(
             children: [
-              Expanded(child: _buildSummaryCard('总盈亏', _buildProfitText(), _buildProfitPercent())),
+              Expanded(
+                child: _buildSummaryCard(
+                  '总盈亏',
+                  _buildProfitText(),
+                  _buildProfitPercent(),
+                ),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: _buildSummaryCard('总股息', _buildDividendText(), const Text('0%', style: TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w500, height: 1.2)))),
+              Expanded(
+                child: _buildSummaryCard(
+                  '总股息',
+                  _buildDividendText(),
+                  const Text(
+                    '0%',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w500,
+                      height: 1.2,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 6),
@@ -250,13 +314,22 @@ class _AssetCardState extends State<AssetCard> {
           children: [
             Text(
               widget.selectedCurrency,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                height: 1.2,
+              ),
             ),
             const SizedBox(width: 2),
             AnimatedRotation(
               turns: _isDropdownOpen ? 0.5 : 0,
               duration: const Duration(milliseconds: 150),
-              child: const Icon(Icons.keyboard_arrow_down, size: 14, color: Colors.white),
+              child: const Icon(
+                Icons.keyboard_arrow_down,
+                size: 14,
+                color: Colors.white,
+              ),
             ),
           ],
         ),
@@ -275,7 +348,14 @@ class _AssetCardState extends State<AssetCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: Colors.white70, height: 1.2)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.white70,
+              height: 1.2,
+            ),
+          ),
           const SizedBox(height: 2),
           valueText,
           percentText,
@@ -290,7 +370,9 @@ class _AssetCardState extends State<AssetCard> {
       style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: widget.totalProfit >= 0 ? const Color(0xFFFF5252) : const Color(0xFF69F0AE),
+        color: widget.totalProfit >= 0
+            ? const Color(0xFFFF5252)
+            : const Color(0xFF69F0AE),
         height: 1.1,
       ),
     );
@@ -301,7 +383,9 @@ class _AssetCardState extends State<AssetCard> {
       '${widget.totalProfit >= 0 ? '+' : ''}${widget.totalProfitPercent.toStringAsFixed(2)}%',
       style: TextStyle(
         fontSize: 11,
-        color: widget.totalProfit >= 0 ? const Color(0xFFFF5252) : const Color(0xFF69F0AE),
+        color: widget.totalProfit >= 0
+            ? const Color(0xFFFF5252)
+            : const Color(0xFF69F0AE),
         fontWeight: FontWeight.w500,
         height: 1.2,
       ),
@@ -311,7 +395,12 @@ class _AssetCardState extends State<AssetCard> {
   Widget _buildDividendText() {
     return Text(
       '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatRate(widget.totalDividends)}',
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+        height: 1.1,
+      ),
     );
   }
 
@@ -325,10 +414,19 @@ class _AssetCardState extends State<AssetCard> {
         children: [
           Row(
             children: [
-              const Text('汇率', style: TextStyle(fontSize: 11, color: Colors.white70, height: 1.2)),
+              const Text(
+                '汇率',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white70,
+                  height: 1.2,
+                ),
+              ),
               const Spacer(),
               Icon(
-                widget.isExchangeRateExpanded ? Icons.expand_less : Icons.expand_more,
+                widget.isExchangeRateExpanded
+                    ? Icons.expand_less
+                    : Icons.expand_more,
                 size: 16,
                 color: Colors.white70,
               ),
@@ -339,7 +437,9 @@ class _AssetCardState extends State<AssetCard> {
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             child: Row(
-              children: CurrencyHelper.exchangeRates.keys.take(5).map((currency) {
+              children: CurrencyHelper.exchangeRates.keys.take(5).map((
+                currency,
+              ) {
                 final rate = CurrencyHelper.exchangeRates[currency]!;
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
@@ -358,7 +458,9 @@ class _AssetCardState extends State<AssetCard> {
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: CurrencyHelper.exchangeRates.keys.skip(5).map((currency) {
+              children: CurrencyHelper.exchangeRates.keys.skip(5).map((
+                currency,
+              ) {
                 final rate = CurrencyHelper.exchangeRates[currency]!;
                 return _buildExchangeRateChip(
                   currency,
@@ -374,19 +476,33 @@ class _AssetCardState extends State<AssetCard> {
     );
   }
 
-  Widget _buildExchangeRateChip(String currency, String rate, {bool isSelected = false, VoidCallback? onTap}) {
+  Widget _buildExchangeRateChip(
+    String currency,
+    String rate, {
+    bool isSelected = false,
+    VoidCallback? onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.withOpacity(0.3) : Colors.white.withOpacity(0.15),
+          color: isSelected
+              ? Colors.blue.withOpacity(0.3)
+              : Colors.white.withOpacity(0.15),
           borderRadius: BorderRadius.circular(8),
-          border: isSelected ? Border.all(color: Colors.blue, width: 1.5) : null,
+          border: isSelected
+              ? Border.all(color: Colors.blue, width: 1.5)
+              : null,
         ),
         child: Text(
           '$currency $rate',
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white, height: 1.2),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            height: 1.2,
+          ),
         ),
       ),
     );

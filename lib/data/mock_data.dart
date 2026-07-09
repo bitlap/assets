@@ -32,14 +32,11 @@ class MockDataGenerator {
       ),
     ];
   }
-
 }
 
 /// 股票详细数据（展开时展示）
 class StockDetailData {
   final double avgCost;
 
-  StockDetailData({
-    required this.avgCost,
-  });
+  StockDetailData({required this.avgCost});
 }
