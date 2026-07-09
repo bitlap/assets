@@ -1,6 +1,6 @@
 # 股票持仓 (Stock Portfolio)
 
-[![Flutter CI](https://github.com/jxnu-liguobin/assets/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/assets/actions/workflows/flutter-ci.yml)
+[![Flutter CI](https://github.com/bitlap/assets/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/assets/actions/workflows/flutter-ci.yml)
 
 一款使用 Flutter 开发的个人股票持仓管理应用，支持实时行情、多币种切换、盈亏统计、操作记录追踪等功能，采用 Material 3 暗色主题设计。
 
