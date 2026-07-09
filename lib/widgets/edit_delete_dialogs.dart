@@ -434,14 +434,16 @@ class MoreOptionsDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFF303631)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Text('更多操作', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-            ),
-            Divider(height: 1, color: const Color(0xFF303631)),
+        child: Material(
+          color: Colors.transparent,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Text('更多操作', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+              Divider(height: 1, color: const Color(0xFF303631)),
             ListTile(
               leading: const Icon(Icons.add_circle, color: Colors.redAccent),
               title: const Text('加仓', style: TextStyle(color: Colors.white, fontSize: 15)),
@@ -467,6 +469,7 @@ class MoreOptionsDialog extends StatelessWidget {
               },
             ),
           ],
+        ),
         ),
       ),
     );

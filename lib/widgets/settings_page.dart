@@ -19,6 +19,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   late String _selectedCurrency;
+  bool _isCurrencyExpanded = false;
 
   @override
   void initState() {
@@ -51,7 +52,7 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           _buildSectionHeader('本地货币'),
           const SizedBox(height: 8),
-          _buildCurrencyList(),
+          _buildCurrencySection(),
           const SizedBox(height: 24),
           _buildInfoItem(
             icon: Icons.info_outline,
@@ -73,65 +74,91 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildCurrencyList() {
+  Widget _buildCurrencySection() {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1A1F26),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF303631)),
       ),
-      child: Column(
-        children: CurrencyHelper.exchangeRates.keys.map((currency) {
-          final isSelected = currency == _selectedCurrency;
-          final rate = CurrencyHelper.exchangeRates[currency]!;
-          final symbol = CurrencyHelper.getSymbol(currency);
-          final isLast = currency == CurrencyHelper.exchangeRates.keys.last;
-
-          return InkWell(
-            onTap: () => _onCurrencySelected(currency),
-            borderRadius: isLast
-                ? const BorderRadius.vertical(bottom: Radius.circular(12))
-                : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                border: isLast ? null : Border(bottom: BorderSide(color: Colors.grey[800]!, width: 0.5)),
+      child: Material(
+        color: Colors.transparent,
+        child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: _isCurrencyExpanded,
+          onExpansionChanged: (expanded) => setState(() => _isCurrencyExpanded = expanded),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          childrenPadding: EdgeInsets.zero,
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                _selectedCurrency,
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white, height: 1.2),
               ),
-              child: Row(
-                children: [
-                  // 选中指示器
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: isSelected
-                        ? const Icon(Icons.check_circle, size: 20, color: Color(0xFF5B9CF6))
-                        : Icon(Icons.circle_outlined, size: 20, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(width: 12),
-                  // 币种代码
-                  Expanded(
-                    child: Text(
-                      currency,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: isSelected ? Colors.white : Colors.grey[300],
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              const SizedBox(width: 8),
+              Text(
+                '${CurrencyHelper.getSymbol(_selectedCurrency)} ${CurrencyHelper.formatRate(CurrencyHelper.getExchangeRate(_selectedCurrency))}',
+                style: TextStyle(fontSize: 13, color: Colors.grey[500], height: 1.2),
+              ),
+            ],
+          ),
+          trailing: Icon(
+            _isCurrencyExpanded ? Icons.expand_less : Icons.expand_more,
+            color: Colors.grey[500],
+            size: 22,
+          ),
+          children: CurrencyHelper.exchangeRates.keys.map((currency) {
+            final isSelected = currency == _selectedCurrency;
+            final rate = CurrencyHelper.exchangeRates[currency]!;
+            final symbol = CurrencyHelper.getSymbol(currency);
+            final isLast = currency == CurrencyHelper.exchangeRates.keys.last;
+
+            return InkWell(
+              onTap: () => _onCurrencySelected(currency),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  border: isLast ? null : Border(bottom: BorderSide(color: Colors.grey[800]!, width: 0.5)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: isSelected
+                          ? const Icon(Icons.check_circle, size: 20, color: Color(0xFF5B9CF6))
+                          : Icon(Icons.circle_outlined, size: 20, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        currency,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: isSelected ? Colors.white : Colors.grey[300],
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          height: 1.2,
+                        ),
                       ),
                     ),
-                  ),
-                  // 符号和汇率
-                  Text(
-                    '$symbol ${CurrencyHelper.formatRate(rate)}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isSelected ? const Color(0xFF5B9CF6) : Colors.grey[500],
+                    Text(
+                      '$symbol ${CurrencyHelper.formatRate(rate)}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isSelected ? const Color(0xFF5B9CF6) : Colors.grey[500],
+                        height: 1.2,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
+      ),
       ),
     );
   }
