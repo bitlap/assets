@@ -1,7 +1,8 @@
 /// 汇率与货币转换工具类
 class CurrencyHelper {
   /// 汇率映射表（以 USD 为基准，1 USD = X 目标货币）
-  static const Map<String, double> exchangeRates = {
+  /// 初始为硬编码默认值，获取实时汇率后会动态更新
+  static Map<String, double> exchangeRates = {
     'CNY': 7.24,
     'USD': 1.0,
     'HKD': 7.78,
@@ -14,6 +15,20 @@ class CurrencyHelper {
     'KRW': 1320.0,
     'SGD': 1.34,
   };
+
+  /// 支持的币种列表（用于过滤 API 返回的多余币种）
+  static const Set<String> supportedCurrencies = {
+    'CNY', 'USD', 'HKD', 'EUR', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'KRW', 'SGD',
+  };
+
+  /// 使用 API 返回的实时汇率更新
+  static void updateRates(Map<String, double> rates) {
+    for (final currency in supportedCurrencies) {
+      if (rates.containsKey(currency)) {
+        exchangeRates[currency] = rates[currency]!;
+      }
+    }
+  }
 
   /// 获取货币符号
   static String getSymbol(String currency) {

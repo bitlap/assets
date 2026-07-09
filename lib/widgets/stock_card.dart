@@ -23,9 +23,6 @@ class StockCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 使用真实数据，无数据时回退到 mock
-    // final detail = _buildStockDetail(stock);
-
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(

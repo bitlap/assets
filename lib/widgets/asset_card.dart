@@ -44,73 +44,110 @@ class _AssetCardState extends State<AssetCard> {
   }
 
   void _openDropdown() {
-    final renderBox = _dropdownKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-    final position = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
+    final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-
-    // 列表从按钮正下方开始，最大高度不超过屏幕底部安全区
-    final topPosition = position.dy + size.height + 4;
-    final maxHeight = screenHeight - topPosition - 40;
+    final dropdownWidth = screenWidth * 2 / 3;
 
     setState(() => _isDropdownOpen = true);
 
     _overlayEntry = OverlayEntry(
       builder: (context) => Stack(
         children: [
-          // 点击外部关闭
+          // 半透明遮罩，点击关闭
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: _closeDropdown,
-              child: Container(color: Colors.transparent),
+              child: Container(color: Colors.black.withOpacity(0.4)),
             ),
           ),
-          // 下拉列表
-          Positioned(
-            left: position.dx,
-            top: topPosition,
-            width: size.width,
+          // 居中浮动窗口
+          Center(
             child: Material(
               color: Colors.transparent,
               child: Container(
-                constraints: BoxConstraints(maxHeight: maxHeight.clamp(100, 220)),
+                width: dropdownWidth,
+                constraints: BoxConstraints(maxHeight: screenHeight * 0.6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF161B22),
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFF1A1F26),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFF303631)),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 12, offset: const Offset(0, 4)),
+                    BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 20, spreadRadius: 2),
                   ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    children: CurrencyHelper.exchangeRates.keys.map((currency) {
-                      final isSelected = currency == widget.selectedCurrency;
-                      return InkWell(
-                        onTap: () {
-                          widget.onCurrencyChanged(currency);
-                          _closeDropdown();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                          color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.transparent,
-                          child: Text(
-                            currency,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isSelected ? Colors.blue : Colors.white,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                            ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 标题栏
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+                      child: Row(
+                        children: [
+                          const Text(
+                            '选择货币',
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
                           ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: _closeDropdown,
+                            child: Icon(Icons.close, size: 18, color: Colors.grey[500]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Divider(height: 1, color: Colors.grey[800]),
+                    // 货币列表
+                    Flexible(
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        children: CurrencyHelper.exchangeRates.keys.map((currency) {
+                          final isSelected = currency == widget.selectedCurrency;
+                          final rate = CurrencyHelper.exchangeRates[currency]!;
+                          final symbol = CurrencyHelper.getSymbol(currency);
+                          return InkWell(
+                            onTap: () {
+                              widget.onCurrencyChanged(currency);
+                              _closeDropdown();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              color: isSelected ? Colors.blue.withOpacity(0.15) : Colors.transparent,
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 16,
+                                    child: isSelected
+                                        ? const Icon(Icons.check, size: 16, color: Color(0xFF5B9CF6))
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      currency,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: isSelected ? const Color(0xFF5B9CF6) : Colors.white,
+                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '$symbol ${CurrencyHelper.formatRate(rate)}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: isSelected ? const Color(0xFF5B9CF6) : Colors.grey[500],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

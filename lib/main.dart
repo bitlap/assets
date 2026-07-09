@@ -10,7 +10,10 @@ import 'widgets/stock_card.dart';
 import 'widgets/records_dialog.dart';
 import 'widgets/edit_delete_dialogs.dart';
 import 'widgets/search_stock_dialog.dart';
+import 'widgets/settings_page.dart';
 import 'services/stock_search_service.dart';
+import 'services/exchange_rate_service.dart';
+import 'services/settings_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -64,6 +67,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   
   // 行情服务实例和定时刷新
   final StockSearchService _searchService = StockSearchService();
+  final ExchangeRateService _exchangeRateService = ExchangeRateService();
   Timer? _priceRefreshTimer;
 
   // ========== 排序状态 ==========
@@ -73,11 +77,18 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   @override
   void initState() {
     super.initState();
-    // 不初始化操作记录，直接使用股票的初始数据
-    // 只有当用户添加新记录时才创建操作记录
-    
-    // 启动后延迟3秒开始刷新价格，然后每300秒刷新一次
-    _startPriceRefresh();
+    // 加载保存的默认货币
+    _loadSavedCurrency();
+    // 启动后延迟3秒开始刷新价格和汇率，然后每300秒刷新一次
+    _startRefresh();
+  }
+
+  /// 从本地存储加载默认货币
+  Future<void> _loadSavedCurrency() async {
+    final saved = await SettingsService.getDefaultCurrency();
+    if (saved != null && mounted) {
+      setState(() => selectedCurrency = saved);
+    }
   }
   
   @override
@@ -86,17 +97,33 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     super.dispose();
   }
   
-  /// 启动价格定时刷新
-  void _startPriceRefresh() {
+  /// 启动定时刷新（价格 + 汇率）
+  void _startRefresh() {
     // 首次加载后延迟3秒刷新
     Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) _refreshAllPrices();
+      if (mounted) _refreshAll();
     });
     
-    // 每300秒刷新一次价格
+    // 每300秒刷新一次价格和汇率
     _priceRefreshTimer = Timer.periodic(const Duration(seconds: 300), (_) {
-      if (mounted) _refreshAllPrices();
+      if (mounted) _refreshAll();
     });
+  }
+
+  /// 刷新汇率（使用独立熔断，失败不影响股票行情）
+  Future<void> _refreshExchangeRates() async {
+    final rates = await _exchangeRateService.fetchRates();
+    if (rates != null && mounted) {
+      setState(() {
+        CurrencyHelper.updateRates(rates);
+      });
+    }
+  }
+
+  /// 统一刷新：先更新汇率，再更新股票价格
+  Future<void> _refreshAll() async {
+    await _refreshExchangeRates();
+    await _refreshAllPrices();
   }
   
   /// 刷新所有持仓股票的实时价格
@@ -126,7 +153,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 profitLossPercent: quote.changePercent,
                 changePercent: quote.changePercent,
               );
-              debugPrint('开始刷新 ${stock.companyName} 股票的价格... ${stock.currentPrice}');
+              debugPrint('开始刷新股票价格 ${stock.companyName}:${stock.currentPrice}');
               // 重新计算盈亏金额（基于新的当前价格）
               _recalculateStockFromRecords(stock.symbol);
             }
@@ -188,7 +215,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     // 净成本 = 总买入金额 - 总卖出金额
     // 解释：买入时花出去的钱 - 卖出时收回来的钱 = 当前持仓的实际成本
     final netCost = totalBuyAmount - totalSellAmount;
-    debugPrint('当前总价值: ${totalValue}， ${netCost}');
+    debugPrint('刷新股票持仓 ${stock.companyName}，总价值:${totalValue} 成本:${netCost}');
     // ========== 第四步：计算盈亏 ==========
     // 盈亏 = 当前总金额 - 净成本
     final profitLossAmount = totalValue - netCost;
@@ -301,6 +328,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   // ========== 事件处理 ==========
   void _onCurrencyChanged(String newCurrency) {
     setState(() => selectedCurrency = newCurrency);
+    // 持久化保存选择的货币
+    SettingsService.setDefaultCurrency(newCurrency);
   }
 
   void _onStockTap(StockModel stock) {
@@ -423,6 +452,19 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     );
   }
 
+  /// 打开全屏设置页面
+  void _showSettingsPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SettingsPage(
+          currentCurrency: selectedCurrency,
+          onCurrencyChanged: _onCurrencyChanged,
+        ),
+      ),
+    );
+  }
+
   // ========== 页面组装 ==========
   @override
   Widget build(BuildContext context) {
@@ -430,7 +472,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
       backgroundColor: const Color(0xFF0C1117),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _refreshAllPrices,
+          onRefresh: _refreshAll,
           color: Colors.blue,
           backgroundColor: const Color(0xFF1A1F26),
           child: SingleChildScrollView(
@@ -529,7 +571,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: _showSettingsPage,
                 icon: const Icon(Icons.settings, color: Colors.white, size: 22),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),

@@ -117,10 +117,10 @@ class StockSearchService {
     }
 
     // 搜索 API 也受熔断保护
-    // if (_isInCooldown) {
-    //   debugPrint('处于冷却期，跳过搜索请求');
-    //   return cachedSearch?.$2 ?? [];
-    // }
+    if (_isInCooldown) {
+      debugPrint('处于冷却期，跳过搜索请求');
+      return cachedSearch?.$2 ?? [];
+    }
 
     Client? client;
     try {
