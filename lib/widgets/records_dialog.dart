@@ -191,13 +191,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
   }
 
   String _formatShares(double shares) {
-    if (shares == shares.toInt()) {
-      return shares.toInt().toString();
-    }
-    return shares
-        .toStringAsFixed(4)
-        .replaceAll(RegExp(r'0+$'), '')
-        .replaceAll(RegExp(r'\.$'), '');
+    return CurrencyHelper.formatShares(shares);
   }
 
   @override

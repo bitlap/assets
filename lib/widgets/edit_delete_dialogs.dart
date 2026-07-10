@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/stock_model.dart';
 import '../utils/currency_helper.dart';
+import '../utils/stock_calculator.dart';
 import '../services/stock_search_service.dart';
 import '../utils/center_toast.dart';
 
@@ -35,18 +36,9 @@ class _EditStockDialogState extends State<EditStockDialog> {
   final StockSearchService _searchService = StockSearchService();
   bool _isLoadingPrice = false;
 
-  /// 从操作记录计算买入均价：平均成本 = 总金额 / 总股数
-  double get _avgBuyPrice {
-    final buyRecords = widget.operationRecords.where((r) => r.type == '买入');
-    if (buyRecords.isEmpty) return 0.0;
-    double totalCost = 0;
-    double totalShares = 0;
-    for (final r in buyRecords) {
-      totalCost += r.amount * r.shares;
-      totalShares += r.shares;
-    }
-    return totalShares > 0 ? totalCost / totalShares : 0.0;
-  }
+  /// 从操作记录计算买入均价
+  double get _avgBuyPrice =>
+      StockCalculator.calculateAvgBuyPrice(widget.operationRecords);
 
   @override
   void initState() {
@@ -55,9 +47,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
     // 先用当前存储的价格初始化
     _priceController = TextEditingController(
       text: widget.stock.currentPrice > 0
-          ? widget.stock.currentPrice.toStringAsFixed(
-              widget.stock.currentPrice >= 100 ? 2 : 3,
-            )
+          ? CurrencyHelper.formatRate(widget.stock.currentPrice)
           : '',
     );
     // 尝试获取实时价格作为默认值
@@ -81,9 +71,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
       );
       if (!mounted) return;
       if (quote != null && quote.currentPrice > 0) {
-        _priceController.text = quote.currentPrice.toStringAsFixed(
-          quote.currentPrice >= 100 ? 2 : 3,
-        );
+        _priceController.text = CurrencyHelper.formatRate(quote.currentPrice);
       }
     } catch (_) {
       // 获取失败时保持原有价格
@@ -386,17 +374,8 @@ class _EditStockDialogState extends State<EditStockDialog> {
     );
   }
 
-  /// 格式化股数：整数不显示小数点，小数保留原样
-  String _formatShares(double shares) {
-    if (shares == shares.toInt()) {
-      return shares.toInt().toString();
-    }
-    // 去除末尾多余的0
-    return shares
-        .toStringAsFixed(4)
-        .replaceAll(RegExp(r'0+$'), '')
-        .replaceAll(RegExp(r'\.$'), '');
-  }
+  /// 格式化股数：委托给工具类
+  String _formatShares(double shares) => CurrencyHelper.formatShares(shares);
 
   Widget _buildInfoRow(String label, String value) {
     return Row(

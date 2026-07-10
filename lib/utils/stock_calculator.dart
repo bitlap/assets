@@ -1,0 +1,138 @@
+import '../models/stock_model.dart';
+
+/// 操作记录统计结果
+class RecordStats {
+  final double currentShares; // 当前持股数
+  final double totalBuyAmount; // 买入总金额
+  final double totalSellAmount; // 卖出ong总金额
+  final int buyCount; // 买入次数
+  final int sellCount; // 卖出次数
+  final double maxBuyPrice; // 最高买入价
+  final double minBuyPrice; // 最低买入价
+  final double avgBuyPrice; // 买入均价
+
+  const RecordStats({
+    this.currentShares = 0,
+    this.totalBuyAmount = 0,
+    this.totalSellAmount = 0,
+    this.buyCount = 0,
+    this.sellCount = 0,
+    this.maxBuyPrice = 0,
+    this.minBuyPrice = 0,
+    this.avgBuyPrice = 0,
+  });
+}
+
+/// 持仓计算工具类 - 所有与操作记录相关的计算逻辑
+class StockCalculator {
+  /// 从操作记录计算完整统计信息
+  static RecordStats calculateRecordStats(List<OperationRecord> records) {
+    if (records.isEmpty) return const RecordStats();
+
+    double currentShares = 0;
+    double totalBuyAmount = 0.0;
+    double totalSellAmount = 0.0;
+    double maxBuyPrice = 0.0;
+    double minBuyPrice = double.infinity;
+    int buyCount = 0;
+    int sellCount = 0;
+
+    for (final record in records) {
+      if (record.type == '买入') {
+        currentShares += record.shares;
+        totalBuyAmount += record.amount * record.shares;
+        buyCount++;
+        if (record.amount > maxBuyPrice) maxBuyPrice = record.amount;
+        if (record.amount < minBuyPrice) minBuyPrice = record.amount;
+      } else if (record.type == '卖出') {
+        currentShares -= record.shares;
+        totalSellAmount += record.amount * record.shares;
+        sellCount++;
+      }
+    }
+
+    // 防止浮点误差导致负数
+    if (currentShares < 0) currentShares = 0;
+    if (minBuyPrice == double.infinity) minBuyPrice = 0.0;
+
+    // 持仓均价 = 净成本 ÷ 当前持股数（考虑卖出）
+    final avgBuyPrice = currentShares > 0
+        ? (totalBuyAmount - totalSellAmount) / currentShares
+        : 0.0;
+
+    return RecordStats(
+      currentShares: currentShares,
+      totalBuyAmount: totalBuyAmount,
+      totalSellAmount: totalSellAmount,
+      buyCount: buyCount,
+      sellCount: sellCount,
+      maxBuyPrice: maxBuyPrice,
+      minBuyPrice: minBuyPrice,
+      avgBuyPrice: avgBuyPrice,
+    );
+  }
+
+  /// 从操作记录计算持仓均价（考虑卖出，净成本均摊到剩余股份）
+  static double calculateAvgBuyPrice(List<OperationRecord> records) {
+    double totalBuyAmount = 0.0;
+    double totalSellAmount = 0.0;
+    double currentShares = 0.0;
+    for (final r in records) {
+      if (r.type == '买入') {
+        totalBuyAmount += r.amount * r.shares;
+        currentShares += r.shares;
+      } else if (r.type == '卖出') {
+        totalSellAmount += r.amount * r.shares;
+        currentShares -= r.shares;
+      }
+    }
+    if (currentShares <= 0) return 0.0;
+    return (totalBuyAmount - totalSellAmount) / currentShares;
+  }
+
+  /// 根据操作记录重算股票的持仓数据
+  /// 返回更新后的 StockModel，如果无记录则返回原股票
+  static StockModel recalculateFromRecords(
+    StockModel stock,
+    List<OperationRecord> records,
+  ) {
+    if (records.isEmpty) return stock;
+
+    final stats = calculateRecordStats(records);
+
+    // 当前总持仓金额 = 当前价格 × 当前数量
+    final totalValue = stock.currentPrice * stats.currentShares;
+
+    // 如果当前没有持股，直接归零
+    if (stats.currentShares == 0) {
+      return stock.copyWith(
+        shares: 0,
+        totalValue: 0,
+        profitLossAmount: 0,
+        profitLossPercent: 0,
+        isPositive: true,
+      );
+    }
+
+    // 持仓均价 = 净成本 ÷ 当前持股数（考虑卖出）
+    final avgCost = stats.avgBuyPrice;
+
+    // 盈亏 = 当前总价值 - (持仓均价 × 当前持股数)
+    final profitLossAmount = totalValue - avgCost * stats.currentShares;
+
+    // 盈亏百分比 = (当前价 - 持仓均价) ÷ 持仓均价 × 100%
+    final profitLossPercent = avgCost > 0
+        ? ((stock.currentPrice - avgCost) / avgCost * 100.0)
+        : 0.0;
+    // 盈亏方向：持仓均价 <= 当前价 = 盈利
+    final isPositive = avgCost <= stock.currentPrice;
+
+    return stock.copyWith(
+      shares: stats.currentShares,
+      totalValue: totalValue,
+      profitLossAmount: profitLossAmount,
+      profitLossPercent: profitLossPercent,
+      isPositive: isPositive,
+    );
+  }
+}

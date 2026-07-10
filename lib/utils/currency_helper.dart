@@ -79,4 +79,25 @@ class CurrencyHelper {
         return 'USD';
     }
   }
+
+  /// 格式化股数：整数不显示小数点，小数保留原样
+  static String formatShares(double shares) {
+    if (shares == shares.toInt()) {
+      return shares.toInt().toString();
+    }
+    return shares
+        .toStringAsFixed(4)
+        .replaceAll(RegExp(r'0+$'), '')
+        .replaceAll(RegExp(r'\.$'), '');
+  }
+
+  /// 将金额从源币种转换为目标币种（以 USD 为中间货币）
+  static double convertCurrency(
+    double amount,
+    String fromCurrency,
+    String toCurrency,
+  ) {
+    final amountInUSD = amount / getExchangeRate(fromCurrency);
+    return amountInUSD * getExchangeRate(toCurrency);
+  }
 }

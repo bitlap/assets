@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/stock_model.dart';
 import '../utils/currency_helper.dart';
+import '../utils/stock_calculator.dart';
 
 /// 股票卡片组件（纯UI展示）
 class StockCard extends StatelessWidget {
@@ -43,9 +44,14 @@ class StockCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: stock.marketType == '美股' ? Colors.blue : Colors.orange,
+                    color: stock.marketType == '美股'
+                        ? Colors.blue
+                        : Colors.orange,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -59,6 +65,15 @@ class StockCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
+                Text(
+                  '总额',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[500],
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(width: 2),
                 Text(
                   '${CurrencyHelper.getSymbol(stock.currency)}${CurrencyHelper.formatRate(stock.totalValue)}',
                   style: const TextStyle(
@@ -228,7 +243,12 @@ class StockCard extends StatelessWidget {
       children: [
         Text(
           '${_formatShares(stock.shares)}股',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            height: 1.2,
+          ),
         ),
         const SizedBox(height: 4),
         Row(
@@ -246,7 +266,7 @@ class StockCard extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              '${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.toStringAsFixed(2)}%',
+              '${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.abs().toStringAsFixed(2)}%',
               style: TextStyle(fontSize: 10, color: changeColor, height: 1.2),
             ),
             const SizedBox(width: 14), // 与表头排序指示器对齐
@@ -272,7 +292,7 @@ class StockCard extends StatelessWidget {
           ),
         ),
         Text(
-          '${stock.profitLossPercent > 0 ? '+' : ''}${stock.profitLossPercent.toStringAsFixed(1)}%',
+          '${stock.profitLossPercent > 0 ? '+' : ''}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -344,39 +364,21 @@ class StockCard extends StatelessWidget {
 
   /// 构建展开详情区域
   List<Widget> _buildExpandedDetails() {
-    // 计算各项数据
-    double totalBuyAmount = 0.0;
-    double totalSellAmount = 0.0;
-    double maxBuyPrice = 0.0;
-    double minBuyPrice = double.infinity;
-    int buyCount = 0;
-    int sellCount = 0;
-
-    for (final record in operationRecords) {
-      if (record.type == '买入') {
-        totalBuyAmount += record.amount * record.shares;
-        buyCount++;
-        if (record.amount > maxBuyPrice) maxBuyPrice = record.amount;
-        if (record.amount < minBuyPrice) minBuyPrice = record.amount;
-      } else if (record.type == '卖出') {
-        totalSellAmount += record.amount * record.shares;
-        sellCount++;
-      }
-    }
-
-    final avgCost = stock.shares > 0 ? (totalBuyAmount - totalSellAmount) / stock.shares : 0.0;
-    if (minBuyPrice == double.infinity) minBuyPrice = 0.0;
+    final stats = StockCalculator.calculateRecordStats(operationRecords);
+    final totalCost = stats.totalBuyAmount - stats.totalSellAmount;
 
     return [
-      _buildDetailRow('平均持仓价', CurrencyHelper.formatRate(avgCost)),
+      _buildDetailRow('总成本', CurrencyHelper.formatRate(totalCost)),
       const SizedBox(height: 10),
-      _buildDetailRow('最大购买价', CurrencyHelper.formatRate(maxBuyPrice)),
+      _buildDetailRow('平均持仓价', CurrencyHelper.formatRate(stats.avgBuyPrice)),
       const SizedBox(height: 10),
-      _buildDetailRow('最低购买价', CurrencyHelper.formatRate(minBuyPrice)),
+      _buildDetailRow('最大购买价', CurrencyHelper.formatRate(stats.maxBuyPrice)),
       const SizedBox(height: 10),
-      _buildDetailRow('加仓次数', '$buyCount 次'),
+      _buildDetailRow('最低购买价', CurrencyHelper.formatRate(stats.minBuyPrice)),
       const SizedBox(height: 10),
-      _buildDetailRow('平仓次数', '$sellCount 次'),
+      _buildDetailRow('加仓次数', '${stats.buyCount} 次'),
+      const SizedBox(height: 10),
+      _buildDetailRow('减仓次数', '${stats.sellCount} 次'),
     ];
   }
 
@@ -409,12 +411,6 @@ class StockCard extends StatelessWidget {
   }
 
   String _formatShares(double shares) {
-    if (shares == shares.toInt()) {
-      return shares.toInt().toString();
-    }
-    return shares
-        .toStringAsFixed(4)
-        .replaceAll(RegExp(r'0+$'), '')
-        .replaceAll(RegExp(r'\.$'), '');
+    return CurrencyHelper.formatShares(shares);
   }
 }

@@ -268,7 +268,7 @@ class _AssetCardState extends State<AssetCard> {
                   '总股息',
                   _buildDividendText(),
                   const Text(
-                    '0%',
+                    '0.00%',
                     style: TextStyle(
                       fontSize: 11,
                       color: Colors.white70,
@@ -369,7 +369,7 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildProfitPercent() {
     return Text(
-      '${widget.totalProfit >= 0 ? '+' : ''}${widget.totalProfitPercent.toStringAsFixed(2)}%',
+      '${widget.totalProfit >= 0 ? '+' : ''}${widget.totalProfitPercent.abs().toStringAsFixed(2)}%',
       style: TextStyle(
         fontSize: 11,
         color: widget.totalProfit >= 0

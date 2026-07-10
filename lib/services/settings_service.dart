@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 设置服务 - 持久化用户偏好设置
 class SettingsService {
   static const String _keyDefaultCurrency = 'default_currency';
+
   /// 平仓后是否保留持仓股票（若选择删除，则清空数据，效果等同直接删除股票）
   static const String _keyKeepStockAfterClose = 'keep_stock_after_close';
 

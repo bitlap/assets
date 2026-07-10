@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'models/stock_model.dart';
 import 'utils/currency_helper.dart';
 import 'utils/center_toast.dart';
+import 'utils/stock_calculator.dart';
 import 'widgets/asset_card.dart';
 import 'widgets/stock_card.dart';
 import 'widgets/records_dialog.dart';
@@ -162,7 +163,6 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
             if (index != -1) {
               stocks[index] = stock.copyWith(
                 currentPrice: quote.currentPrice,
-                profitLossPercent: quote.changePercent,
                 changePercent: quote.changePercent,
               );
               debugPrint('开始刷新股票价格 ${stock.companyName}:${stock.currentPrice}');
@@ -182,91 +182,37 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   /// 根据操作记录重算单只股票的股数、总金额、盈亏
   void _recalculateStockFromRecords(String symbol) {
     final records = _operationRecords[symbol];
-    // 如果没有操作记录，跳过重算（保持股票原始数据）
     if (records == null || records.isEmpty) return;
     final stockIndex = stocks.indexWhere((s) => s.symbol == symbol);
     if (stockIndex == -1) return;
-    final stock = stocks[stockIndex];
 
-    // ========== 第一步：计算当前持仓和交易总额 ==========
-    double currentShares = 0; // 当前持股数
-    double totalBuyAmount = 0.0; // 所有买入操作的总金额
-    double totalSellAmount = 0.0; // 所有卖出操作的总金额
-
-    for (final record in records) {
-      if (record.type == '买入') {
-        currentShares += record.shares;
-        totalBuyAmount += record.amount * record.shares;
-      } else if (record.type == '卖出') {
-        currentShares -= record.shares;
-        totalSellAmount += record.amount * record.shares;
-      }
-    }
-
-    // 防止浮点误差导致负数
-    if (currentShares < 0) currentShares = 0;
-
-    // ========== 第二步：计算当前总持仓金额 ==========
-    // 核心公式：当前总金额 = 当前价格 × 当前数量
-    final totalValue = stock.currentPrice * currentShares;
-
-    // 如果当前没有持股，直接设为0
-    if (currentShares == 0) {
-      stocks[stockIndex] = stock.copyWith(
-        shares: 0,
-        totalValue: 0,
-        profitLossAmount: 0,
-        profitLossPercent: 0,
-        isPositive: true,
-      );
-      return;
-    }
-
-    // ========== 第三步：计算净成本 ==========
-    // 净成本 = 总买入金额 - 总卖出金额
-    // 解释：买入时花出去的钱 - 卖出时收回来的钱 = 当前持仓的实际成本
-    final netCost = totalBuyAmount - totalSellAmount;
-    debugPrint('刷新股票持仓 ${stock.companyName}，总价值:${totalValue} 成本:${netCost}');
-    // ========== 第四步：计算盈亏 ==========
-    // 盈亏 = 当前总金额 - 净成本
-    final profitLossAmount = totalValue - netCost;
-
-    // 平均成本价 = 净成本 ÷ 当前股数
-    final avgCostPerShare = netCost / currentShares;
-
-    // 盈亏百分比 = (当前价 - 平均成本价) ÷ 平均成本价 × 100%
-    final double profitLossPercent = avgCostPerShare > 0
-        ? ((stock.currentPrice - avgCostPerShare) / avgCostPerShare * 100.0)
-        : 0.0;
-
-    // 判断盈亏方向：操作记录总额 > 当前总额 = 亏本（绿色），否则 = 盈利（红色）
-    final bool isPositive = netCost <= totalValue;
-
-    // ========== 第五步：更新股票数据 ==========
-    stocks[stockIndex] = stock.copyWith(
-      shares: currentShares,
-      totalValue: totalValue,
-      profitLossAmount: profitLossAmount,
-      profitLossPercent: profitLossPercent,
-      isPositive: isPositive, // 使用新的判断逻辑：操作记录总额 <= 当前总额
+    final updated = StockCalculator.recalculateFromRecords(
+      stocks[stockIndex],
+      records,
     );
+    stocks[stockIndex] = updated;
   }
 
   // ========== 计算属性 ==========
-  /// 将股票自身币种金额转换为目标币种
-  double _convertToSelected(double amount, String stockCurrency) {
-    final amountInUSD = amount / CurrencyHelper.getExchangeRate(stockCurrency);
-    return amountInUSD * CurrencyHelper.getExchangeRate(selectedCurrency);
-  }
-
   double get totalAssets => stocks.fold(
     0.0,
-    (sum, stock) => sum + _convertToSelected(stock.totalValue, stock.currency),
+    (sum, stock) =>
+        sum +
+        CurrencyHelper.convertCurrency(
+          stock.totalValue,
+          stock.currency,
+          selectedCurrency,
+        ),
   );
   double get totalProfit => stocks.fold(
     0.0,
     (sum, stock) =>
-        sum + _convertToSelected(stock.profitLossAmount, stock.currency),
+        sum +
+        CurrencyHelper.convertCurrency(
+          stock.profitLossAmount,
+          stock.currency,
+          selectedCurrency,
+        ),
   );
   double get totalDividends => 0;
   double get totalProfitPercent =>
@@ -290,19 +236,43 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
           cmp = a.shares.compareTo(b.shares);
           if (cmp == 0) {
             // 股价币种不同，转换为统一币种再比较
-            final priceA = _convertToSelected(a.currentPrice, a.currency);
-            final priceB = _convertToSelected(b.currentPrice, b.currency);
+            final priceA = CurrencyHelper.convertCurrency(
+              a.currentPrice,
+              a.currency,
+              selectedCurrency,
+            );
+            final priceB = CurrencyHelper.convertCurrency(
+              b.currentPrice,
+              b.currency,
+              selectedCurrency,
+            );
             cmp = priceA.compareTo(priceB);
           }
           break;
         case 'profit':
           // 盈亏金额（含负数亏损），转换为统一币种再比较
-          final plA = _convertToSelected(a.profitLossAmount, a.currency);
-          final plB = _convertToSelected(b.profitLossAmount, b.currency);
+          final plA = CurrencyHelper.convertCurrency(
+            a.profitLossAmount,
+            a.currency,
+            selectedCurrency,
+          );
+          final plB = CurrencyHelper.convertCurrency(
+            b.profitLossAmount,
+            b.currency,
+            selectedCurrency,
+          );
           cmp = plA.compareTo(plB);
           if (cmp == 0) {
-            final valA = _convertToSelected(a.totalValue, a.currency);
-            final valB = _convertToSelected(b.totalValue, b.currency);
+            final valA = CurrencyHelper.convertCurrency(
+              a.totalValue,
+              a.currency,
+              selectedCurrency,
+            );
+            final valB = CurrencyHelper.convertCurrency(
+              b.totalValue,
+              b.currency,
+              selectedCurrency,
+            );
             cmp = valA.compareTo(valB);
           }
           break;
@@ -363,7 +333,9 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
       if (isClosed) {
         if (_keepStockAfterClose) {
           // 保留股票：持仓数量变为 0，清空盈亏数据
-          final index = stocks.indexWhere((s) => s.symbol == updatedStock.symbol);
+          final index = stocks.indexWhere(
+            (s) => s.symbol == updatedStock.symbol,
+          );
           if (index != -1) {
             stocks[index] = stocks[index].copyWith(
               shares: 0,
@@ -650,7 +622,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       child: Row(
         children: [
-          const SizedBox(width: 18),          
+          const SizedBox(width: 18),
           Expanded(
             flex: 3,
             child: GestureDetector(

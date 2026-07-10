@@ -52,14 +52,15 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C1117),
         elevation: 0,
+        toolbarHeight: 44,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           '设置',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
@@ -67,16 +68,16 @@ class _SettingsPageState extends State<SettingsPage> {
         centerTitle: true,
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         children: [
           _buildSectionHeader('本地货币'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           _buildCurrencySection(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
           _buildSectionHeader('股票设置'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           _buildKeepStockSetting(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
           _buildInfoItem(icon: Icons.info_outline, label: '版本', value: '1.0.0'),
         ],
       ),
@@ -106,16 +107,15 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       child: Material(
         color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
         child: Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
             initiallyExpanded: _isCurrencyExpanded,
             onExpansionChanged: (expanded) =>
                 setState(() => _isCurrencyExpanded = expanded),
-            tilePadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 2,
-            ),
+            tilePadding: const EdgeInsets.symmetric(horizontal: 16),
             childrenPadding: EdgeInsets.zero,
             title: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -156,7 +156,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 14,
+                    vertical: 8,
                   ),
                   decoration: BoxDecoration(
                     border: isLast
@@ -227,7 +227,7 @@ class _SettingsPageState extends State<SettingsPage> {
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1F26),
         borderRadius: BorderRadius.circular(12),
@@ -253,7 +253,7 @@ class _SettingsPageState extends State<SettingsPage> {
   /// 若选择删除，则清空数据，效果等同直接删除股票
   Widget _buildKeepStockSetting() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1F26),
         borderRadius: BorderRadius.circular(12),
@@ -281,13 +281,13 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Padding(
             padding: const EdgeInsets.only(left: 32),
             child: Text(
               _keepStockAfterClose
-                  ? '平仓后保留股票在列表中，持仓数量变为 0'
-                  : '平仓后删除股票，清空所有数据（等同直接删除）',
+                  ? '平仓后保留股票在列表中，但持仓数量和金额均变为 0'
+                  : '平仓后删除股票，清空数据（等同直接删除股票和记录）',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[600],
