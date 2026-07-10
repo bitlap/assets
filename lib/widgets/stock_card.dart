@@ -213,16 +213,16 @@ class StockCard extends StatelessWidget {
         ? const Color(0xFFFF5252)
         : const Color(0xFF4CAF50);
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           '${_formatShares(stock.shares)}股',
-          style: TextStyle(fontSize: 12, color: Colors.grey[400], height: 1.2),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2),
         ),
         const SizedBox(height: 4),
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
@@ -230,15 +230,16 @@ class StockCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[400],
+                color: Colors.white,
                 height: 1.2,
               ),
             ),
             const SizedBox(width: 4),
             Text(
               '${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.toStringAsFixed(2)}%',
-              style: TextStyle(fontSize: 12, color: changeColor, height: 1.2),
+              style: TextStyle(fontSize: 10, color: changeColor, height: 1.2),
             ),
+            const SizedBox(width: 14), // 与表头排序指示器对齐
           ],
         ),
       ],
@@ -250,22 +251,22 @@ class StockCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          '${stock.profitLossPercent > 0 ? '+' : ''}${stock.profitLossPercent.toStringAsFixed(1)}%',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
-            height: 1.2,
-          ),
-        ),
         const SizedBox(height: 4),
         Text(
           '${stock.profitLossAmount > 0 ? '+' : ''}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
           style: TextStyle(
             fontSize: 12,
             color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.bold,
+            height: 1.2,
+          ),
+        ),
+        Text(
+          '${stock.profitLossPercent > 0 ? '+' : ''}${stock.profitLossPercent.toStringAsFixed(1)}%',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
             height: 1.2,
           ),
         ),

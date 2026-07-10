@@ -316,20 +316,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
   Widget _buildSortIndicator(String column, {bool alignRight = false}) {
     final isActive = _sortColumn == column;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (alignRight && !isActive) const SizedBox(width: 14),
-        if (isActive)
-          Icon(
-            _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-            size: 12,
-            color: const Color(0xFF5B9CF6),
-          )
-        else
-          const SizedBox(width: 14),
-        if (alignRight && isActive) const SizedBox(width: 0),
-      ],
+    return SizedBox(
+      width: 14,
+      child: isActive
+          ? Icon(
+              _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+              size: 12,
+              color: const Color(0xFF5B9CF6),
+            )
+          : null,
     );
   }
 
@@ -637,13 +632,13 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
               onTap: () => _onColumnTap('name'),
               behavior: HitTestBehavior.opaque,
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
                     '股票',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.bold,
                       color: Colors.grey[500],
                       height: 1.2,
                     ),
@@ -658,22 +653,21 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
             child: GestureDetector(
               onTap: () => _onColumnTap('holdings'),
               behavior: HitTestBehavior.opaque,
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '持仓',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[500],
-                        height: 1.2,
-                      ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(width: 14), // 与下方内容对齐
+                  Text(
+                    '持仓',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[500],
+                      height: 1.2,
                     ),
-                    _buildSortIndicator('holdings'),
-                  ],
-                ),
+                  ),
+                  _buildSortIndicator('holdings'),
+                ],
               ),
             ),
           ),
@@ -690,7 +684,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                     '盈亏',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.bold,
                       color: Colors.grey[500],
                       height: 1.2,
                     ),
