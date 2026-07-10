@@ -266,7 +266,7 @@ class StockCard extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              '${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.abs().toStringAsFixed(2)}%',
+              '${stock.changePercent >= 0 ? '+' : '-'}${stock.changePercent.abs().toStringAsFixed(2)}%',
               style: TextStyle(fontSize: 10, color: changeColor, height: 1.2),
             ),
             const SizedBox(width: 14), // 与表头排序指示器对齐
@@ -283,7 +283,7 @@ class StockCard extends StatelessWidget {
       children: [
         const SizedBox(height: 4),
         Text(
-          '${stock.profitLossAmount > 0 ? '+' : ''}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
+          '${stock.profitLossAmount > 0 ? '+' : '-'}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
           style: TextStyle(
             fontSize: 12,
             color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
@@ -292,7 +292,7 @@ class StockCard extends StatelessWidget {
           ),
         ),
         Text(
-          '${stock.profitLossPercent > 0 ? '+' : ''}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
+          '${stock.profitLossPercent > 0 ? '+' : '-'}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -362,41 +362,52 @@ class StockCard extends StatelessWidget {
     );
   }
 
-  /// 构建展开详情区域
+  /// 构建展开详情区域（每行3个）
   List<Widget> _buildExpandedDetails() {
     final stats = StockCalculator.calculateRecordStats(operationRecords);
     final totalCost = stats.totalBuyAmount - stats.totalSellAmount;
 
-    return [
-      _buildDetailRow('总成本', CurrencyHelper.formatRate(totalCost)),
-      const SizedBox(height: 10),
-      _buildDetailRow('平均持仓价', CurrencyHelper.formatRate(stats.avgBuyPrice)),
-      const SizedBox(height: 10),
-      _buildDetailRow('最大购买价', CurrencyHelper.formatRate(stats.maxBuyPrice)),
-      const SizedBox(height: 10),
-      _buildDetailRow('最低购买价', CurrencyHelper.formatRate(stats.minBuyPrice)),
-      const SizedBox(height: 10),
-      _buildDetailRow('加仓次数', '${stats.buyCount} 次'),
-      const SizedBox(height: 10),
-      _buildDetailRow('减仓次数', '${stats.sellCount} 次'),
+    final items = [
+      _DetailItem('总成本', CurrencyHelper.formatRate(totalCost)),
+      _DetailItem('平均持仓价', CurrencyHelper.formatRate(stats.avgBuyPrice)),
+      _DetailItem('最大购买价', CurrencyHelper.formatRate(stats.maxBuyPrice)),
+      _DetailItem('最低购买价', CurrencyHelper.formatRate(stats.minBuyPrice)),
+      _DetailItem('加仓次数', '${stats.buyCount} 次'),
+      _DetailItem('减仓次数', '${stats.sellCount} 次'),
     ];
+
+    final rows = <Widget>[];
+    for (int i = 0; i < items.length; i += 3) {
+      final rowItems = items.skip(i).take(3).toList();
+      rows.add(
+        Row(
+          children: [
+            for (int j = 0; j < 3; j++)
+              Expanded(
+                child: j < rowItems.length
+                    ? _buildDetailCell(rowItems[j].label, rowItems[j].value)
+                    : const SizedBox.shrink(),
+              ),
+          ],
+        ),
+      );
+      if (i + 3 < items.length) {
+        rows.add(const SizedBox(height: 8));
+      }
+    }
+    return rows;
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildDetailCell(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          width: 72,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
-              height: 1.2,
-            ),
-          ),
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: Colors.grey[500], height: 1.2),
         ),
+        const SizedBox(height: 2),
         Text(
           value,
           style: const TextStyle(
@@ -413,4 +424,10 @@ class StockCard extends StatelessWidget {
   String _formatShares(double shares) {
     return CurrencyHelper.formatShares(shares);
   }
+}
+
+class _DetailItem {
+  final String label;
+  final String value;
+  _DetailItem(this.label, this.value);
 }

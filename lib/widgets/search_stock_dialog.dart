@@ -571,7 +571,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${isPositive ? '+' : ''}${changePercent.abs().toStringAsFixed(2)}%',
+                    '${isPositive ? '+' : '-'}${changePercent.abs().toStringAsFixed(2)}%',
                     style: TextStyle(color: priceColor, fontSize: 12),
                   ),
                 ],

@@ -1,4 +1,5 @@
 import '../models/stock_model.dart';
+import 'currency_helper.dart';
 
 /// 操作记录统计结果
 class RecordStats {
@@ -20,6 +21,23 @@ class RecordStats {
     this.maxBuyPrice = 0,
     this.minBuyPrice = 0,
     this.avgBuyPrice = 0,
+  });
+}
+
+/// 资产汇总结果
+class AssetSummary {
+  final double totalAssets; // 总资产（目标币种）
+  final double totalCost; // 总成本（目标币种）
+  final double totalProfit; // 总盈亏（目标币种）
+  final double totalProfitPercent; // 总盈亏百分比
+  final double totalDividends; // 总股息（目标币种）
+
+  const AssetSummary({
+    this.totalAssets = 0,
+    this.totalCost = 0,
+    this.totalProfit = 0,
+    this.totalProfitPercent = 0,
+    this.totalDividends = 0,
   });
 }
 
@@ -88,6 +106,62 @@ class StockCalculator {
     }
     if (currentShares <= 0) return 0.0;
     return (totalBuyAmount - totalSellAmount) / currentShares;
+  }
+
+  /// 计算资产汇总（所有金额转换为目标币种）
+  static AssetSummary calculateAssetSummary(
+    List<StockModel> stocks,
+    Map<String, List<OperationRecord>> operationRecords,
+    String targetCurrency,
+  ) {
+    // 总资产
+    final totalAssets = stocks.fold(
+      0.0,
+      (sum, stock) =>
+          sum +
+          CurrencyHelper.convertCurrency(
+            stock.totalValue,
+            stock.currency,
+            targetCurrency,
+          ),
+    );
+
+    // 总盈亏
+    final totalProfit = stocks.fold(
+      0.0,
+      (sum, stock) =>
+          sum +
+          CurrencyHelper.convertCurrency(
+            stock.profitLossAmount,
+            stock.currency,
+            targetCurrency,
+          ),
+    );
+
+    // 总成本
+    final totalCost = stocks.fold(0.0, (sum, stock) {
+      final records = operationRecords[stock.symbol] ?? [];
+      final stats = calculateRecordStats(records);
+      final cost = stats.totalBuyAmount - stats.totalSellAmount;
+      return sum +
+          CurrencyHelper.convertCurrency(cost, stock.currency, targetCurrency);
+    });
+
+    // 总股息（目前为 0）
+    const totalDividends = 0.0;
+
+    // 总盈亏百分比 = 总盈亏 / (总资产 - 总盈亏) * 100
+    final totalProfitPercent = totalAssets > 0
+        ? (totalProfit / (totalAssets - totalProfit) * 100)
+        : 0.0;
+
+    return AssetSummary(
+      totalAssets: totalAssets,
+      totalCost: totalCost,
+      totalProfit: totalProfit,
+      totalProfitPercent: totalProfitPercent,
+      totalDividends: totalDividends,
+    );
   }
 
   /// 根据操作记录重算股票的持仓数据

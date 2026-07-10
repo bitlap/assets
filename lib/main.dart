@@ -84,6 +84,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     _loadSavedCurrency();
     // 加载平仓设置
     _loadKeepStockSetting();
+    // 加载排序设置
+    _loadSortSettings();
     // 启动后延迟3秒开始刷新价格和汇率，然后每300秒刷新一次
     _startRefresh();
   }
@@ -100,6 +102,18 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   Future<void> _loadKeepStockSetting() async {
     final keep = await SettingsService.getKeepStockAfterClose();
     if (mounted) setState(() => _keepStockAfterClose = keep);
+  }
+
+  /// 加载排序设置
+  Future<void> _loadSortSettings() async {
+    final column = await SettingsService.getSortColumn();
+    final ascending = await SettingsService.getSortAscending();
+    if (mounted) {
+      setState(() {
+        _sortColumn = column;
+        _sortAscending = ascending;
+      });
+    }
   }
 
   @override
@@ -194,29 +208,16 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   }
 
   // ========== 计算属性 ==========
-  double get totalAssets => stocks.fold(
-    0.0,
-    (sum, stock) =>
-        sum +
-        CurrencyHelper.convertCurrency(
-          stock.totalValue,
-          stock.currency,
-          selectedCurrency,
-        ),
+  AssetSummary get _assetSummary => StockCalculator.calculateAssetSummary(
+    stocks,
+    _operationRecords,
+    selectedCurrency,
   );
-  double get totalProfit => stocks.fold(
-    0.0,
-    (sum, stock) =>
-        sum +
-        CurrencyHelper.convertCurrency(
-          stock.profitLossAmount,
-          stock.currency,
-          selectedCurrency,
-        ),
-  );
-  double get totalDividends => 0;
-  double get totalProfitPercent =>
-      totalAssets > 0 ? (totalProfit / (totalAssets - totalProfit) * 100) : 0.0;
+  double get totalAssets => _assetSummary.totalAssets;
+  double get totalCost => _assetSummary.totalCost;
+  double get totalProfit => _assetSummary.totalProfit;
+  double get totalDividends => _assetSummary.totalDividends;
+  double get totalProfitPercent => _assetSummary.totalProfitPercent;
   double get exchangeRate => CurrencyHelper.getExchangeRate(selectedCurrency);
 
   // ========== 排序 ==========
@@ -458,6 +459,16 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     );
   }
 
+  /// 设置页面排序变更回调
+  void _onSortChanged(String column) {
+    setState(() {
+      _sortColumn = column;
+      _sortAscending = false;
+    });
+    SettingsService.setSortColumn(column);
+    SettingsService.setSortAscending(false);
+  }
+
   /// 打开全屏设置页面
   void _showSettingsPage() {
     Navigator.push(
@@ -466,11 +477,14 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
         builder: (_) => SettingsPage(
           currentCurrency: selectedCurrency,
           onCurrencyChanged: _onCurrencyChanged,
+          onSortChanged: _onSortChanged,
         ),
       ),
     ).then((_) {
-      // 从设置页返回后重新加载平仓设置
-      if (mounted) _loadKeepStockSetting();
+      // 从设置页返回后重新加载设置
+      if (mounted) {
+        _loadKeepStockSetting();
+      }
     });
   }
 
@@ -494,6 +508,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 AssetCard(
                   selectedCurrency: selectedCurrency,
                   totalAssets: totalAssets,
+                  totalCost: totalCost,
                   totalProfit: totalProfit,
                   totalProfitPercent: totalProfitPercent,
                   totalDividends: totalDividends,

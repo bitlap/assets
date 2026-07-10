@@ -5,6 +5,7 @@ import '../utils/currency_helper.dart';
 class AssetCard extends StatefulWidget {
   final String selectedCurrency;
   final double totalAssets;
+  final double totalCost;
   final double totalProfit;
   final double totalProfitPercent;
   final double totalDividends;
@@ -17,6 +18,7 @@ class AssetCard extends StatefulWidget {
     super.key,
     required this.selectedCurrency,
     required this.totalAssets,
+    required this.totalCost,
     required this.totalProfit,
     required this.totalProfitPercent,
     required this.totalDividends,
@@ -225,14 +227,14 @@ class _AssetCardState extends State<AssetCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 资产总额和货币选择
+          // 总资产和货币选择
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                '资产总额',
+                '总资产',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   color: Colors.white70,
                   height: 1.2,
                 ),
@@ -245,16 +247,32 @@ class _AssetCardState extends State<AssetCard> {
           Text(
             '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatRate(widget.totalAssets)}',
             style: const TextStyle(
-              fontSize: 28,
+              fontSize: 32,
               fontWeight: FontWeight.bold,
               color: Colors.white,
               height: 1.1,
             ),
           ),
           const SizedBox(height: 8),
-          // 总盈亏和总股息
+          // 总成本、总盈亏和总股息
           Row(
             children: [
+              Expanded(
+                child: _buildSummaryCard(
+                  '总成本',
+                  _buildTotalCostText(),
+                  const Text(
+                    ' ',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w500,
+                      height: 1.2,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildSummaryCard(
                   '总盈亏',
@@ -353,9 +371,21 @@ class _AssetCardState extends State<AssetCard> {
     );
   }
 
+  Widget _buildTotalCostText() {
+    return Text(
+      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatRate(widget.totalCost)}',
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+        height: 1.1,
+      ),
+    );
+  }
+
   Widget _buildProfitText() {
     return Text(
-      '${widget.totalProfit >= 0 ? '+' : ''}${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatRate(widget.totalProfit)}',
+      '${widget.totalProfit >= 0 ? '+' : ''}${CurrencyHelper.formatRate(widget.totalProfit)}',
       style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
@@ -369,7 +399,7 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildProfitPercent() {
     return Text(
-      '${widget.totalProfit >= 0 ? '+' : ''}${widget.totalProfitPercent.abs().toStringAsFixed(2)}%',
+      '${widget.totalProfit >= 0 ? '+' : '-'}${widget.totalProfitPercent.abs().toStringAsFixed(2)}%',
       style: TextStyle(
         fontSize: 11,
         color: widget.totalProfit >= 0
@@ -383,7 +413,7 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildDividendText() {
     return Text(
-      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatRate(widget.totalDividends)}',
+      '${CurrencyHelper.formatRate(widget.totalDividends)}',
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
