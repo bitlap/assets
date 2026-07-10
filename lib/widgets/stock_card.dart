@@ -66,7 +66,7 @@ class StockCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '总额',
+                  '总市值',
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey[500],
@@ -283,7 +283,7 @@ class StockCard extends StatelessWidget {
       children: [
         const SizedBox(height: 4),
         Text(
-          '${stock.profitLossAmount > 0 ? '+' : '-'}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
+          '${stock.profitLossAmount > 0 ? '+' : ''}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
           style: TextStyle(
             fontSize: 12,
             color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
@@ -292,7 +292,7 @@ class StockCard extends StatelessWidget {
           ),
         ),
         Text(
-          '${stock.profitLossPercent > 0 ? '+' : '-'}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
+          '${stock.profitLossPercent > 0 ? '+' : ''}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -385,7 +385,15 @@ class StockCard extends StatelessWidget {
             for (int j = 0; j < 3; j++)
               Expanded(
                 child: j < rowItems.length
-                    ? _buildDetailCell(rowItems[j].label, rowItems[j].value)
+                    ? _buildDetailCell(
+                        rowItems[j].label,
+                        rowItems[j].value,
+                        j == 0
+                            ? CrossAxisAlignment.start
+                            : j == 1
+                            ? CrossAxisAlignment.center
+                            : CrossAxisAlignment.end,
+                      )
                     : const SizedBox.shrink(),
               ),
           ],
@@ -398,9 +406,13 @@ class StockCard extends StatelessWidget {
     return rows;
   }
 
-  Widget _buildDetailCell(String label, String value) {
+  Widget _buildDetailCell(
+    String label,
+    String value,
+    CrossAxisAlignment alignment,
+  ) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: alignment,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
