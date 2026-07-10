@@ -69,6 +69,9 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   final ExchangeRateService _exchangeRateService = ExchangeRateService();
   Timer? _priceRefreshTimer;
 
+  /// 平仓后是否保留持仓股票（若选择删除，则清空数据，效果等同直接删除股票）
+  bool _keepStockAfterClose = false;
+
   // ========== 排序状态 ==========
   String _sortColumn = 'profit'; // 'name', 'holdings', 'profit'
   bool _sortAscending = false;
@@ -78,6 +81,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     super.initState();
     // 加载保存的默认货币
     _loadSavedCurrency();
+    // 加载平仓设置
+    _loadKeepStockSetting();
     // 启动后延迟3秒开始刷新价格和汇率，然后每300秒刷新一次
     _startRefresh();
   }
@@ -88,6 +93,12 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     if (saved != null && mounted) {
       setState(() => selectedCurrency = saved);
     }
+  }
+
+  /// 加载平仓后是否保留持仓股票的设置
+  Future<void> _loadKeepStockSetting() async {
+    final keep = await SettingsService.getKeepStockAfterClose();
+    if (mounted) setState(() => _keepStockAfterClose = keep);
   }
 
   @override
@@ -350,8 +361,22 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   ) {
     setState(() {
       if (isClosed) {
-        // 平仓：删除股票
-        stocks.removeWhere((s) => s.symbol == updatedStock.symbol);
+        if (_keepStockAfterClose) {
+          // 保留股票：持仓数量变为 0，清空盈亏数据
+          final index = stocks.indexWhere((s) => s.symbol == updatedStock.symbol);
+          if (index != -1) {
+            stocks[index] = stocks[index].copyWith(
+              shares: 0,
+              totalValue: 0,
+              profitLossAmount: 0,
+              profitLossPercent: 0,
+              isPositive: true,
+            );
+          }
+        } else {
+          // 删除股票：清空数据，效果等同直接删除股票
+          stocks.removeWhere((s) => s.symbol == updatedStock.symbol);
+        }
       } else {
         // 加仓或减仓：更新股票
         final index = stocks.indexWhere((s) => s.symbol == updatedStock.symbol);
@@ -471,7 +496,10 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
           onCurrencyChanged: _onCurrencyChanged,
         ),
       ),
-    );
+    ).then((_) {
+      // 从设置页返回后重新加载平仓设置
+      if (mounted) _loadKeepStockSetting();
+    });
   }
 
   // ========== 页面组装 ==========
@@ -542,21 +570,17 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                     ),
                   ),
                 ] else ...[
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _sortedStocks.length,
-                    itemBuilder: (context, index) {
-                      final stock = _sortedStocks[index];
+                  Column(
+                    children: _sortedStocks.map((stock) {
                       return StockCard(
                         stock: stock,
                         isExpanded: _expandedStockSymbol == stock.symbol,
-                        onTap: () => _onStockTap(stock),
+                        onExpandTap: () => _onStockTap(stock),
                         onRecordTap: () => _showRecordsDialog(stock),
                         onMoreTap: () => _showMoreOptions(stock),
                         operationRecords: _operationRecords[stock.symbol] ?? [],
                       );
-                    },
+                    }).toList(),
                   ),
                 ],
                 const SizedBox(height: 30),
@@ -603,15 +627,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
             children: [
               IconButton(
                 onPressed: _showSearchStockDialog,
-                icon: const Icon(Icons.add, color: Color(0xFF5B9CF6), size: 22),
+                icon: const Icon(Icons.add, color: Color(0xFF5B9CF6), size: 26),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               ),
               IconButton(
                 onPressed: _showSettingsPage,
-                icon: const Icon(Icons.settings, color: Colors.white, size: 22),
+                icon: const Icon(Icons.settings, color: Colors.white, size: 26),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               ),
             ],
           ),
@@ -626,6 +650,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       child: Row(
         children: [
+          const SizedBox(width: 18),          
           Expanded(
             flex: 3,
             child: GestureDetector(
@@ -656,7 +681,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const SizedBox(width: 14), // 与下方内容对齐
+                  const SizedBox(width: 4), // 与下方内容对齐
                   Text(
                     '持仓',
                     style: TextStyle(

@@ -20,11 +20,23 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late String _selectedCurrency;
   bool _isCurrencyExpanded = false;
+  bool _keepStockAfterClose = false;
 
   @override
   void initState() {
     super.initState();
     _selectedCurrency = widget.currentCurrency;
+    _loadSettings();
+  }
+
+  void _loadSettings() async {
+    final keepStock = await SettingsService.getKeepStockAfterClose();
+    if (mounted) setState(() => _keepStockAfterClose = keepStock);
+  }
+
+  void _onKeepStockChanged(bool value) {
+    setState(() => _keepStockAfterClose = value);
+    SettingsService.setKeepStockAfterClose(value);
   }
 
   void _onCurrencySelected(String currency) {
@@ -60,6 +72,10 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSectionHeader('本地货币'),
           const SizedBox(height: 8),
           _buildCurrencySection(),
+          const SizedBox(height: 24),
+          _buildSectionHeader('股票设置'),
+          const SizedBox(height: 8),
+          _buildKeepStockSetting(),
           const SizedBox(height: 24),
           _buildInfoItem(icon: Icons.info_outline, label: '版本', value: '1.0.0'),
         ],
@@ -228,6 +244,57 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           Text(value, style: TextStyle(fontSize: 14, color: Colors.grey[500])),
+        ],
+      ),
+    );
+  }
+
+  /// 平仓后是否保留持仓股票设置项
+  /// 若选择删除，则清空数据，效果等同直接删除股票
+  Widget _buildKeepStockSetting() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F26),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF303631)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.swap_horiz, size: 20, color: Colors.grey[500]),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '平仓后保留持仓',
+                  style: TextStyle(fontSize: 15, color: Colors.grey[300]),
+                ),
+              ),
+              Switch(
+                value: _keepStockAfterClose,
+                onChanged: _onKeepStockChanged,
+                activeColor: const Color(0xFF5B9CF6),
+                inactiveThumbColor: Colors.grey[600],
+                inactiveTrackColor: Colors.grey[800],
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 32),
+            child: Text(
+              _keepStockAfterClose
+                  ? '平仓后保留股票在列表中，持仓数量变为 0'
+                  : '平仓后删除股票，清空所有数据（等同直接删除）',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -241,17 +241,6 @@ class _AssetCardState extends State<AssetCard> {
             ],
           ),
           const SizedBox(height: 4),
-          // 汇率信息
-          Text(
-            '1 USD = ${CurrencyHelper.formatRate(widget.exchangeRate)} ${widget.selectedCurrency}',
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 8),
           // 总金额（已经是目标币种，直接格式化）
           Text(
             '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatRate(widget.totalAssets)}',
@@ -304,10 +293,10 @@ class _AssetCardState extends State<AssetCard> {
       key: _dropdownKey,
       onTap: _toggleDropdown,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -315,7 +304,7 @@ class _AssetCardState extends State<AssetCard> {
             Text(
               widget.selectedCurrency,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 height: 1.2,
@@ -327,7 +316,7 @@ class _AssetCardState extends State<AssetCard> {
               duration: const Duration(milliseconds: 150),
               child: const Icon(
                 Icons.keyboard_arrow_down,
-                size: 14,
+                size: 16,
                 color: Colors.white,
               ),
             ),

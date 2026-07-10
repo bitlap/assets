@@ -6,7 +6,7 @@ import '../utils/currency_helper.dart';
 class StockCard extends StatelessWidget {
   final StockModel stock;
   final bool isExpanded;
-  final VoidCallback onTap;
+  final VoidCallback onExpandTap;
   final VoidCallback onRecordTap;
   final VoidCallback onMoreTap;
   final List<OperationRecord> operationRecords;
@@ -15,7 +15,7 @@ class StockCard extends StatelessWidget {
     super.key,
     required this.stock,
     required this.isExpanded,
-    required this.onTap,
+    required this.onExpandTap,
     required this.onRecordTap,
     required this.onMoreTap,
     this.operationRecords = const [],
@@ -24,46 +24,34 @@ class StockCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onExpandTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
         decoration: BoxDecoration(
           color: const Color(0xFF0C1117),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isExpanded ? Colors.blue : const Color(0xFF303631),
             width: isExpanded ? 1.5 : 1,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: Column(
           children: [
-            // 市场标签 + 总价值
+            // 第一行：市场标签 + 总价值
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: stock.marketType == '美股'
-                        ? Colors.blue
-                        : Colors.orange,
-                    borderRadius: BorderRadius.circular(8),
+                    color: stock.marketType == '美股' ? Colors.blue : Colors.orange,
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     stock.marketType,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       height: 1.2,
@@ -74,7 +62,7 @@ class StockCard extends StatelessWidget {
                 Text(
                   '${CurrencyHelper.getSymbol(stock.currency)}${CurrencyHelper.formatRate(stock.totalValue)}',
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                     height: 1.2,
@@ -82,26 +70,48 @@ class StockCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            // 主信息行
+            const SizedBox(height: 4),
+            // 第二行：Logo + 信息列
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildLogo(),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
                 Expanded(flex: 2, child: _buildCompanyInfo()),
                 Expanded(flex: 2, child: _buildSharesAndPrice()),
                 Expanded(flex: 2, child: _buildProfitLoss()),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
             Divider(height: 1, color: const Color(0xFF303631)),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
+            // 展开详情区域
+            if (isExpanded) ..._buildExpandedDetails(),
+            if (isExpanded) const SizedBox(height: 4),
+            if (isExpanded) Divider(height: 1, color: const Color(0xFF303631)),
+            if (isExpanded) const SizedBox(height: 4),
             // 操作按钮
             Row(
               children: [
                 Expanded(child: _buildRecordButton()),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: onExpandTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 18,
+                        color: isExpanded ? Colors.blue : Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
                 Expanded(child: _buildMoreButton()),
               ],
             ),
@@ -113,10 +123,10 @@ class StockCard extends StatelessWidget {
 
   Widget _buildLogo() {
     return Container(
-      width: 56,
-      height: 56,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         gradient: stock.logoUrl == null
             ? LinearGradient(
                 colors: [
@@ -134,7 +144,7 @@ class StockCard extends StatelessWidget {
         color: stock.logoUrl == null ? null : Colors.white,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         child: stock.logoUrl != null
             ? Image.network(
                 stock.logoUrl!,
@@ -146,7 +156,7 @@ class StockCard extends StatelessWidget {
                 child: Text(
                   stock.symbol.substring(0, 1),
                   style: const TextStyle(
-                    fontSize: 22,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -192,13 +202,13 @@ class StockCard extends StatelessWidget {
       children: [
         Text(
           stock.companyName,
-          style: TextStyle(fontSize: 12, color: Colors.grey[400], height: 1.2),
+          style: TextStyle(fontSize: 11, color: Colors.grey[400], height: 1.2),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(
           stock.symbol,
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 12,
             fontWeight: FontWeight.bold,
             color: Colors.white,
             height: 1.2,
@@ -278,29 +288,22 @@ class StockCard extends StatelessWidget {
     return GestureDetector(
       onTap: onRecordTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           gradient: const LinearGradient(
             colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF1A56DB).withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.list_alt, size: 16, color: Colors.white),
-            SizedBox(width: 6),
+            Icon(Icons.list_alt, size: 14, color: Colors.white),
+            SizedBox(width: 4),
             Text(
               '记录',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
@@ -315,20 +318,20 @@ class StockCard extends StatelessWidget {
     return GestureDetector(
       onTap: onMoreTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: const Color(0xFF303631)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.more_horiz, size: 16, color: Colors.grey[400]),
-            const SizedBox(width: 6),
+            Icon(Icons.more_horiz, size: 14, color: Colors.grey[400]),
+            const SizedBox(width: 4),
             Text(
               '更多',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: Colors.grey[400],
               ),
@@ -336,6 +339,72 @@ class StockCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  /// 构建展开详情区域
+  List<Widget> _buildExpandedDetails() {
+    // 计算各项数据
+    double totalBuyAmount = 0.0;
+    double totalSellAmount = 0.0;
+    double maxBuyPrice = 0.0;
+    double minBuyPrice = double.infinity;
+    int buyCount = 0;
+    int sellCount = 0;
+
+    for (final record in operationRecords) {
+      if (record.type == '买入') {
+        totalBuyAmount += record.amount * record.shares;
+        buyCount++;
+        if (record.amount > maxBuyPrice) maxBuyPrice = record.amount;
+        if (record.amount < minBuyPrice) minBuyPrice = record.amount;
+      } else if (record.type == '卖出') {
+        totalSellAmount += record.amount * record.shares;
+        sellCount++;
+      }
+    }
+
+    final avgCost = stock.shares > 0 ? (totalBuyAmount - totalSellAmount) / stock.shares : 0.0;
+    if (minBuyPrice == double.infinity) minBuyPrice = 0.0;
+
+    return [
+      _buildDetailRow('平均持仓价', CurrencyHelper.formatRate(avgCost)),
+      const SizedBox(height: 10),
+      _buildDetailRow('最大购买价', CurrencyHelper.formatRate(maxBuyPrice)),
+      const SizedBox(height: 10),
+      _buildDetailRow('最低购买价', CurrencyHelper.formatRate(minBuyPrice)),
+      const SizedBox(height: 10),
+      _buildDetailRow('加仓次数', '$buyCount 次'),
+      const SizedBox(height: 10),
+      _buildDetailRow('平仓次数', '$sellCount 次'),
+    ];
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        SizedBox(
+          width: 72,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[500],
+              height: 1.2,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            height: 1.2,
+          ),
+        ),
+      ],
     );
   }
 
