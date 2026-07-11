@@ -16,13 +16,17 @@ class ExchangeRateService {
   /// 汇率缓存
   Map<String, double>? _cachedRates;
   DateTime? _lastFetchTime;
-  static const Duration _cacheTTL = Duration(minutes: DevConfig.exchangeRateCacheTTLMin);
+  static const Duration _cacheTTL = Duration(
+    minutes: DevConfig.exchangeRateCacheTTLMin,
+  );
 
   /// 熔断机制（与股票服务独立，互不影响）
   int _consecutiveFailures = 0;
   DateTime? _cooldownUntil;
   static const int _failureThreshold = DevConfig.failureThreshold;
-  static const Duration _cooldownDuration = Duration(minutes: DevConfig.cooldownDurationMin);
+  static const Duration _cooldownDuration = Duration(
+    minutes: DevConfig.cooldownDurationMin,
+  );
 
   bool get _isInCooldown {
     if (_cooldownUntil == null) return false;

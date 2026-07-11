@@ -6,6 +6,7 @@ import '../services/stock_search_service.dart';
 import '../utils/center_toast.dart';
 import '../utils/currency_helper.dart';
 import '../utils/stock_calculator.dart';
+import '../utils/logo_cacher.dart';
 import '../config/app_config.dart';
 import 'common/app_number_field.dart';
 import 'common/info_row_widget.dart';
@@ -45,6 +46,8 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
   final Set<String> _loadingQuotes = {};
   // 缓存行情数据
   final Map<String, StockQuote?> _quoteCache = {};
+  // 行情获取失败的股票
+  final Set<String> _failedQuotes = {};
 
   @override
   void initState() {
@@ -75,9 +78,12 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       });
       return;
     }
-    _debounceTimer = Timer(const Duration(milliseconds: DevConfig.searchDebounceMs), () {
-      _doSearch(keyword);
-    });
+    _debounceTimer = Timer(
+      const Duration(milliseconds: DevConfig.searchDebounceMs),
+      () {
+        _doSearch(keyword);
+      },
+    );
   }
 
   /// 执行搜索
@@ -99,6 +105,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     setState(() {
       _isLoading = true;
       _errorMessage = '';
+      _failedQuotes.clear();
       // 不清空缓存，保留已缓存的行情数据
     });
 
@@ -130,7 +137,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
               : DevConfig.searchNotFound;
         }
       });
-      // 从 service 缓存中恢复已有行情（单例缓存跨弹窗保留，无需新请求）
+      // 从 service 缓存中恢复已有行情
       _restoreCachedQuotes();
     } catch (e) {
       if (!mounted) return;
@@ -387,43 +394,43 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
 
   /// 从 service 缓存中恢复已有行情，并对未缓存的股票批量获取行情
   void _restoreCachedQuotes() {
-    bool found = false;
     final needFetch = <StockSearchResult>[];
     for (final stock in _allResults) {
       if (!_quoteCache.containsKey(stock.secid)) {
         final cached = _service.getCachedQuote(stock.secid);
         if (cached != null) {
           _quoteCache[stock.secid] = cached;
-          found = true;
         } else {
           needFetch.add(stock);
         }
       }
     }
-    if (found) setState(() {});
-    // 对未缓存的股票批量获取行情
-    if (needFetch.isNotEmpty) {
+    if (needFetch.isEmpty) {
+      // 全部命中缓存，直接结束 loading 显示结果
+      setState(() => _isLoading = false);
+    } else {
       _fetchQuotesBatch(needFetch);
     }
   }
 
   /// 批量获取股票行情并更新 UI
   Future<void> _fetchQuotesBatch(List<StockSearchResult> stocks) async {
-    // 标记所有股票为 loading 状态
     setState(() {
       for (final stock in stocks) {
         _loadingQuotes.add(stock.secid);
       }
     });
-    // 使用批量接口获取行情
     final quotes = await _service.getStockQuotesBatch(stocks);
     if (!mounted) return;
     setState(() {
+      _isLoading = false;
       for (final stock in stocks) {
         _loadingQuotes.remove(stock.secid);
         final quote = quotes[stock.secid];
         if (quote != null) {
           _quoteCache[stock.secid] = quote;
+        } else {
+          _failedQuotes.add(stock.secid);
         }
       }
     });
@@ -495,9 +502,16 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
         final stock = _results[index];
         final quote = _quoteCache[stock.secid];
         final isLoadingQuote = _loadingQuotes.contains(stock.secid);
+        final isFailedQuote = _failedQuotes.contains(stock.secid);
         final isExisting = widget.existingSymbols.contains(stock.code);
 
-        return _buildStockItem(stock, quote, isLoadingQuote, isExisting);
+        return _buildStockItem(
+          stock,
+          quote,
+          isLoadingQuote,
+          isFailedQuote,
+          isExisting,
+        );
       },
     );
   }
@@ -507,6 +521,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     StockSearchResult stock,
     StockQuote? quote,
     bool isLoadingQuote,
+    bool isFailedQuote,
     bool isExisting,
   ) {
     final changePercent = quote?.changePercent ?? 0.0;
@@ -542,14 +557,27 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                     stock.market,
                   );
                   if (logoUrl != null) {
+                    final cached = LogoCacher.syncCached(stock.code);
+                    if (cached != null) {
+                      return Image(
+                        image: cached,
+                        width: 36,
+                        height: 36,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _buildLogoFallback(stock),
+                      );
+                    }
+                    LogoCacher.cacheInBackground(stock.code, logoUrl);
                     return Image.network(
                       logoUrl,
                       width: 36,
                       height: 36,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildLogoFallback(
-                        stock,
-                      ), // ignore: unnecessary_underscores
+                      frameBuilder: (_, child, frame, wasSync) {
+                        if (wasSync || frame != null) return child;
+                        return Container(color: const Color(0xFF2A3040));
+                      },
+                      errorBuilder: (_, __, ___) => _buildLogoFallback(stock),
                     );
                   }
                   return _buildLogoFallback(stock);
@@ -606,8 +634,22 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                 ],
               ),
             ),
-            // 行情数据（无缓存时显示 --，不主动请求）
-            if (quote != null)
+            // 行情数据
+            if (isLoadingQuote)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.grey,
+                ),
+              )
+            else if (isFailedQuote)
+              Text(
+                DevConfig.searchQuoteUnavailable,
+                style: TextStyle(color: Colors.grey[600], fontSize: 11),
+              )
+            else if (quote != null)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -630,9 +672,13 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                 ],
               )
             else
-              const Text(
-                '--',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.grey,
+                ),
               ),
             // 添加按钮
             const SizedBox(width: 12),
@@ -673,12 +719,23 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     );
   }
 
+  Widget _buildLogoLoading() {
+    return const Center(
+      child: SizedBox(
+        width: 14,
+        height: 14,
+        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
+      ),
+    );
+  }
+
   Widget _buildLogoFallback(StockSearchResult stock) {
+    final firstChar = stock.name.isNotEmpty ? stock.name[0] : stock.code[0];
     return Container(
       color: const Color(0xFF2A3040),
       child: Center(
         child: Text(
-          stock.code.substring(0, 1),
+          firstChar,
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,

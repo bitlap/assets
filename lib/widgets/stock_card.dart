@@ -3,6 +3,7 @@ import '../models/stock_model.dart';
 import '../config/app_config.dart';
 import '../utils/currency_helper.dart';
 import '../utils/stock_calculator.dart';
+import '../utils/logo_cacher.dart';
 
 /// 股票卡片组件（纯UI展示）
 class StockCard extends StatelessWidget {
@@ -137,53 +138,14 @@ class StockCard extends StatelessWidget {
   }
 
   Widget _buildLogo() {
+    final fallbackChar = stock.companyName.isNotEmpty
+        ? stock.companyName[0]
+        : stock.symbol[0];
     return Container(
       width: 40,
       height: 40,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        gradient: stock.logoUrl == null
-            ? LinearGradient(
-                colors: [
-                  stock.isPositive
-                      ? Colors.red.withOpacity(0.7)
-                      : Colors.green.withOpacity(0.7),
-                  stock.isPositive
-                      ? Colors.redAccent.withOpacity(0.5)
-                      : Colors.greenAccent.withOpacity(0.5),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        color: stock.logoUrl == null ? null : Colors.white,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: stock.logoUrl != null
-            ? Image.network(
-                stock.logoUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    _buildLogoFallback(),
-              )
-            : Center(
-                child: Text(
-                  stock.symbol.substring(0, 1),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildLogoFallback() {
-    return Container(
-      decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
             stock.isPositive
@@ -197,14 +159,44 @@ class StockCard extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
       ),
-      child: Center(
-        child: Text(
-          stock.symbol.substring(0, 1),
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: _buildLogoContent(fallbackChar),
+      ),
+    );
+  }
+
+  Widget _buildLogoContent(String fallbackChar) {
+    if (stock.logoUrl == null) return _buildFallbackChar(fallbackChar);
+
+    final cached = LogoCacher.syncCached(stock.symbol);
+    if (cached != null) {
+      return Image(
+        image: cached,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildFallbackChar(fallbackChar),
+      );
+    }
+    LogoCacher.cacheInBackground(stock.symbol, stock.logoUrl!);
+    return Image.network(
+      stock.logoUrl!,
+      fit: BoxFit.cover,
+      frameBuilder: (_, child, frame, wasSync) {
+        if (wasSync || frame != null) return child;
+        return Container(color: const Color(0xFF2A3040));
+      },
+      errorBuilder: (_, __, ___) => _buildFallbackChar(fallbackChar),
+    );
+  }
+
+  Widget _buildFallbackChar(String char) {
+    return Center(
+      child: Text(
+        char,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
       ),
     );
@@ -285,6 +277,10 @@ class StockCard extends StatelessWidget {
   }
 
   Widget _buildProfitLoss() {
+    final isZero = stock.profitLossAmount.abs() < 0.0001;
+    final profitColor = isZero
+        ? Colors.grey
+        : (stock.isPositive ? Colors.redAccent : Colors.greenAccent);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
@@ -297,7 +293,7 @@ class StockCard extends StatelessWidget {
             '${stock.profitLossAmount >= 0 ? '+' : '-'}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
             style: TextStyle(
               fontSize: 12,
-              color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
+              color: profitColor,
               fontWeight: FontWeight.bold,
               height: 1.2,
             ),
@@ -311,7 +307,7 @@ class StockCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
+              color: profitColor,
               height: 1.2,
             ),
           ),

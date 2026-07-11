@@ -59,17 +59,23 @@ class StockSearchService {
 
   /// 行情缓存：secid -> (缓存时间, StockQuote)
   final Map<String, (_CachedAt, StockQuote?)> _quoteCache = {};
-  static const Duration _cacheTTL = Duration(minutes: DevConfig.quoteCacheTTLMin);
+  static const Duration _cacheTTL = Duration(
+    minutes: DevConfig.quoteCacheTTLMin,
+  );
 
   /// 搜索缓存：keyword -> (缓存时间, 搜索结果)
   final Map<String, (_CachedAt, List<StockSearchResult>)> _searchCache = {};
-  static const Duration _searchCacheTTL = Duration(minutes: DevConfig.searchCacheTTLMin);
+  static const Duration _searchCacheTTL = Duration(
+    minutes: DevConfig.searchCacheTTLMin,
+  );
 
   /// 熔断机制：连续失败后进入冷却期，不再发请求
   int _consecutiveFailures = 0;
   DateTime? _cooldownUntil;
   static const int _failureThreshold = DevConfig.failureThreshold;
-  static const Duration _cooldownDuration = Duration(minutes: DevConfig.cooldownDurationMin);
+  static const Duration _cooldownDuration = Duration(
+    minutes: DevConfig.cooldownDurationMin,
+  );
 
   /// 是否在冷却中
   bool get _isInCooldown {
@@ -128,7 +134,7 @@ class StockSearchService {
     try {
       final uri = Uri.parse(
         '$_searchBaseUrl?input=${Uri.encodeComponent(keyword)}'
-        '&type=14&token=$_searchToken&count=50',
+        '&type=14&token=$_searchToken&count=20',
       );
 
       client = Client();

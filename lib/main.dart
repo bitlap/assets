@@ -6,6 +6,7 @@ import 'config/app_config.dart';
 import 'utils/currency_helper.dart';
 import 'utils/center_toast.dart';
 import 'utils/stock_calculator.dart';
+import 'utils/logo_cacher.dart';
 import 'widgets/asset_card.dart';
 import 'widgets/stock_card.dart';
 import 'widgets/records_dialog.dart';
@@ -17,7 +18,9 @@ import 'services/stock_search_service.dart';
 import 'services/exchange_rate_service.dart';
 import 'services/settings_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LogoCacher.ensureInit();
   runApp(const MyApp());
 }
 
@@ -136,9 +139,12 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     });
 
     // 定时刷新价格和汇率
-    _priceRefreshTimer = Timer.periodic(Duration(seconds: DevConfig.refreshIntervalSec), (_) {
-      if (mounted) _refreshAll();
-    });
+    _priceRefreshTimer = Timer.periodic(
+      Duration(seconds: DevConfig.refreshIntervalSec),
+      (_) {
+        if (mounted) _refreshAll();
+      },
+    );
   }
 
   /// 刷新汇率（使用独立熔断，失败不影响股票行情）
@@ -162,13 +168,18 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     if (stocks.isEmpty) return;
 
     // 构建搜索对象列表
-    final searchResults = stocks.map((stock) => StockSearchResult(
-      code: stock.symbol,
-      name: stock.companyName,
-      market: stock.marketType,
-      secid: stock.secid ??
-          '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}',
-    )).toList();
+    final searchResults = stocks
+        .map(
+          (stock) => StockSearchResult(
+            code: stock.symbol,
+            name: stock.companyName,
+            market: stock.marketType,
+            secid:
+                stock.secid ??
+                '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}',
+          ),
+        )
+        .toList();
 
     // 批量获取行情（内部缓存检测 + 逐条请求）
     final quotes = await _searchService.getStockQuotesBatch(searchResults);
@@ -177,7 +188,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
     setState(() {
       for (final stock in stocks) {
-        final secid = stock.secid ??
+        final secid =
+            stock.secid ??
             '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}';
         final quote = quotes[secid];
         if (quote != null) {

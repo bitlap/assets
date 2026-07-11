@@ -148,6 +148,7 @@ class DevConfig {
   static const String searchSharesHint = '请输入持股数量';
   static const String searchInvalidPrice = '请输入有效的买入价格';
   static const String searchInvalidShares = '请输入有效的持股数量';
+  static const String searchQuoteUnavailable = '暂无法获取';
 
   // ========== 记录对话框 文案 ==========
   static const String recordsOpTab = '操作';
