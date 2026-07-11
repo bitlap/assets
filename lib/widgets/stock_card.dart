@@ -177,9 +177,9 @@ class StockCard extends StatelessWidget {
         errorBuilder: (_, __, ___) => _buildFallbackChar(fallbackChar),
       );
     }
-    LogoCacher.cacheInBackground(stock.symbol, stock.logoUrl!);
-    return Image.network(
-      stock.logoUrl!,
+    final logoProvider = LogoCacher.getLogo(stock.symbol, stock.logoUrl!);
+    return Image(
+      image: logoProvider,
       fit: BoxFit.cover,
       frameBuilder: (_, child, frame, wasSync) {
         if (wasSync || frame != null) return child;

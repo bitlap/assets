@@ -557,19 +557,12 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                     stock.market,
                   );
                   if (logoUrl != null) {
-                    final cached = LogoCacher.syncCached(stock.code);
-                    if (cached != null) {
-                      return Image(
-                        image: cached,
-                        width: 36,
-                        height: 36,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _buildLogoFallback(stock),
-                      );
-                    }
-                    LogoCacher.cacheInBackground(stock.code, logoUrl);
-                    return Image.network(
+                    final logoProvider = LogoCacher.getLogo(
+                      stock.code,
                       logoUrl,
+                    );
+                    return Image(
+                      image: logoProvider,
                       width: 36,
                       height: 36,
                       fit: BoxFit.cover,
@@ -715,16 +708,6 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
               ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLogoLoading() {
-    return const Center(
-      child: SizedBox(
-        width: 14,
-        height: 14,
-        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
       ),
     );
   }

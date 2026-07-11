@@ -35,13 +35,16 @@ class LogoCacher {
     return null;
   }
 
-  /// 触发后台缓存（fire-and-forget），已缓存或正在下载则跳过
-  static void cacheInBackground(String code, String logoUrl) {
+  /// 获取 Logo ImageProvider，同步返回，无缓存则后台下载
+  static ImageProvider getLogo(String code, String logoUrl) {
+    final cached = syncCached(code);
+    if (cached != null) return cached;
     final key = code.toUpperCase();
-    if (syncCached(code) != null) return;
-    if (_downloading.contains(key)) return;
-    _downloading.add(key);
-    _downloadToCache(key, logoUrl);
+    if (!_downloading.contains(key)) {
+      _downloading.add(key);
+      _downloadToCache(key, logoUrl);
+    }
+    return NetworkImage(logoUrl);
   }
 
   /// 后台下载图片到本地（fire-and-forget）
@@ -52,8 +55,13 @@ class LogoCacher {
         final file = File(_filePath(code));
         await file.parent.create(recursive: true);
         await file.writeAsBytes(response.bodyBytes);
+        debugPrint('Logo缓存成功: $code -> ${file.path}');
+      } else {
+        debugPrint('Logo下载失败 HTTP ${response.statusCode}: $code');
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Logo下载异常 $code: $e');
+    }
     _downloading.remove(code);
   }
 }
