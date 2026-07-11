@@ -451,10 +451,6 @@ class StockCard extends StatelessWidget {
       ],
     );
   }
-
-  String _formatShares(double shares) {
-    return CurrencyHelper.formatShares(shares);
-  }
 }
 
 class _DetailItem {

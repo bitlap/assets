@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../models/stock_model.dart';
 import '../services/stock_search_service.dart';
 import '../utils/center_toast.dart';
 import '../utils/currency_helper.dart';
+import 'common/app_number_field.dart';
+import 'common/info_row_widget.dart';
 
 /// 股票搜索弹窗 - 支持按名称/代码搜索港股、美股
 class SearchStockDialog extends StatefulWidget {
@@ -762,14 +763,14 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow('股票名称', widget.stockName),
+                  InfoRowWidget(label: '股票名称', value: widget.stockName),
                   const SizedBox(height: 8),
-                  _buildInfoRow('市场', widget.market),
+                  InfoRowWidget(label: '市场', value: widget.market),
                   if (widget.defaultPrice > 0) ...[
                     const SizedBox(height: 8),
-                    _buildInfoRow(
-                      '实时价格',
-                      CurrencyHelper.formatRate(widget.defaultPrice),
+                    InfoRowWidget(
+                      label: '实时价格',
+                      value: CurrencyHelper.formatRate(widget.defaultPrice),
                     ),
                   ],
                 ],
@@ -777,81 +778,17 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
             ),
             const SizedBox(height: 16),
             // 买入价格
-            const Text(
-              '买入价格',
-              style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.2),
-            ),
-            const SizedBox(height: 8),
-            TextField(
+            AppNumberField(
               controller: _priceController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-              ],
-              style: const TextStyle(fontSize: 16, color: Colors.white),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFF161B22),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue),
-                ),
-                hintText: '请输入买入价格',
-                hintStyle: TextStyle(color: Colors.grey[600]),
-              ),
+              label: '买入价格',
+              hintText: '请输入买入价格',
             ),
             const SizedBox(height: 12),
             // 持股数量
-            const Text(
-              '持股数量',
-              style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.2),
-            ),
-            const SizedBox(height: 8),
-            TextField(
+            AppNumberField(
               controller: _sharesController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-              ],
-              style: const TextStyle(fontSize: 16, color: Colors.white),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFF161B22),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue),
-                ),
-                hintText: '请输入持股数量',
-                hintStyle: TextStyle(color: Colors.grey[600]),
-              ),
+              label: '持股数量',
+              hintText: '请输入持股数量',
             ),
             const SizedBox(height: 20),
             // 按钮
@@ -909,31 +846,6 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 70,
-          child: Text(
-            label,
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
     );
   }
 

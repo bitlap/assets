@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/stock_model.dart';
 import '../utils/currency_helper.dart';
+import 'common/empty_state_widget.dart';
+import 'common/confirm_delete_dialog.dart';
 
 /// 记录对话框（带Tab切换）
 class RecordsDialog extends StatefulWidget {
@@ -190,38 +192,14 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
     allRecords = List.from(widget.operationRecords);
   }
 
-  String _formatShares(double shares) {
-    return CurrencyHelper.formatShares(shares);
-  }
-
   @override
   Widget build(BuildContext context) {
     // 如果操作记录为空，显示空状态
     if (allRecords.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(40),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.list_alt, size: 48, color: Colors.grey[700]),
-              const SizedBox(height: 12),
-              Text(
-                '暂无操作记录',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '点击"记录"按钮添加第一次操作',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-              ),
-            ],
-          ),
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.list_alt,
+        title: '暂无操作记录',
+        subtitle: '点击“记录”按钮添加第一次操作',
       );
     }
 
@@ -257,42 +235,11 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
             padding: const EdgeInsets.only(right: 16),
             child: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
           ),
-          confirmDismiss: (_) async {
-            return await showDialog<bool>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    backgroundColor: const Color(0xFF161B22),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    title: const Text(
-                      '确认删除',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    content: const Text(
-                      '确定删除此条操作记录？',
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text(
-                          '取消',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        child: const Text(
-                          '删除',
-                          style: TextStyle(color: Colors.redAccent),
-                        ),
-                      ),
-                    ],
-                  ),
-                ) ??
-                false;
-          },
+          confirmDismiss: (_) => ConfirmDeleteDialog.show(
+            context,
+            title: '确认删除',
+            content: '确定删除此条操作记录？',
+          ),
           onDismissed: (_) {
             setState(() => allRecords.removeAt(index));
             widget.onDeleteRecord?.call(widget.stock.symbol, index);
@@ -337,7 +284,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                       if (record.amount > 0 && !isPriceChange) ...[
                         const SizedBox(height: 4),
                         Text(
-                          '${CurrencyHelper.formatRate(record.amount)} \u00d7 ${_formatShares(record.shares)}股 = ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
+                          '${CurrencyHelper.formatRate(record.amount)} \u00d7 ${CurrencyHelper.formatShares(record.shares)}股 = ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
                           style: TextStyle(
                             color: Colors.grey[500],
                             fontSize: 11,
@@ -362,7 +309,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '${isBuy ? "+" : "-"}${_formatShares(record.shares)}股',
+                        '${isBuy ? "+" : "-"}${CurrencyHelper.formatShares(record.shares)}股',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -414,30 +361,10 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
   Widget build(BuildContext context) {
     // 如果派息记录为空，显示空状态
     if (allRecords.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(40),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.attach_money, size: 48, color: Colors.grey[700]),
-              const SizedBox(height: 12),
-              Text(
-                '暂无派息记录',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '当前股票还没有派息数据',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-              ),
-            ],
-          ),
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.attach_money,
+        title: '暂无派息记录',
+        subtitle: '当前股票还没有派息数据',
       );
     }
 
@@ -460,42 +387,11 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
             padding: const EdgeInsets.only(right: 16),
             child: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
           ),
-          confirmDismiss: (_) async {
-            return await showDialog<bool>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    backgroundColor: const Color(0xFF161B22),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    title: const Text(
-                      '确认删除',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    content: const Text(
-                      '确定删除此条派息记录？',
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text(
-                          '取消',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        child: const Text(
-                          '删除',
-                          style: TextStyle(color: Colors.redAccent),
-                        ),
-                      ),
-                    ],
-                  ),
-                ) ??
-                false;
-          },
+          confirmDismiss: (_) => ConfirmDeleteDialog.show(
+            context,
+            title: '确认删除',
+            content: '确定删除此条派息记录？',
+          ),
           onDismissed: (_) {
             setState(() => allRecords.removeAt(index));
             widget.onDeleteRecord?.call(widget.stock.symbol, index);

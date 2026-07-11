@@ -11,6 +11,7 @@ import 'widgets/records_dialog.dart';
 import 'widgets/edit_delete_dialogs.dart';
 import 'widgets/search_stock_dialog.dart';
 import 'widgets/settings_page.dart';
+import 'widgets/common/empty_state_widget.dart';
 import 'services/stock_search_service.dart';
 import 'services/exchange_rate_service.dart';
 import 'services/settings_service.dart';
@@ -523,38 +524,12 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 _buildStockListHeader(),
                 const SizedBox(height: 6),
                 if (_sortedStocks.isEmpty) ...[
-                  // 空状态：暂无股票
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 60),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.show_chart,
-                            size: 64,
-                            color: Colors.grey[700],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            '暂无股票持仓',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[500],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '点击右上角 + 添加股票开始投资',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  const EmptyStateWidget(
+                    icon: Icons.show_chart,
+                    title: '暂无股票持仓',
+                    subtitle: '点击右上角 + 添加股票开始投资',
+                    iconSize: 64,
+                    padding: EdgeInsets.symmetric(vertical: 60),
                   ),
                 ] else ...[
                   Column(

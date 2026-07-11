@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/stock_model.dart';
 import '../utils/currency_helper.dart';
 import '../utils/stock_calculator.dart';
 import '../services/stock_search_service.dart';
 import '../utils/center_toast.dart';
+import 'common/app_number_field.dart';
+import 'common/info_row_widget.dart';
+import 'common/confirm_delete_dialog.dart';
 
 /// 加仓/减仓对话框
 class EditStockDialog extends StatefulWidget {
@@ -124,24 +126,27 @@ class _EditStockDialogState extends State<EditStockDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow('股票代码', widget.stock.symbol),
+                  InfoRowWidget(label: '股票代码', value: widget.stock.symbol),
                   const SizedBox(height: 8),
-                  _buildInfoRow('公司名称', widget.stock.companyName),
+                  InfoRowWidget(label: '公司名称', value: widget.stock.companyName),
                   const SizedBox(height: 8),
-                  _buildInfoRow(
-                    '当前价格',
-                    '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(widget.stock.currentPrice)}',
+                  InfoRowWidget(
+                    label: '当前价格',
+                    value:
+                        '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(widget.stock.currentPrice)}',
                   ),
                   const SizedBox(height: 8),
-                  _buildInfoRow(
-                    '当前持股',
-                    '${_formatShares(widget.stock.shares)}股',
+                  InfoRowWidget(
+                    label: '当前持股',
+                    value:
+                        '${CurrencyHelper.formatShares(widget.stock.shares)}股',
                   ),
                   if (_avgBuyPrice > 0) ...[
                     const SizedBox(height: 8),
-                    _buildInfoRow(
-                      '买入均价',
-                      '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(_avgBuyPrice)}',
+                    InfoRowWidget(
+                      label: '买入均价',
+                      value:
+                          '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(_avgBuyPrice)}',
                     ),
                   ],
                 ],
@@ -172,80 +177,12 @@ class _EditStockDialogState extends State<EditStockDialog> {
               ],
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: _priceController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-              ],
-              style: const TextStyle(fontSize: 16, color: Colors.white),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFF161B22),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue),
-                ),
-                hintText: '请输入价格',
-                hintStyle: TextStyle(color: Colors.grey[600]),
-              ),
-            ),
+            AppNumberField(controller: _priceController, hintText: '请输入价格'),
             const SizedBox(height: 12),
-            // 股数输入（变动股数）
-            Text(
-              widget.isAdd ? '加仓股数' : '减仓股数',
-              style: const TextStyle(
-                fontSize: 13,
-                color: Colors.grey,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
+            AppNumberField(
               controller: _sharesController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-              ],
-              style: const TextStyle(fontSize: 16, color: Colors.white),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFF161B22),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue),
-                ),
-                hintText: widget.isAdd ? '请输入加仓股数' : '请输入减仓股数',
-                hintStyle: TextStyle(color: Colors.grey[600]),
-              ),
+              label: widget.isAdd ? '加仓股数' : '减仓股数',
+              hintText: widget.isAdd ? '请输入加仓股数' : '请输入减仓股数',
             ),
             const SizedBox(height: 20),
             Row(
@@ -373,37 +310,9 @@ class _EditStockDialogState extends State<EditStockDialog> {
       ),
     );
   }
-
-  /// 格式化股数：委托给工具类
-  String _formatShares(double shares) => CurrencyHelper.formatShares(shares);
-
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 70,
-          child: Text(
-            label,
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
-/// 删除确认对话框
+/// 删除确认对话框（使用通用组件）
 class DeleteStockDialog extends StatelessWidget {
   final StockModel stock;
   final VoidCallback onDelete;
@@ -416,107 +325,10 @@ class DeleteStockDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: const Color(0xFF0C1117),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF303631)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.delete_outline,
-                color: Colors.redAccent,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              '确认删除',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '确定要删除 ${stock.symbol} (${stock.companyName}) 吗?',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[400],
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF303631)),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '取消',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      onDelete();
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.red.withOpacity(0.85),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '删除',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return ConfirmDeleteDialog(
+      title: '确认删除',
+      content: '确定要删除 ${stock.symbol} (${stock.companyName}) 吗?',
+      onConfirm: onDelete,
     );
   }
 }

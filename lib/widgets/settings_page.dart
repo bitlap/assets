@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/currency_helper.dart';
 import '../services/settings_service.dart';
 import '../config/app_config.dart';
+import 'common/settings_expansion_card.dart';
 
 /// 全屏设置页面
 class SettingsPage extends StatefulWidget {
@@ -132,125 +133,51 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildCurrencySection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1F26),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF303631)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        clipBehavior: Clip.antiAlias,
-        child: Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
-            initiallyExpanded: _isCurrencyExpanded,
-            onExpansionChanged: (expanded) =>
-                setState(() => _isCurrencyExpanded = expanded),
-            tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-            childrenPadding: EdgeInsets.zero,
-            title: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  _selectedCurrency,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '${CurrencyHelper.getSymbol(_selectedCurrency)} ${CurrencyHelper.formatRate(CurrencyHelper.getExchangeRate(_selectedCurrency))}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[500],
-                    height: 1.2,
-                  ),
-                ),
-              ],
+    return SettingsExpansionCard(
+      initiallyExpanded: _isCurrencyExpanded,
+      onExpansionChanged: (expanded) =>
+          setState(() => _isCurrencyExpanded = expanded),
+      title: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            _selectedCurrency,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              height: 1.2,
             ),
-            trailing: Icon(
-              _isCurrencyExpanded ? Icons.expand_less : Icons.expand_more,
-              color: Colors.grey[500],
-              size: 22,
-            ),
-            children: CurrencyHelper.exchangeRates.keys.map((currency) {
-              final isSelected = currency == _selectedCurrency;
-              final rate = CurrencyHelper.exchangeRates[currency]!;
-              final symbol = CurrencyHelper.getSymbol(currency);
-              final isLast = currency == CurrencyHelper.exchangeRates.keys.last;
-
-              return InkWell(
-                onTap: () => _onCurrencySelected(currency),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    border: isLast
-                        ? null
-                        : Border(
-                            bottom: BorderSide(
-                              color: Colors.grey[800]!,
-                              width: 0.5,
-                            ),
-                          ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: isSelected
-                            ? const Icon(
-                                Icons.check_circle,
-                                size: 20,
-                                color: Color(0xFF5B9CF6),
-                              )
-                            : Icon(
-                                Icons.circle_outlined,
-                                size: 20,
-                                color: Colors.grey[600],
-                              ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          currency,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: isSelected ? Colors.white : Colors.grey[300],
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                            height: 1.2,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '$symbol ${CurrencyHelper.formatRate(rate)}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected
-                              ? const Color(0xFF5B9CF6)
-                              : Colors.grey[500],
-                          height: 1.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
           ),
-        ),
+          const SizedBox(width: 8),
+          Text(
+            '${CurrencyHelper.getSymbol(_selectedCurrency)} ${CurrencyHelper.formatRate(CurrencyHelper.getExchangeRate(_selectedCurrency))}',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[500],
+              height: 1.2,
+            ),
+          ),
+        ],
       ),
+      trailing: Icon(
+        _isCurrencyExpanded ? Icons.expand_less : Icons.expand_more,
+        color: Colors.grey[500],
+        size: 22,
+      ),
+      children: CurrencyHelper.exchangeRates.keys.map((currency) {
+        final isSelected = currency == _selectedCurrency;
+        final rate = CurrencyHelper.exchangeRates[currency]!;
+        final symbol = CurrencyHelper.getSymbol(currency);
+        final isLast = currency == CurrencyHelper.exchangeRates.keys.last;
+        return SettingsSelectableItem(
+          label: currency,
+          trailingText: '$symbol ${CurrencyHelper.formatRate(rate)}',
+          isSelected: isSelected,
+          isLast: isLast,
+          onTap: () => _onCurrencySelected(currency),
+        );
+      }).toList(),
     );
   }
 
@@ -380,117 +307,52 @@ class _SettingsPageState extends State<SettingsPage> {
 
   /// 排序规则折叠式
   Widget _buildSortSetting() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1F26),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF303631)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        clipBehavior: Clip.antiAlias,
-        child: Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
-            initiallyExpanded: _isSortExpanded,
-            onExpansionChanged: (expanded) =>
-                setState(() => _isSortExpanded = expanded),
-            tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-            childrenPadding: EdgeInsets.zero,
-            title: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(Icons.sort, size: 20, color: Colors.grey[500]),
-                const SizedBox(width: 12),
-                Text(
-                  '默认排序',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _selectedSortLabel,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[500],
-                    height: 1.2,
-                  ),
-                ),
-              ],
+    return SettingsExpansionCard(
+      initiallyExpanded: _isSortExpanded,
+      onExpansionChanged: (expanded) =>
+          setState(() => _isSortExpanded = expanded),
+      title: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Icons.sort, size: 20, color: Colors.grey[500]),
+          const SizedBox(width: 12),
+          const Text(
+            '默认排序',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              height: 1.2,
             ),
-            trailing: Icon(
-              _isSortExpanded ? Icons.expand_less : Icons.expand_more,
-              color: Colors.grey[500],
-              size: 22,
-            ),
-            children: sortOptions.map((option) {
-              final key = option['key']!;
-              final label = option['label']!;
-              final isSelected = _selectedSortColumn == key;
-              final isLast = key == sortOptions.last['key'];
-
-              return InkWell(
-                onTap: () => _onSortChanged(key),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    border: isLast
-                        ? null
-                        : Border(
-                            bottom: BorderSide(
-                              color: Colors.grey[800]!,
-                              width: 0.5,
-                            ),
-                          ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: isSelected
-                            ? const Icon(
-                                Icons.check_circle,
-                                size: 20,
-                                color: Color(0xFF5B9CF6),
-                              )
-                            : Icon(
-                                Icons.circle_outlined,
-                                size: 20,
-                                color: Colors.grey[600],
-                              ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: isSelected ? Colors.white : Colors.grey[300],
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                            height: 1.2,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
           ),
-        ),
+          const SizedBox(width: 8),
+          Text(
+            _selectedSortLabel,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[500],
+              height: 1.2,
+            ),
+          ),
+        ],
       ),
+      trailing: Icon(
+        _isSortExpanded ? Icons.expand_less : Icons.expand_more,
+        color: Colors.grey[500],
+        size: 22,
+      ),
+      children: sortOptions.map((option) {
+        final key = option['key']!;
+        final label = option['label']!;
+        final isSelected = _selectedSortColumn == key;
+        final isLast = key == sortOptions.last['key'];
+        return SettingsSelectableItem(
+          label: label,
+          isSelected: isSelected,
+          isLast: isLast,
+          onTap: () => _onSortChanged(key),
+        );
+      }).toList(),
     );
   }
 

@@ -347,37 +347,7 @@ class StockSearchService {
     if (cached != null && DateTime.now().difference(cached.$1) < _cacheTTL) {
       return cached.$2;
     }
-
-    // 熔断中，不发请求
-    if (_isInCooldown) {
-      debugPrint('处于冷却期，跳过行情请求: ${stock.secid}');
-      return null;
-    }
-
-    try {
-      // 腾讯API格式：https://qt.gtimg.cn/q=usAAPL, hk00700
-      final prefix = stock.market == '美股' ? 'us' : 'hk';
-      final symbol = '$prefix${stock.code}';
-
-      final client = Client();
-      final uri = Uri.parse('$_tencentQuoteBaseUrl$symbol');
-
-      final response = await client
-          .get(uri)
-          .timeout(const Duration(seconds: 10));
-      client.close();
-      _onRequestSuccess();
-
-      if (response.statusCode == 200) {
-        final quote = _parseTencentQuote(response.body, stock);
-        _quoteCache[stock.secid] = (DateTime.now(), quote);
-        return quote;
-      }
-      return null;
-    } catch (e) {
-      debugPrint('腾讯API获取行情失败: $e');
-      _onRequestFailure();
-      return null;
-    }
+    // 委托给内部获取方法
+    return _fetchTencentQuote(stock);
   }
 }
