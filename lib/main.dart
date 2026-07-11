@@ -79,6 +79,10 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   String _sortColumn = 'profit'; // 'name', 'holdings', 'profit'
   bool _sortAscending = false;
 
+  // ========== 悬浮按钮位置 ==========
+  double _fabY = 0;
+  bool _fabInitialized = false;
+
   @override
   void initState() {
     super.initState();
@@ -531,60 +535,67 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     return Scaffold(
       backgroundColor: const Color(0xFF0C1117),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _refreshAll,
-          color: Colors.blue,
-          backgroundColor: const Color(0xFF1A1F26),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 8),
-                AssetCard(
-                  selectedCurrency: selectedCurrency,
-                  totalAssets: totalAssets,
-                  totalCost: totalCost,
-                  totalProfit: totalProfit,
-                  totalProfitPercent: totalProfitPercent,
-                  totalDividends: totalDividends,
-                  exchangeRate: exchangeRate,
-                  isExchangeRateExpanded: _isExchangeRateExpanded,
-                  onToggleExchangeRate: () => setState(
-                    () => _isExchangeRateExpanded = !_isExchangeRateExpanded,
-                  ),
-                  onCurrencyChanged: _onCurrencyChanged,
+        child: Stack(
+          children: [
+            RefreshIndicator(
+              onRefresh: _refreshAll,
+              color: Colors.blue,
+              backgroundColor: const Color(0xFF1A1F26),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 8),
+                    AssetCard(
+                      selectedCurrency: selectedCurrency,
+                      totalAssets: totalAssets,
+                      totalCost: totalCost,
+                      totalProfit: totalProfit,
+                      totalProfitPercent: totalProfitPercent,
+                      totalDividends: totalDividends,
+                      exchangeRate: exchangeRate,
+                      isExchangeRateExpanded: _isExchangeRateExpanded,
+                      onToggleExchangeRate: () => setState(
+                        () =>
+                            _isExchangeRateExpanded = !_isExchangeRateExpanded,
+                      ),
+                      onCurrencyChanged: _onCurrencyChanged,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildStockListHeader(),
+                    const SizedBox(height: 6),
+                    if (_sortedStocks.isEmpty) ...[
+                      const EmptyStateWidget(
+                        icon: Icons.show_chart,
+                        title: DevConfig.homeEmptyTitle,
+                        subtitle: DevConfig.homeEmptySubtitle,
+                        iconSize: 64,
+                        padding: EdgeInsets.symmetric(vertical: 60),
+                      ),
+                    ] else ...[
+                      Column(
+                        children: _sortedStocks.map((stock) {
+                          return StockCard(
+                            stock: stock,
+                            isExpanded: _expandedStockSymbol == stock.symbol,
+                            onExpandTap: () => _onStockTap(stock),
+                            onRecordTap: () => _showRecordsDialog(stock),
+                            onMoreTap: () => _showMoreOptions(stock),
+                            operationRecords:
+                                _operationRecords[stock.symbol] ?? [],
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                    const SizedBox(height: 80),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                _buildStockListHeader(),
-                const SizedBox(height: 6),
-                if (_sortedStocks.isEmpty) ...[
-                  const EmptyStateWidget(
-                    icon: Icons.show_chart,
-                    title: DevConfig.homeEmptyTitle,
-                    subtitle: DevConfig.homeEmptySubtitle,
-                    iconSize: 64,
-                    padding: EdgeInsets.symmetric(vertical: 60),
-                  ),
-                ] else ...[
-                  Column(
-                    children: _sortedStocks.map((stock) {
-                      return StockCard(
-                        stock: stock,
-                        isExpanded: _expandedStockSymbol == stock.symbol,
-                        onExpandTap: () => _onStockTap(stock),
-                        onRecordTap: () => _showRecordsDialog(stock),
-                        onMoreTap: () => _showMoreOptions(stock),
-                        operationRecords: _operationRecords[stock.symbol] ?? [],
-                      );
-                    }).toList(),
-                  ),
-                ],
-                const SizedBox(height: 30),
-              ],
+              ),
             ),
-          ),
+            _buildFloatingAddButton(),
+          ],
         ),
       ),
     );
@@ -641,6 +652,54 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingAddButton() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final fabSize = 56.0;
+
+    if (!_fabInitialized) {
+      _fabY = screenHeight - fabSize - 100;
+      _fabInitialized = true;
+    }
+
+    // 始终固定在右边
+    final fabLeft = screenWidth - fabSize - 16;
+
+    return Positioned(
+      left: fabLeft,
+      top: _fabY,
+      child: GestureDetector(
+        onPanUpdate: (details) {
+          setState(() {
+            _fabY = (_fabY + details.delta.dy).clamp(
+              60,
+              screenHeight - fabSize - 80,
+            );
+          });
+        },
+        onTap: _showSearchStockDialog,
+        child: Container(
+          width: fabSize,
+          height: fabSize,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+            ),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.4),
+                blurRadius: 12,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: const Icon(Icons.add, color: Colors.white, size: 28),
+        ),
       ),
     );
   }

@@ -357,6 +357,7 @@ class StockCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
+          color: const Color(0xFF1A1F26),
           border: Border.all(color: const Color(0xFF303631)),
         ),
         child: Row(
@@ -366,10 +367,10 @@ class StockCard extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               DevConfig.stockMore,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[400],
+                color: Colors.white70,
               ),
             ),
           ],

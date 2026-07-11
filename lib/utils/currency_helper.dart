@@ -67,9 +67,9 @@ class CurrencyHelper {
     return exchangeRates[currency] ?? 1.0;
   }
 
-  /// 格式化汇率显示
+  /// 格式化价格显示（统一4位小数）
   static String formatRate(double rate) {
-    return rate.toStringAsFixed(rate < 1 ? 4 : 2);
+    return rate.toStringAsFixed(4);
   }
 
   /// 根据市场类型返回对应币种
