@@ -15,10 +15,14 @@ class DevConfig {
   static const String settingsTitle = '设置';
   static const String sectionCurrency = '本地货币';
   static const String sectionStock = '股票设置';
+  static const String sectionSync = 'iCloud 同步';
   static const String sectionOther = '其他';
 
   // ========== 股票设置 文案 ==========
   static const String keepStockLabel = '平仓后保留持仓';
+  static const String syncSettingsLabel = '同步设置信息';
+  static const String syncStocksLabel = '同步持仓记录';
+  static const String syncRecordsLabel = '同步操作记录';
   static const String keepStockOnLabel = '开启后';
   static const String keepStockOnDesc = '平仓时保留股票在列表中，持仓数量和金额均变为 0，历史记录依旧保留。';
   static const String keepStockOffLabel = '关闭后';

@@ -35,19 +35,21 @@ class LogoCacher {
     return null;
   }
 
-  /// 获取 Logo ImageProvider，同步返回，无缓存则后台下载
-  static ImageProvider getLogo(String code, String logoUrl) {
+  /// 获取 Logo ImageProvider，有缓存直接返回，无缓存则同步下载后返回 FileImage
+  static Future<ImageProvider> getLogo(String code, String logoUrl) async {
     final cached = syncCached(code);
     if (cached != null) return cached;
     final key = code.toUpperCase();
     if (!_downloading.contains(key)) {
       _downloading.add(key);
-      _downloadToCache(key, logoUrl);
+      await _downloadToCache(key, logoUrl);
     }
-    return NetworkImage(logoUrl);
+    // 下载完成后从本地缓存读取
+    final local = syncCached(code);
+    return local ?? NetworkImage(logoUrl);
   }
 
-  /// 后台下载图片到本地（fire-and-forget）
+  /// 下载图片到本地（等待完成）
   static Future<void> _downloadToCache(String code, String logoUrl) async {
     try {
       final response = await http.get(Uri.parse(logoUrl));

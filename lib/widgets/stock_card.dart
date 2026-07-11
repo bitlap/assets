@@ -177,15 +177,22 @@ class StockCard extends StatelessWidget {
         errorBuilder: (_, __, ___) => _buildFallbackChar(fallbackChar),
       );
     }
-    final logoProvider = LogoCacher.getLogo(stock.symbol, stock.logoUrl!);
-    return Image(
-      image: logoProvider,
-      fit: BoxFit.cover,
-      frameBuilder: (_, child, frame, wasSync) {
-        if (wasSync || frame != null) return child;
+    final logoFuture = LogoCacher.getLogo(stock.symbol, stock.logoUrl!);
+    return FutureBuilder<ImageProvider>(
+      future: logoFuture,
+      builder: (_, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasData) {
+            return Image(
+              image: snapshot.data!,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildFallbackChar(fallbackChar),
+            );
+          }
+          return _buildFallbackChar(fallbackChar);
+        }
         return Container(color: const Color(0xFF2A3040));
       },
-      errorBuilder: (_, __, ___) => _buildFallbackChar(fallbackChar),
     );
   }
 

@@ -1,14 +1,52 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'icloud_storage.dart';
 
-/// 设置服务 - 持久化用户偏好设置
+/// 设置服务 - SharedPreferences 为主，iCloud 为可选镜像
 class SettingsService {
   static const String _keyDefaultCurrency = 'default_currency';
-
-  /// 平仓后是否保留持仓股票（若选择删除，则清空数据，效果等同直接删除股票）
   static const String _keyKeepStockAfterClose = 'keep_stock_after_close';
-
   static const String _keySortColumn = 'sort_column';
   static const String _keySortAscending = 'sort_ascending';
+  static const String _keySyncSettings = 'sync_settings';
+  static const String _keySyncStocks = 'sync_stocks';
+  static const String _keySyncRecords = 'sync_records';
+
+  /// 从 iCloud 下载覆盖 SharedPreferences
+  static Future<void> pullFromCloud() async {
+    final enabled = await getSyncSettings();
+    if (!enabled) return;
+    final cloud = await IcloudStorage.loadSettings();
+    if (cloud.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (cloud.containsKey(_keyDefaultCurrency)) {
+      await prefs.setString(_keyDefaultCurrency, cloud[_keyDefaultCurrency]);
+    }
+    if (cloud.containsKey(_keyKeepStockAfterClose)) {
+      await prefs.setBool(
+        _keyKeepStockAfterClose,
+        cloud[_keyKeepStockAfterClose],
+      );
+    }
+    if (cloud.containsKey(_keySortColumn)) {
+      await prefs.setString(_keySortColumn, cloud[_keySortColumn]);
+    }
+    if (cloud.containsKey(_keySortAscending)) {
+      await prefs.setBool(_keySortAscending, cloud[_keySortAscending]);
+    }
+  }
+
+  /// 把 SharedPreferences 上传到 iCloud
+  static Future<void> pushToCloud() async {
+    final enabled = await getSyncSettings();
+    if (!enabled) return;
+    final prefs = await SharedPreferences.getInstance();
+    await IcloudStorage.saveSettings({
+      _keyDefaultCurrency: prefs.getString(_keyDefaultCurrency) ?? 'CNY',
+      _keyKeepStockAfterClose: prefs.getBool(_keyKeepStockAfterClose) ?? false,
+      _keySortColumn: prefs.getString(_keySortColumn) ?? 'profit',
+      _keySortAscending: prefs.getBool(_keySortAscending) ?? false,
+    });
+  }
 
   /// 读取保存的默认货币
   static Future<String?> getDefaultCurrency() async {
@@ -56,5 +94,37 @@ class SettingsService {
   static Future<void> setSortAscending(bool ascending) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keySortAscending, ascending);
+  }
+
+  // ========== iCloud 同步开关 ==========
+
+  static Future<bool> getSyncSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keySyncSettings) ?? false;
+  }
+
+  static Future<void> setSyncSettings(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keySyncSettings, value);
+  }
+
+  static Future<bool> getSyncStocks() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keySyncStocks) ?? false;
+  }
+
+  static Future<void> setSyncStocks(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keySyncStocks, value);
+  }
+
+  static Future<bool> getSyncRecords() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keySyncRecords) ?? false;
+  }
+
+  static Future<void> setSyncRecords(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keySyncRecords, value);
   }
 }

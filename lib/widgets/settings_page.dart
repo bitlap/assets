@@ -12,12 +12,16 @@ class SettingsPage extends StatefulWidget {
   final String currentCurrency;
   final ValueChanged<String> onCurrencyChanged;
   final ValueChanged<String> onSortChanged;
+  final ValueChanged<bool> onSortDirectionChanged;
+  final VoidCallback? onSyncToggled;
 
   const SettingsPage({
     super.key,
     required this.currentCurrency,
     required this.onCurrencyChanged,
     required this.onSortChanged,
+    required this.onSortDirectionChanged,
+    this.onSyncToggled,
   });
 
   @override
@@ -30,6 +34,10 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _isSortExpanded = false;
   bool _keepStockAfterClose = false;
   String _selectedSortColumn = 'profit';
+  bool _isSortAscending = false;
+  bool _syncSettings = false;
+  bool _syncStocks = false;
+  bool _syncRecords = false;
 
   static const List<Map<String, String>> sortOptions = [
     {'key': 'profit', 'label': DevConfig.sortByProfit},
@@ -73,10 +81,18 @@ class _SettingsPageState extends State<SettingsPage> {
   void _loadSettings() async {
     final keepStock = await SettingsService.getKeepStockAfterClose();
     final sortColumn = await SettingsService.getSortColumn();
+    final sortAscending = await SettingsService.getSortAscending();
+    final syncSettings = await SettingsService.getSyncSettings();
+    final syncStocks = await SettingsService.getSyncStocks();
+    final syncRecords = await SettingsService.getSyncRecords();
     if (mounted) {
       setState(() {
         _keepStockAfterClose = keepStock;
         _selectedSortColumn = sortColumn;
+        _isSortAscending = sortAscending;
+        _syncSettings = syncSettings;
+        _syncStocks = syncStocks;
+        _syncRecords = syncRecords;
       });
     }
   }
@@ -84,6 +100,13 @@ class _SettingsPageState extends State<SettingsPage> {
   void _onSortChanged(String column) {
     setState(() => _selectedSortColumn = column);
     widget.onSortChanged(column);
+    widget.onSortDirectionChanged(_isSortAscending);
+  }
+
+  void _toggleSortDirection() {
+    final newAscending = !_isSortAscending;
+    setState(() => _isSortAscending = newAscending);
+    widget.onSortDirectionChanged(newAscending);
   }
 
   void _onKeepStockChanged(bool value) {
@@ -185,6 +208,10 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSectionHeader(Icons.trending_up, DevConfig.sectionStock),
           const SizedBox(height: 8),
           _buildStockSettingsGroup(),
+          const SizedBox(height: 24),
+          _buildSectionHeader(Icons.cloud_outlined, DevConfig.sectionSync),
+          const SizedBox(height: 8),
+          _buildSyncGroup(),
           const SizedBox(height: 24),
           _buildSectionHeader(Icons.more_horiz, DevConfig.sectionOther),
           const SizedBox(height: 8),
@@ -502,52 +529,257 @@ class _SettingsPageState extends State<SettingsPage> {
           color: Colors.grey[500],
           size: 22,
         ),
-        children: sortOptions.map((option) {
-          final key = option['key']!;
-          final label = option['label']!;
-          final isSelected = _selectedSortColumn == key;
-          final isLast = key == sortOptions.last['key'];
-          return InkWell(
-            onTap: () => _onSortChanged(key),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF5B9CF6).withValues(alpha: 0.08)
-                    : null,
-                border: isLast
-                    ? null
-                    : const Border(
-                        bottom: BorderSide(
-                          color: Color(0xFF303631),
-                          width: 0.5,
+        children: [
+          ...sortOptions.map((option) {
+            final key = option['key']!;
+            final label = option['label']!;
+            final isSelected = _selectedSortColumn == key;
+            return InkWell(
+              onTap: () => _onSortChanged(key),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? const Color(0xFF5B9CF6).withValues(alpha: 0.08)
+                      : null,
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 42),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isSelected
+                              ? const Color(0xFF5B9CF6)
+                              : Colors.grey[300],
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                         ),
                       ),
+                    ),
+                    if (isSelected)
+                      const Icon(
+                        Icons.check,
+                        size: 18,
+                        color: Color(0xFF5B9CF6),
+                      ),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 42),
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isSelected
-                            ? const Color(0xFF5B9CF6)
-                            : Colors.grey[300],
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.normal,
+            );
+          }),
+          // 排序方向切换
+          const Padding(
+            padding: EdgeInsets.only(left: 56),
+            child: Divider(height: 1, color: Color(0xFF303631)),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+            child: Row(
+              children: [
+                const SizedBox(width: 42),
+                const Text(
+                  '方向',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: _isSortAscending ? null : _toggleSortDirection,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _isSortAscending
+                              ? const Color(0xFF5B9CF6).withValues(alpha: 0.25)
+                              : Colors.transparent,
+                          borderRadius: const BorderRadius.horizontal(
+                            left: Radius.circular(8),
+                          ),
+                          border: Border.all(
+                            color: _isSortAscending
+                                ? const Color(0xFF5B9CF6).withValues(alpha: 0.5)
+                                : const Color(0xFF303631),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.arrow_upward,
+                              size: 14,
+                              color: _isSortAscending
+                                  ? const Color(0xFF5B9CF6)
+                                  : Colors.grey[500],
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '升序',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: _isSortAscending
+                                    ? const Color(0xFF5B9CF6)
+                                    : Colors.grey[500],
+                                fontWeight: _isSortAscending
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  if (isSelected)
-                    const Icon(Icons.check, size: 18, color: Color(0xFF5B9CF6)),
-                ],
-              ),
+                    GestureDetector(
+                      onTap: _isSortAscending ? _toggleSortDirection : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: !_isSortAscending
+                              ? const Color(0xFF5B9CF6).withValues(alpha: 0.25)
+                              : Colors.transparent,
+                          borderRadius: const BorderRadius.horizontal(
+                            right: Radius.circular(8),
+                          ),
+                          border: Border.all(
+                            color: !_isSortAscending
+                                ? const Color(0xFF5B9CF6).withValues(alpha: 0.5)
+                                : const Color(0xFF303631),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.arrow_downward,
+                              size: 14,
+                              color: !_isSortAscending
+                                  ? const Color(0xFF5B9CF6)
+                                  : Colors.grey[500],
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '降序',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: !_isSortAscending
+                                    ? const Color(0xFF5B9CF6)
+                                    : Colors.grey[500],
+                                fontWeight: !_isSortAscending
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          );
-        }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSyncGroup() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F26),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF303631)),
+      ),
+      child: Column(
+        children: [
+          _buildSyncTile(
+            Icons.tune,
+            Colors.blueAccent,
+            DevConfig.syncSettingsLabel,
+            _syncSettings,
+            (v) => setState(() {
+              _syncSettings = v;
+              SettingsService.setSyncSettings(v);
+              if (v) SettingsService.pushToCloud();
+            }),
+          ),
+          _buildGroupDivider(),
+          _buildSyncTile(
+            Icons.show_chart,
+            const Color(0xFF4CAF50),
+            DevConfig.syncStocksLabel,
+            _syncStocks,
+            (v) => setState(() {
+              _syncStocks = v;
+              SettingsService.setSyncStocks(v);
+              if (v) widget.onSyncToggled?.call();
+            }),
+          ),
+          _buildGroupDivider(),
+          _buildSyncTile(
+            Icons.list_alt,
+            Colors.orangeAccent,
+            DevConfig.syncRecordsLabel,
+            _syncRecords,
+            (v) => setState(() {
+              _syncRecords = v;
+              SettingsService.setSyncRecords(v);
+              if (v) widget.onSyncToggled?.call();
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSyncTile(
+    IconData icon,
+    Color iconColor,
+    String label,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 18, color: iconColor),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 15, color: Colors.grey[300]),
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeTrackColor: const Color(0xFF5B9CF6).withValues(alpha: 0.4),
+            activeThumbColor: const Color(0xFF5B9CF6),
+            inactiveThumbColor: Colors.grey[600],
+            inactiveTrackColor: Colors.grey[800],
+          ),
+        ],
       ),
     );
   }

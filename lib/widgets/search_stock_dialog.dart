@@ -557,20 +557,28 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                     stock.market,
                   );
                   if (logoUrl != null) {
-                    final logoProvider = LogoCacher.getLogo(
-                      stock.code,
-                      logoUrl,
-                    );
-                    return Image(
-                      image: logoProvider,
-                      width: 36,
-                      height: 36,
-                      fit: BoxFit.cover,
-                      frameBuilder: (_, child, frame, wasSync) {
-                        if (wasSync || frame != null) return child;
-                        return Container(color: const Color(0xFF2A3040));
+                    return FutureBuilder<ImageProvider>(
+                      future: LogoCacher.getLogo(stock.code, logoUrl),
+                      builder: (_, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.hasData) {
+                            return Image(
+                              image: snapshot.data!,
+                              width: 36,
+                              height: 36,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  _buildLogoFallback(stock),
+                            );
+                          }
+                          return _buildLogoFallback(stock);
+                        }
+                        return Container(
+                          width: 36,
+                          height: 36,
+                          color: const Color(0xFF2A3040),
+                        );
                       },
-                      errorBuilder: (_, __, ___) => _buildLogoFallback(stock),
                     );
                   }
                   return _buildLogoFallback(stock);

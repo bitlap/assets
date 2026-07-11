@@ -17,6 +17,7 @@ import 'widgets/common/empty_state_widget.dart';
 import 'services/stock_search_service.dart';
 import 'services/exchange_rate_service.dart';
 import 'services/settings_service.dart';
+import 'services/icloud_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,6 +90,9 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   @override
   void initState() {
     super.initState();
+    // 同步配置
+    _syncSettingsFromCloud();
+    _syncStockData();
     // 加载保存的默认货币
     _loadSavedCurrency();
     // 加载平仓设置
@@ -123,6 +127,35 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
         _sortAscending = ascending;
       });
     }
+  }
+
+  /// 从 iCloud 加载股票和操作记录（本地兜底）
+  Future<void> _syncStockData() async {
+    final syncStocks = await SettingsService.getSyncStocks();
+    final syncRecords = await SettingsService.getSyncRecords();
+    if (!syncStocks && !syncRecords) return;
+    final data = await IcloudStorage.loadAll();
+    if (!mounted) return;
+    setState(() {
+      stocks = data.$1;
+      _operationRecords
+        ..clear()
+        ..addAll(data.$2);
+    });
+  }
+
+  /// 保存股票和操作记录到 iCloud
+  Future<void> _saveData() async {
+    final syncStocks = await SettingsService.getSyncStocks();
+    final syncRecords = await SettingsService.getSyncRecords();
+    if (syncStocks || syncRecords) {
+      await IcloudStorage.saveAll(stocks, _operationRecords);
+    }
+  }
+
+  /// 从 iCloud 下载设置覆盖本地
+  Future<void> _syncSettingsFromCloud() async {
+    await SettingsService.pullFromCloud();
   }
 
   @override
@@ -389,6 +422,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
         _recalculateStockFromRecords(updatedStock.symbol);
       }
     });
+    _saveData();
     Navigator.pop(context);
     if (record != null) {
       String action;
@@ -410,6 +444,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
   void _onDeleteStock(StockModel stock) {
     setState(() => stocks.remove(stock));
+    _saveData();
     CenterToast.success(context, DevConfig.resultDeleteSuccess);
   }
 
@@ -447,6 +482,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 _recalculateStockFromRecords(symbol);
               }
             });
+            _saveData();
           },
           onEditOperationRecord: (symbol, index, updated) {
             setState(() {
@@ -456,6 +492,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
               }
               _recalculateStockFromRecords(symbol);
             });
+            _saveData();
           },
           onDeleteDividendRecord: (symbol, index) {
             // 派息记录目前为模拟数据，暂无需同步状态
@@ -513,6 +550,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
             // 根据操作记录重算持仓数据
             _recalculateStockFromRecords(newStock.symbol);
           });
+          _saveData();
           CenterToast.success(context, DevConfig.resultAddStockSuccess);
         },
       ),
@@ -523,10 +561,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   void _onSortChanged(String column) {
     setState(() {
       _sortColumn = column;
-      _sortAscending = false;
     });
     SettingsService.setSortColumn(column);
     SettingsService.setSortAscending(false);
+  }
+
+  /// 设置页面排序方向变更回调
+  void _onSortDirectionChanged(bool ascending) {
+    setState(() => _sortAscending = ascending);
+    SettingsService.setSortAscending(ascending);
   }
 
   /// 打开全屏设置页面
@@ -538,12 +581,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
           currentCurrency: selectedCurrency,
           onCurrencyChanged: _onCurrencyChanged,
           onSortChanged: _onSortChanged,
+          onSortDirectionChanged: _onSortDirectionChanged,
+          onSyncToggled: _saveData,
         ),
       ),
     ).then((_) {
       // 从设置页返回后重新加载设置
       if (mounted) {
         _loadKeepStockSetting();
+        _loadSortSettings();
       }
     });
   }
