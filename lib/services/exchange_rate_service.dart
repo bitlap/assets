@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
+import '../config/app_config.dart';
 
 /// 汇率服务 - 使用免费 API 获取实时汇率
 /// 单例模式，带缓存和熔断机制
@@ -15,13 +16,13 @@ class ExchangeRateService {
   /// 汇率缓存
   Map<String, double>? _cachedRates;
   DateTime? _lastFetchTime;
-  static const Duration _cacheTTL = Duration(minutes: 10);
+  static const Duration _cacheTTL = Duration(minutes: DevConfig.exchangeRateCacheTTLMin);
 
   /// 熔断机制（与股票服务独立，互不影响）
   int _consecutiveFailures = 0;
   DateTime? _cooldownUntil;
-  static const int _failureThreshold = 3;
-  static const Duration _cooldownDuration = Duration(minutes: 5);
+  static const int _failureThreshold = DevConfig.failureThreshold;
+  static const Duration _cooldownDuration = Duration(minutes: DevConfig.cooldownDurationMin);
 
   bool get _isInCooldown {
     if (_cooldownUntil == null) return false;
@@ -81,7 +82,7 @@ class ExchangeRateService {
       client = Client();
       final response = await client
           .get(Uri.parse(_apiUrl))
-          .timeout(const Duration(seconds: 10));
+          .timeout(Duration(seconds: DevConfig.httpTimeoutSec));
       client.close();
       client = null;
 

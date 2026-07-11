@@ -59,19 +59,17 @@ class StockSearchService {
 
   /// 行情缓存：secid -> (缓存时间, StockQuote)
   final Map<String, (_CachedAt, StockQuote?)> _quoteCache = {};
-  static const Duration _cacheTTL = Duration(minutes: 10);
+  static const Duration _cacheTTL = Duration(minutes: DevConfig.quoteCacheTTLMin);
 
   /// 搜索缓存：keyword -> (缓存时间, 搜索结果)
   final Map<String, (_CachedAt, List<StockSearchResult>)> _searchCache = {};
-  static const Duration _searchCacheTTL = Duration(minutes: 5);
+  static const Duration _searchCacheTTL = Duration(minutes: DevConfig.searchCacheTTLMin);
 
   /// 熔断机制：连续失败后进入冷却期，不再发请求
   int _consecutiveFailures = 0;
   DateTime? _cooldownUntil;
-  static const int _failureThreshold = 3; // 失败 3 次就熔断
-  static const Duration _cooldownDuration = Duration(
-    minutes: 5,
-  ); // 冷却 5 分钟（IP被封需要更长恢复时间）
+  static const int _failureThreshold = DevConfig.failureThreshold;
+  static const Duration _cooldownDuration = Duration(minutes: DevConfig.cooldownDurationMin);
 
   /// 是否在冷却中
   bool get _isInCooldown {
@@ -136,7 +134,7 @@ class StockSearchService {
       client = Client();
       final response = await client
           .get(uri)
-          .timeout(const Duration(seconds: 10));
+          .timeout(Duration(seconds: DevConfig.httpTimeoutSec));
       client.close();
       client = null;
 
@@ -269,7 +267,7 @@ class StockSearchService {
 
       final response = await client
           .get(uri)
-          .timeout(const Duration(seconds: 10));
+          .timeout(Duration(seconds: DevConfig.httpTimeoutSec));
       client.close();
       _onRequestSuccess();
 

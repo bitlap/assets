@@ -1,169 +1,126 @@
 # 股票持仓 (Stock Portfolio)
 
-[![Flutter CI](https://github.com/bitlap/assets/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/bitlap/assets/actions/workflows/flutter-ci.yml)
-
-一款使用 Flutter 开发的个人股票持仓管理应用，支持实时行情、多币种切换、盈亏统计、操作记录追踪等功能，采用 Material 3 暗色主题设计。
+一款使用 Flutter 开发的个人股票持仓管理 iOS 应用，支持实时行情、多币种切换、盈亏统计、操作记录追踪等功能，采用 Material 3 暗色主题设计。
 
 ## ✨ 功能特性
 
 ### 📊 资产总览
-- 展示总资产、总盈亏（金额 + 百分比）、总股息
-- 支持汇率展开查看各币种对 USD 的实时汇率
-- 下拉刷新实时更新所有数据
+- 展示总资产、总成本、总盈亏（金额 + 百分比）、总股息
+- 实时汇率换算，支持下拉刷新和定时自动刷新（60 分钟间隔，缓存 55 分钟）
 
 ### 💱 多币种支持
 - 支持 CNY / USD / HKD / EUR / GBP / JPY 一键切换
-- 自动汇率换算，所有金额统一显示为目标币种
-- 默认货币设置持久化保存
+- 自动汇率换算，默认货币持久化保存
 
 ### 📈 持仓列表
-- 展示每只股票的 Logo、公司名、代码、持仓数量、现价、盈亏情况
-- 点击卡片展开查看平均成本、市盈率、股息率等详细数据
-- 支持按股票名称、持仓数量、盈亏金额排序（升序/降序）
-- 实时价格刷新（每5分钟自动更新）
+- 展示股票 Logo、公司名、代码、市值、持仓数量、盈亏
+- 点击卡片展开详情：总成本、平均持仓价、最大/最小购买价、买卖次数
+- 支持按盈亏、持仓、名称排序
 
 ### 🔍 股票搜索与添加
-- 支持关键词搜索股票（A股/港股/美股）
-- 自动识别市场类型和股票代码
+- 支持美股（NASDAQ / NYSE / NYSE Arca）和港股搜索
+- 自动识别市场类型，展示实时价格
 - 添加时自动创建首笔买入操作记录
 
 ### 📝 操作记录
-- 查看完整的买入/卖出历史（Tab 切换）
-- 支持分页加载和操作记录删除
-- 根据操作记录自动重算持仓成本和盈亏
-
-### 💰 派息记录
-- 查看股息派发历史
-- 独立的派息记录管理
+- 买入 / 卖出 / 改价 / 平仓操作记录 Tab 切换
+- 左滑删除、点击编辑（修改价格/股数，持仓联动重算）
+- 底部弹窗展示，支持下拉关闭
+- 删除操作提示安全警告
 
 ### ⚙️ 编辑与管理
-- **加仓/减仓** — 修改持股数量，自动计算平均成本
-- **平仓** — 清空持仓并删除股票
-- **删除** — 直接移除持仓记录
-- 所有操作均有成功提示反馈
+- **加仓 / 减仓 / 平仓 / 改价** — 自动计算平均成本
+- **平仓后保留持仓** — 开关带确认弹窗，开启后平仓保留股票归零数据
+- **删除** — 确认弹窗后移除持仓及所有记录
+
+### 🛠 设置页
+- 本地货币切换与汇率展示
+- 排序方式选择
+- 意见反馈（邮箱可唤起邮件客户端，微信一键复制）
+- 开源软件说明
+- 平仓保留持仓开关
 
 ### 🎨 用户体验
-- 全局深色 UI 设计，护眼舒适
-- Material 3 设计语言，现代化界面
-- 流畅的交互动画和状态反馈
+- 全局深色 UI，Material 3 设计
+- 悬浮加号快捷添加股票（右侧边缘吸附，可纵向拖动）
+- 搜索防抖（1000ms）+ API 熔断保护（连续 3 次失败冷却 5 分钟）
 - 空状态引导提示
 
 ## 📁 项目结构
 
 ```
 lib/
-├── main.dart                        # 入口文件，状态管理 + 页面组装
+├── main.dart                          # 入口 + 全局状态管理 + 页面组装
+├── config/
+│   └── app_config.dart                # 全局常量（文案、配置、时间参数）
 ├── models/
-│   └── stock_model.dart             # 数据模型（StockModel, OperationRecord, DividendRecord）
-├── data/
-│   └── mock_data.dart               # 初始持仓数据（股票列表和操作记录）
+│   └── stock_model.dart               # 数据模型（Stock / Record / Dividend）
 ├── services/
-│   ├── exchange_rate_service.dart   # 汇率服务（实时获取汇率）
-│   ├── stock_search_service.dart    # 股票搜索与行情服务
-│   └── settings_service.dart        # 用户设置持久化服务
+│   ├── exchange_rate_service.dart     # 实时汇率（缓存 + 熔断）
+│   ├── settings_service.dart          # 用户设置持久化
+│   └── stock_search_service.dart      # 股票搜索 + 行情（缓存 + 熔断）
 ├── utils/
-│   ├── currency_helper.dart         # 汇率换算 / 货币符号工具类
-│   └── center_toast.dart            # 居中提示组件
+│   ├── center_toast.dart              # 居中 Toast 提示
+│   ├── currency_helper.dart           # 汇率换算 / 货币符号
+│   └── stock_calculator.dart          # 盈亏 / 均成本计算
 └── widgets/
-    ├── asset_card.dart              # 资产总额卡片组件
-    ├── stock_card.dart              # 股票卡片组件（支持展开详情）
-    ├── records_dialog.dart          # 操作记录 / 派息记录对话框
-    ├── edit_delete_dialogs.dart     # 编辑 / 删除 / 更多操作对话框
-    ├── search_stock_dialog.dart     # 股票搜索与添加对话框
-    └── settings_page.dart           # 设置页面（货币选择等）
+    ├── asset_card.dart                # 资产总额卡片
+    ├── stock_card.dart                # 股票卡片（展开详情）
+    ├── records_dialog.dart            # 操作/派息记录底部弹窗
+    ├── edit_delete_dialogs.dart       # 加仓/减仓/删除对话框
+    ├── search_stock_dialog.dart       # 股票搜索与添加
+    ├── settings_page.dart             # 全屏设置页
+    └── common/
+        ├── app_number_field.dart      # 统一数字输入框
+        ├── confirm_delete_dialog.dart # 统一删除确认弹窗
+        ├── empty_state_widget.dart    # 统一空状态组件
+        ├── info_row_widget.dart       # 统一信息行组件
+        └── settings_expansion_card.dart # 统一设置折叠卡片
 ```
 
 ## 🛠 技术栈
 
-- **Flutter** (Dart SDK ^3.12.2)
-- **Material 3** 设计语言
-- **intl** — 数字/货币格式化
-- **http** — HTTP 请求（行情API、汇率API）
-- **shared_preferences** — 本地持久化存储
-- **架构模式**：状态管理与 UI 分离，Widget 均为 `StatelessWidget`（纯展示）
+| 类别     | 技术                         |
+|--------|----------------------------|
+| 框架     | Flutter (Dart SDK ^3.12.2) |
+| 设计     | Material 3                 |
+| HTTP   | http                       |
+| 本地存储   | shared_preferences         |
+| 国际化    | intl                       |
+| 系统调用   | url_launcher（邮件）           |
 
-## 🚀 环境准备
-
-### 1. 安装 Flutter SDK
-
-建议版本 3.12+：
+## 🚀 快速开始
 
 ```bash
-# macOS / Linux
-git clone https://github.com/flutter/flutter.git -b stable
-export PATH="$PATH:`pwd`/flutter/bin"
-
-# Windows
-git clone https://github.com/flutter/flutter.git -b stable
-set PATH=%PATH%;%cd%\flutter\bin
-```
-
-### 2. 验证环境
-
-```bash
-flutter doctor
-```
-
-确保以下环境已正确配置：
-- ✅ Flutter SDK
-- ✅ Xcode（iOS 开发）
-- ✅ iOS 模拟器或真机
-
-## 📦 安装依赖
-
-```bash
+# 安装依赖
 flutter pub get
-```
 
-## ▶️ 运行与调试
+# 运行（iOS 模拟器）
+open -a Simulator && flutter run
 
-### iOS 模拟器
-
-```bash
-# 启动 iOS 模拟器
-open -a Simulator
-
-# 运行应用
-flutter run
-```
-
-### 连接真机
-
-```bash
-# 查看已连接设备
+# 真机调试，Xcode 打开 Runner.xcworkspace
+open ios/Runner.xcworkspace
+# 找到设备ID，设备需要在开发者中心注册，且在Xcode登录开发者账号和创建证书
 flutter devices
-
-# 指定设备运行
+# 运行（选择设备）
 flutter run -d <device_id>
-```
 
-### 热重载
-
-应用运行中，在终端按：
-- `r` — 热重载（保留状态）
-- `R` — 热重启（重置状态）
-- `q` — 退出应用
-
-## 🔧 代码分析
-
-```bash
-# 静态代码分析
+# 代码分析
 flutter analyze
 
-# 格式化代码
-flutter format lib/
+# 格式化
+dart format lib/
 ```
 
-## ⚙️ 配置说明
+## ⚙️ 配置
 
-### 行情刷新
-
-- 自动刷新间隔：300秒（5分钟）
-- 支持下拉手动刷新
-- 熔断机制：汇率失败不影响股票行情
-
-## 📋 注意事项
-
-- ⚠️ 仅支持 iOS 平台（当前项目配置）
-- ⚠️ 股票行情和汇率依赖外部 API，请确保网络连接正常
-- ⚠️ 首次启动会延迟3秒开始刷新数据
+| 配置项       | 值                   | 说明                                     |
+|-----------|---------------------|----------------------------------------|
+| 行情刷新间隔    | 60 分钟               | 定时拉取最新价格和汇率                            |
+| 行情缓存      | 55 分钟               | 缓存期内不重复请求，略短于刷新间隔                      |
+| 首次刷新延迟    | 5 分钟                | 启动后延迟，避免冷启动阻塞                          |
+| 搜索防抖      | 1 秒                 | 输入停止后延迟搜索                              |
+| API 熔断    | 3 次/5 分钟            | 连续失败后冷却，保护 API 配额                      |
+| HTTP 超时   | 10 秒                | 单次请求超时上限                               |
+| 数据源       | -                   | 东方财富（搜索）、腾讯行情（价格）、ExchangeRate-API（汇率） |
+| Bundle ID | `org.bitlap.assets` |                                        |

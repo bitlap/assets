@@ -92,7 +92,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     _loadKeepStockSetting();
     // 加载排序设置
     _loadSortSettings();
-    // 启动后延迟60秒开始刷新价格和汇率，然后每300秒刷新一次
+    // 启动后延迟刷新价格和汇率，然后定时刷新一次
     _startRefresh();
   }
 
@@ -130,13 +130,13 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
   /// 启动定时刷新（价格 + 汇率）
   void _startRefresh() {
-    // 首次加载后延迟60秒刷新
-    Future.delayed(const Duration(seconds: 60), () {
+    // 首次加载后延迟刷新
+    Future.delayed(Duration(seconds: DevConfig.refreshInitialDelaySec), () {
       if (mounted) _refreshAll();
     });
 
-    // 每300秒刷新一次价格和汇率
-    _priceRefreshTimer = Timer.periodic(const Duration(seconds: 300), (_) {
+    // 定时刷新价格和汇率
+    _priceRefreshTimer = Timer.periodic(Duration(seconds: DevConfig.refreshIntervalSec), (_) {
       if (mounted) _refreshAll();
     });
   }
@@ -161,40 +161,37 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   Future<void> _refreshAllPrices() async {
     if (stocks.isEmpty) return;
 
-    for (final stock in stocks) {
-      try {
-        // 构建搜索对象用于查询行情
-        final searchResult = StockSearchResult(
-          code: stock.symbol,
-          name: stock.companyName,
-          market: stock.marketType,
-          secid:
-              stock.secid ??
-              '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}',
-        );
+    // 构建搜索对象列表
+    final searchResults = stocks.map((stock) => StockSearchResult(
+      code: stock.symbol,
+      name: stock.companyName,
+      market: stock.marketType,
+      secid: stock.secid ??
+          '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}',
+    )).toList();
 
-        // 获取最新行情
-        final quote = await _searchService.getStockQuote(searchResult);
+    // 批量获取行情（内部缓存检测 + 逐条请求）
+    final quotes = await _searchService.getStockQuotesBatch(searchResults);
 
-        if (quote != null && mounted) {
-          setState(() {
-            // 更新当前价格和涨跌幅
-            final index = stocks.indexWhere((s) => s.symbol == stock.symbol);
-            if (index != -1) {
-              stocks[index] = stock.copyWith(
-                currentPrice: quote.currentPrice,
-                changePercent: quote.changePercent,
-              );
-              debugPrint('开始刷新股票价格 ${stock.companyName}:${stock.currentPrice}');
-              // 重新计算盈亏金额（基于新的当前价格）
-              _recalculateStockFromRecords(stock.symbol);
-            }
-          });
+    if (!mounted) return;
+
+    setState(() {
+      for (final stock in stocks) {
+        final secid = stock.secid ??
+            '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}';
+        final quote = quotes[secid];
+        if (quote != null) {
+          final index = stocks.indexWhere((s) => s.symbol == stock.symbol);
+          if (index != -1) {
+            stocks[index] = stock.copyWith(
+              currentPrice: quote.currentPrice,
+              changePercent: quote.changePercent,
+            );
+            _recalculateStockFromRecords(stock.symbol);
+          }
         }
-      } catch (e) {
-        debugPrint('刷新 ${stock.symbol} 价格失败: $e');
       }
-    }
+    });
 
     debugPrint('价格刷新完成');
   }

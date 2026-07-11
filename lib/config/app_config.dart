@@ -56,6 +56,17 @@ class DevConfig {
   static const String btnConfirmBuy = '确认加仓';
   static const String btnConfirmSell = '确认减仓';
 
+  // ========== 定时器 / 缓存 / 超时 ==========
+  static const int refreshInitialDelaySec = 300;
+  static const int refreshIntervalSec = 3600;
+  static const int quoteCacheTTLMin = 55;
+  static const int searchCacheTTLMin = 10;
+  static const int exchangeRateCacheTTLMin = 10;
+  static const int cooldownDurationMin = 5;
+  static const int failureThreshold = 3;
+  static const int httpTimeoutSec = 10;
+  static const int searchDebounceMs = 1000;
+
   // ========== Toast 文案 ==========
   static const String toastEmailCopied = '邮箱地址';
   static const String toastWechatCopied = '微信号';

@@ -75,7 +75,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       });
       return;
     }
-    _debounceTimer = Timer(const Duration(milliseconds: 1000), () {
+    _debounceTimer = Timer(const Duration(milliseconds: DevConfig.searchDebounceMs), () {
       _doSearch(keyword);
     });
   }
