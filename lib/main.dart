@@ -198,9 +198,20 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   /// 根据操作记录重算单只股票的股数、总金额、盈亏
   void _recalculateStockFromRecords(String symbol) {
     final records = _operationRecords[symbol];
-    if (records == null || records.isEmpty) return;
     final stockIndex = stocks.indexWhere((s) => s.symbol == symbol);
     if (stockIndex == -1) return;
+
+    if (records == null || records.isEmpty) {
+      // 记录被删空，归零持仓数据
+      stocks[stockIndex] = stocks[stockIndex].copyWith(
+        shares: 0,
+        totalValue: 0,
+        profitLossAmount: 0,
+        profitLossPercent: 0,
+        isPositive: true,
+      );
+      return;
+    }
 
     final updated = StockCalculator.recalculateFromRecords(
       stocks[stockIndex],
@@ -401,6 +412,25 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
             final list = _operationRecords[symbol];
             if (list != null && index < list.length) {
               list.removeAt(index);
+            }
+            if (list == null || list.isEmpty) {
+              if (_keepStockAfterClose) {
+                _recalculateStockFromRecords(symbol);
+              } else {
+                // 不保留持仓，直接删除股票
+                stocks.removeWhere((s) => s.symbol == symbol);
+                _operationRecords.remove(symbol);
+              }
+            } else {
+              _recalculateStockFromRecords(symbol);
+            }
+          });
+        },
+        onEditOperationRecord: (symbol, index, updated) {
+          setState(() {
+            final list = _operationRecords[symbol];
+            if (list != null && index < list.length) {
+              list[index] = updated;
             }
             _recalculateStockFromRecords(symbol);
           });

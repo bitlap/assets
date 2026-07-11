@@ -148,6 +148,10 @@ class DevConfig {
   static const String recordsEmptyDivHint = '当前股票还没有派息数据';
   static const String recordsDeleteOpConfirm = '确定删除此条操作记录？';
   static const String recordsDeleteDivConfirm = '确定删除此条派息记录？';
+  static const String recordsDeleteHint = '删除操作不可恢复且将影响持仓数据，请谨慎操作。';
+  static const String recordsEditTitle = '编辑{desc}';
+  static const String recordsEditPrice = '价格';
+  static const String recordsEditShares = '股数';
   static const String recordsNewPrice = '新价格';
 
   // ========== 操作结果 文案 ==========

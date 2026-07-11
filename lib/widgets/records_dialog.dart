@@ -11,6 +11,8 @@ class RecordsDialog extends StatefulWidget {
   final StockModel stock;
   final List<OperationRecord> operationRecords;
   final void Function(String symbol, int index)? onDeleteOperationRecord;
+  final void Function(String symbol, int index, OperationRecord updated)?
+  onEditOperationRecord;
   final void Function(String symbol, int index)? onDeleteDividendRecord;
 
   const RecordsDialog({
@@ -18,6 +20,7 @@ class RecordsDialog extends StatefulWidget {
     required this.stock,
     this.operationRecords = const [],
     this.onDeleteOperationRecord,
+    this.onEditOperationRecord,
     this.onDeleteDividendRecord,
   });
 
@@ -108,7 +111,6 @@ class _RecordsDialogState extends State<RecordsDialog>
                 ],
               ),
             ),
-            // Tab栏 - pill style
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
@@ -135,15 +137,31 @@ class _RecordsDialogState extends State<RecordsDialog>
                   ),
                   dividerColor: Colors.transparent,
                   splashBorderRadius: BorderRadius.circular(10),
-                  tabs: const [
-                    Tab(text: DevConfig.recordsOpTab, height: 36),
+                  tabs: [
+                    Tab(
+                      height: 36,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(DevConfig.recordsOpTab),
+                          const SizedBox(width: 3),
+                          GestureDetector(
+                            onTap: _showOpDeleteHint,
+                            child: const Icon(
+                              Icons.help_outline,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     Tab(text: DevConfig.recordsDivTab, height: 36),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 8),
-            // Tab内容
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -152,6 +170,7 @@ class _RecordsDialogState extends State<RecordsDialog>
                     stock: widget.stock,
                     operationRecords: widget.operationRecords,
                     onDeleteRecord: widget.onDeleteOperationRecord,
+                    onEditRecord: widget.onEditOperationRecord,
                   ),
                   _DividendRecordsTab(
                     stock: widget.stock,
@@ -165,6 +184,39 @@ class _RecordsDialogState extends State<RecordsDialog>
       ),
     );
   }
+
+  void _showOpDeleteHint() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
+            SizedBox(width: 8),
+            Text(
+              DevConfig.recordsOpTab,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+        content: Text(
+          DevConfig.recordsDeleteHint,
+          style: TextStyle(color: Colors.grey[400], fontSize: 13, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnGotIt,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// 操作记录Tab
@@ -172,11 +224,14 @@ class _OperationRecordsTab extends StatefulWidget {
   final StockModel stock;
   final List<OperationRecord> operationRecords;
   final void Function(String symbol, int index)? onDeleteRecord;
+  final void Function(String symbol, int index, OperationRecord updated)?
+  onEditRecord;
 
   const _OperationRecordsTab({
     required this.stock,
     required this.operationRecords,
     this.onDeleteRecord,
+    this.onEditRecord,
   });
 
   @override
@@ -189,13 +244,11 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
   @override
   void initState() {
     super.initState();
-    // 直接使用传入的操作记录（已在主页面初始化）
     allRecords = List.from(widget.operationRecords);
   }
 
   @override
   Widget build(BuildContext context) {
-    // 如果操作记录为空，显示空状态
     if (allRecords.isEmpty) {
       return const EmptyStateWidget(
         icon: Icons.list_alt,
@@ -245,94 +298,290 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
             setState(() => allRecords.removeAt(index));
             widget.onDeleteRecord?.call(widget.stock.symbol, index);
           },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF161B22),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF303631)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: iconBgColor,
-                    borderRadius: BorderRadius.circular(10),
+          child: InkWell(
+            onTap: () => _showEditRecordDialog(context, index, record),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF161B22),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF303631)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: iconBgColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: iconColor, size: 16),
                   ),
-                  child: Icon(icon, color: iconColor, size: 16),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        record.description,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        DateFormat('yyyy-MM-dd HH:mm:ss').format(record.date),
-                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
-                      ),
-                      if (record.amount > 0 && !isPriceChange) ...[
-                        const SizedBox(height: 4),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          '${CurrencyHelper.formatRate(record.amount)} × ${CurrencyHelper.formatShares(record.shares)}${DevConfig.stockSharesSuffix} = ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
+                          record.description,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          DateFormat('yyyy-MM-dd HH:mm:ss').format(record.date),
                           style: TextStyle(
-                            color: Colors.grey[500],
+                            color: Colors.grey[600],
                             fontSize: 11,
                           ),
                         ),
+                        if (record.amount > 0 && !isPriceChange) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            '${CurrencyHelper.formatRate(record.amount)} × ${CurrencyHelper.formatShares(record.shares)}${DevConfig.stockSharesSuffix} = ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                        if (isPriceChange) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            '${DevConfig.recordsNewPrice}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                       ],
-                      if (isPriceChange) ...[
-                        const SizedBox(height: 4),
+                    ),
+                  ),
+                  if (!isPriceChange)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
                         Text(
-                          '${DevConfig.recordsNewPrice}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}',
+                          '${isBuy ? "+" : "-"}${CurrencyHelper.formatShares(record.shares)}${DevConfig.stockSharesSuffix}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
                           style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 11,
+                            color: isBuy
+                                ? Colors.redAccent
+                                : Colors.greenAccent,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 12,
                           ),
                         ),
                       ],
-                    ],
-                  ),
-                ),
-                if (!isPriceChange)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${isBuy ? "+" : "-"}${CurrencyHelper.formatShares(record.shares)}${DevConfig.stockSharesSuffix}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
-                        style: TextStyle(
-                          color: isBuy ? Colors.redAccent : Colors.greenAccent,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
+                    ),
+                ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  void _showEditRecordDialog(
+    BuildContext context,
+    int index,
+    OperationRecord record,
+  ) {
+    final priceCtrl = TextEditingController(
+      text: CurrencyHelper.formatRate(record.amount),
+    );
+    final sharesCtrl = TextEditingController(
+      text: CurrencyHelper.formatShares(record.shares),
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF0C1117),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF303631)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  DevConfig.recordsEditTitle.replaceAll(
+                    '{desc}',
+                    record.description,
+                  ),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                DevConfig.recordsEditPrice,
+                style: TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: priceCtrl,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                style: const TextStyle(fontSize: 16, color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xFF161B22),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF303631)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF303631)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                DevConfig.recordsEditShares,
+                style: TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: sharesCtrl,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                style: const TextStyle(fontSize: 16, color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xFF161B22),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF303631)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF303631)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF303631)),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            DevConfig.btnCancel,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        final newPrice = double.tryParse(priceCtrl.text);
+                        final newShares = double.tryParse(sharesCtrl.text);
+                        if (newPrice == null ||
+                            newPrice <= 0 ||
+                            newShares == null ||
+                            newShares <= 0) {
+                          return;
+                        }
+                        final updated = OperationRecord(
+                          date: record.date,
+                          type: record.type,
+                          description: record.description,
+                          amount: newPrice,
+                          shares: newShares,
+                        );
+                        setState(() => allRecords[index] = updated);
+                        widget.onEditRecord?.call(
+                          widget.stock.symbol,
+                          index,
+                          updated,
+                        );
+                        Navigator.pop(ctx);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+                          ),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            DevConfig.btnGotIt,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -354,13 +603,11 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
   @override
   void initState() {
     super.initState();
-    // 派息记录目前为空，后续可从后端获取
     allRecords = [];
   }
 
   @override
   Widget build(BuildContext context) {
-    // 如果派息记录为空，显示空状态
     if (allRecords.isEmpty) {
       return const EmptyStateWidget(
         icon: Icons.attach_money,

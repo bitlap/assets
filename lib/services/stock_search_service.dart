@@ -130,7 +130,7 @@ class StockSearchService {
     try {
       final uri = Uri.parse(
         '$_searchBaseUrl?input=${Uri.encodeComponent(keyword)}'
-        '&type=14&token=$_searchToken&count=20',
+        '&type=14&token=$_searchToken&count=50',
       );
 
       client = Client();
@@ -178,15 +178,25 @@ class StockSearchService {
           market = DevConfig.searchMarketUS;
           secid = '$marketId.$code';
           break;
+        case '107': // NYSE Arca / 美国证券交易所（ETF等）
+          market = DevConfig.searchMarketUS;
+          secid = '105.$code';
+          break;
         case '116': // 港股
           market = DevConfig.searchMarketHK;
           secid = '$marketId.$code';
           break;
         default:
-          // 也接受通过 SecurityTypeName 判断的港美股
-          if (exchange.contains('纳斯达克') ||
+          // 也接受以 10 开头的美国市场代码
+          if (marketId.startsWith('10')) {
+            market = DevConfig.searchMarketUS;
+            secid = '105.$code';
+          } else if (exchange.contains('纳斯达克') ||
               exchange.contains('纽约') ||
-              exchange.contains('美国')) {
+              exchange.contains('美国') ||
+              exchange.contains('NYSE') ||
+              exchange.contains('NASDAQ') ||
+              exchange.contains('ARCA')) {
             market = DevConfig.searchMarketUS;
             secid = '105.$code';
           } else if (exchange.contains('港股') || exchange.contains('香港')) {
