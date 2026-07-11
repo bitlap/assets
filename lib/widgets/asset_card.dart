@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/currency_helper.dart';
+import '../utils/stock_calculator.dart';
 
 /// 资产总额卡片组件（纯UI展示）
 class AssetCard extends StatefulWidget {
@@ -245,7 +246,7 @@ class _AssetCardState extends State<AssetCard> {
           const SizedBox(height: 4),
           // 总金额（已经是目标币种，直接格式化）
           Text(
-            '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatRate(widget.totalAssets)}',
+            '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${StockCalculator.formatCompact(widget.totalAssets)}',
             style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -255,48 +256,51 @@ class _AssetCardState extends State<AssetCard> {
           ),
           const SizedBox(height: 8),
           // 总成本、总盈亏和总股息
-          Row(
-            children: [
-              Expanded(
-                child: _buildSummaryCard(
-                  '总成本',
-                  _buildTotalCostText(),
-                  const Text(
-                    ' ',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w500,
-                      height: 1.2,
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _buildSummaryCard(
+                    '总成本',
+                    _buildTotalCostText(),
+                    const Text(
+                      ' ',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                        height: 1.2,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildSummaryCard(
-                  '总盈亏',
-                  _buildProfitText(),
-                  _buildProfitPercent(),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildSummaryCard(
+                    '总盈亏',
+                    _buildProfitText(),
+                    _buildProfitPercent(),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildSummaryCard(
-                  '总股息',
-                  _buildDividendText(),
-                  const Text(
-                    '0.00%',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w500,
-                      height: 1.2,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildSummaryCard(
+                    '总股息',
+                    _buildDividendText(),
+                    const Text(
+                      '0.00%',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                        height: 1.2,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 6),
           // 汇率展开区域
@@ -353,7 +357,6 @@ class _AssetCardState extends State<AssetCard> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             label,
@@ -373,7 +376,7 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildTotalCostText() {
     return Text(
-      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatRate(widget.totalCost)}',
+      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${StockCalculator.formatCompact(widget.totalCost)}',
       style: const TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.bold,
@@ -385,7 +388,7 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildProfitText() {
     return Text(
-      '${widget.totalProfit >= 0 ? '+' : ''}${CurrencyHelper.formatRate(widget.totalProfit)}',
+      '${widget.totalProfit >= 0 ? '+' : ''}${StockCalculator.formatCompact(widget.totalProfit)}',
       style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
@@ -405,7 +408,7 @@ class _AssetCardState extends State<AssetCard> {
         color: widget.totalProfit >= 0
             ? const Color(0xFFFF5252)
             : const Color(0xFF69F0AE),
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.bold,
         height: 1.2,
       ),
     );
@@ -413,7 +416,7 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildDividendText() {
     return Text(
-      '${CurrencyHelper.formatRate(widget.totalDividends)}',
+      '${StockCalculator.formatCompact(widget.totalDividends)}',
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
@@ -452,13 +455,51 @@ class _AssetCardState extends State<AssetCard> {
             ],
           ),
           const SizedBox(height: 6),
-          SingleChildScrollView(
+          if (widget.isExchangeRateExpanded)
+            ..._buildExpandedRateRows()
+          else
+            _buildCollapsedRateRow(),
+        ],
+      ),
+    );
+  }
+
+  /// 收起时：一行显示所有币种，可滑动
+  Widget _buildCollapsedRateRow() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: CurrencyHelper.exchangeRates.keys.map((currency) {
+          final rate = CurrencyHelper.exchangeRates[currency]!;
+          return Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: _buildExchangeRateChip(
+              currency,
+              CurrencyHelper.formatRate(rate),
+              isSelected: widget.selectedCurrency == currency,
+              onTap: () => widget.onCurrencyChanged(currency),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  /// 展开后的汇率行，每行5个，每行可滑动
+  List<Widget> _buildExpandedRateRows() {
+    final keys = CurrencyHelper.exchangeRates.keys.toList();
+    final rows = <Widget>[];
+    for (int i = 0; i < keys.length; i += 5) {
+      final rowKeys = keys.skip(i).take(5);
+      rows.add(
+        Padding(
+          padding: EdgeInsets.only(top: i > 0 ? 6 : 0),
+          child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             child: Row(
-              children: CurrencyHelper.exchangeRates.keys.take(5).map((
-                currency,
-              ) {
+              children: rowKeys.map((currency) {
                 final rate = CurrencyHelper.exchangeRates[currency]!;
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
@@ -472,27 +513,10 @@ class _AssetCardState extends State<AssetCard> {
               }).toList(),
             ),
           ),
-          if (widget.isExchangeRateExpanded) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: CurrencyHelper.exchangeRates.keys.skip(5).map((
-                currency,
-              ) {
-                final rate = CurrencyHelper.exchangeRates[currency]!;
-                return _buildExchangeRateChip(
-                  currency,
-                  CurrencyHelper.formatRate(rate),
-                  isSelected: widget.selectedCurrency == currency,
-                  onTap: () => widget.onCurrencyChanged(currency),
-                );
-              }).toList(),
-            ),
-          ],
-        ],
-      ),
-    );
+        ),
+      );
+    }
+    return rows;
   }
 
   Widget _buildExchangeRateChip(
@@ -517,7 +541,7 @@ class _AssetCardState extends State<AssetCard> {
         child: Text(
           '$currency $rate',
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: FontWeight.w500,
             color: Colors.white,
             height: 1.2,

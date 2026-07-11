@@ -364,19 +364,48 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     return results.where((s) => s.market == _selectedMarket).toList();
   }
 
-  /// 从 service 缓存中恢复已有行情（单例缓存跨弹窗保留，无需新 API 请求）
+  /// 从 service 缓存中恢复已有行情，并对未缓存的股票批量获取行情
   void _restoreCachedQuotes() {
     bool found = false;
+    final needFetch = <StockSearchResult>[];
     for (final stock in _allResults) {
       if (!_quoteCache.containsKey(stock.secid)) {
         final cached = _service.getCachedQuote(stock.secid);
         if (cached != null) {
           _quoteCache[stock.secid] = cached;
           found = true;
+        } else {
+          needFetch.add(stock);
         }
       }
     }
     if (found) setState(() {});
+    // 对未缓存的股票批量获取行情
+    if (needFetch.isNotEmpty) {
+      _fetchQuotesBatch(needFetch);
+    }
+  }
+
+  /// 批量获取股票行情并更新 UI
+  Future<void> _fetchQuotesBatch(List<StockSearchResult> stocks) async {
+    // 标记所有股票为 loading 状态
+    setState(() {
+      for (final stock in stocks) {
+        _loadingQuotes.add(stock.secid);
+      }
+    });
+    // 使用批量接口获取行情
+    final quotes = await _service.getStockQuotesBatch(stocks);
+    if (!mounted) return;
+    setState(() {
+      for (final stock in stocks) {
+        _loadingQuotes.remove(stock.secid);
+        final quote = quotes[stock.secid];
+        if (quote != null) {
+          _quoteCache[stock.secid] = quote;
+        }
+      }
+    });
   }
 
   /// 搜索结果列表

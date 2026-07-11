@@ -43,6 +43,33 @@ class AssetSummary {
 
 /// 持仓计算工具类 - 所有与操作记录相关的计算逻辑
 class StockCalculator {
+  /// 紧凑格式化：超过1万时使用"xx万"格式
+  /// [value] 要格式化的数值
+  /// [formatBase] 基础数字格式化函数，默认保留2位小数
+  static String formatCompact(
+    double value, {
+    String Function(double)? formatBase,
+  }) {
+    final fmt = formatBase ?? (v) => v.toStringAsFixed(2);
+    if (value.abs() >= 10000) {
+      return '${fmt(value / 10000)}万';
+    }
+    return fmt(value);
+  }
+
+  /// 紧凑格式化股数：超过1万时使用"xx万"格式，整数不显示小数点
+  static String formatCompactShares(double shares) {
+    return formatCompact(
+      shares,
+      formatBase: (v) => v == v.toInt()
+          ? v.toInt().toString()
+          : v
+                .toStringAsFixed(4)
+                .replaceAll(RegExp(r'0+$'), '')
+                .replaceAll(RegExp(r'\.$'), ''),
+    );
+  }
+
   /// 从操作记录计算完整统计信息
   static RecordStats calculateRecordStats(List<OperationRecord> records) {
     if (records.isEmpty) return const RecordStats();

@@ -74,13 +74,16 @@ class StockCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 2),
-                Text(
-                  '${CurrencyHelper.getSymbol(stock.currency)}${CurrencyHelper.formatRate(stock.totalValue)}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    height: 1.2,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '${CurrencyHelper.getSymbol(stock.currency)}${StockCalculator.formatCompact(stock.totalValue)}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      height: 1.2,
+                    ),
                   ),
                 ),
               ],
@@ -241,36 +244,44 @@ class StockCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          '${_formatShares(stock.shares)}股',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            height: 1.2,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            '${StockCalculator.formatCompactShares(stock.shares)}股',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              height: 1.2,
+            ),
           ),
         ),
         const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${CurrencyHelper.formatRate(stock.currentPrice)}',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                height: 1.2,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${CurrencyHelper.formatRate(stock.currentPrice)}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  height: 1.2,
+                ),
               ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '${stock.changePercent >= 0 ? '+' : '-'}${stock.changePercent.abs().toStringAsFixed(2)}%',
-              style: TextStyle(fontSize: 10, color: changeColor, height: 1.2),
-            ),
-            const SizedBox(width: 14), // 与表头排序指示器对齐
-          ],
+              const SizedBox(width: 4),
+              Text(
+                '${stock.changePercent >= 0 ? '+' : '-'}${stock.changePercent.abs().toStringAsFixed(2)}%',
+                style: TextStyle(fontSize: 10, color: changeColor, height: 1.2),
+              ),
+              const SizedBox(width: 14), // 与表头排序指示器对齐
+            ],
+          ),
         ),
       ],
     );
@@ -282,22 +293,30 @@ class StockCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: 4),
-        Text(
-          '${stock.profitLossAmount > 0 ? '+' : ''}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
-          style: TextStyle(
-            fontSize: 12,
-            color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
-            fontWeight: FontWeight.bold,
-            height: 1.2,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerRight,
+          child: Text(
+            '${stock.profitLossAmount > 0 ? '+' : ''}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
+            style: TextStyle(
+              fontSize: 12,
+              color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
+              fontWeight: FontWeight.bold,
+              height: 1.2,
+            ),
           ),
         ),
-        Text(
-          '${stock.profitLossPercent > 0 ? '+' : ''}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
-            height: 1.2,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerRight,
+          child: Text(
+            '${stock.profitLossPercent > 0 ? '+' : ''}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: stock.isPositive ? Colors.redAccent : Colors.greenAccent,
+              height: 1.2,
+            ),
           ),
         ),
       ],
@@ -368,7 +387,7 @@ class StockCard extends StatelessWidget {
     final totalCost = stats.totalBuyAmount - stats.totalSellAmount;
 
     final items = [
-      _DetailItem('总成本', CurrencyHelper.formatRate(totalCost)),
+      _DetailItem('总成本', StockCalculator.formatCompact(totalCost)),
       _DetailItem('平均持仓价', CurrencyHelper.formatRate(stats.avgBuyPrice)),
       _DetailItem('最大购买价', CurrencyHelper.formatRate(stats.maxBuyPrice)),
       _DetailItem('最低购买价', CurrencyHelper.formatRate(stats.minBuyPrice)),
