@@ -1,0 +1,154 @@
+import 'package:flutter/material.dart';
+
+/// 通用删除确认弹窗 - 消除项目中所有删除确认弹窗的重复代码
+class ConfirmDeleteDialog extends StatelessWidget {
+  final String title;
+  final String content;
+  final VoidCallback onConfirm;
+
+  const ConfirmDeleteDialog({
+    super.key,
+    required this.title,
+    required this.content,
+    required this.onConfirm,
+  });
+
+  /// 显示删除确认弹窗（便捷方法）
+  static Future<bool> show(
+    BuildContext context, {
+    required String title,
+    required String content,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          title,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        content: Text(
+          content,
+          style: const TextStyle(color: Colors.grey, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('删除', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    ).then((v) => v ?? false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: const Color(0xFF0C1117),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFF303631)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.delete_outline,
+                color: Colors.redAccent,
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              content,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[400],
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF303631)),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          '取消',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      onConfirm();
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.red.withValues(alpha: 0.85),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          '删除',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
