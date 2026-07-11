@@ -585,7 +585,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 const SizedBox(width: 42),
                 const Text(
-                  '方向',
+                  DevConfig.sortDirectionLabel,
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const Spacer(),
@@ -623,7 +623,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '升序',
+                              DevConfig.sortAscending,
                               style: TextStyle(
                                 fontSize: 13,
                                 color: _isSortAscending
@@ -670,7 +670,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '降序',
+                              DevConfig.sortDescending,
                               style: TextStyle(
                                 fontSize: 13,
                                 color: !_isSortAscending
