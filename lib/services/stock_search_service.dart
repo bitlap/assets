@@ -164,6 +164,7 @@ class StockSearchService {
   /// 解析搜索结果
   List<StockSearchResult> _parseSearchResults(Map<String, dynamic> data) {
     final results = <StockSearchResult>[];
+    final seenCodes = <String>{};
     final quoteList = data['QuotationCodeTable']?['Data'];
     if (quoteList == null) return results;
 
@@ -172,6 +173,9 @@ class StockSearchService {
       final name = item['Name']?.toString() ?? '';
       final marketId = item['MktNum']?.toString() ?? '';
       final exchange = item['ExchangeName']?.toString() ?? '';
+
+      // 去重：同一代码只保留第一个
+      if (seenCodes.contains(code)) continue;
 
       // 只保留港股和美股
       String? market;
@@ -232,10 +236,13 @@ class StockSearchService {
   ) async {
     final result = <String, StockQuote?>{};
     final needFetch = <StockSearchResult>[];
+    final seenSecids = <String>{};
     final now = DateTime.now();
 
-    // 1. 从缓存中取有效的
+    // 1. 从缓存中取有效的（去重 secid）
     for (final stock in stocks) {
+      if (seenSecids.contains(stock.secid)) continue;
+      seenSecids.add(stock.secid);
       final cached = _quoteCache[stock.secid];
       if (cached != null && now.difference(cached.$1) < _cacheTTL) {
         result[stock.secid] = cached.$2;
