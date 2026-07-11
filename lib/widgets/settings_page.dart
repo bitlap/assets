@@ -87,8 +87,56 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _onKeepStockChanged(bool value) {
-    setState(() => _keepStockAfterClose = value);
-    SettingsService.setKeepStockAfterClose(value);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value ? DevConfig.keepStockOnLabel : DevConfig.keepStockOffLabel,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value ? DevConfig.keepStockOnDesc : DevConfig.keepStockOffDesc,
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 13,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnCancel,
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() => _keepStockAfterClose = value);
+              SettingsService.setKeepStockAfterClose(value);
+            },
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onCurrencySelected(String currency) {
@@ -362,7 +410,7 @@ class _SettingsPageState extends State<SettingsPage> {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
-              DevConfig.btnGotIt,
+              DevConfig.btnClose,
               style: TextStyle(color: Color(0xFF5B9CF6)),
             ),
           ),

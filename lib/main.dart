@@ -92,7 +92,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     _loadKeepStockSetting();
     // 加载排序设置
     _loadSortSettings();
-    // 启动后延迟3秒开始刷新价格和汇率，然后每300秒刷新一次
+    // 启动后延迟60秒开始刷新价格和汇率，然后每300秒刷新一次
     _startRefresh();
   }
 
@@ -130,8 +130,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
   /// 启动定时刷新（价格 + 汇率）
   void _startRefresh() {
-    // 首次加载后延迟3秒刷新
-    Future.delayed(const Duration(seconds: 3), () {
+    // 首次加载后延迟60秒刷新
+    Future.delayed(const Duration(seconds: 60), () {
       if (mounted) _refreshAll();
     });
 
@@ -406,42 +406,52 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
   void _showRecordsDialog(StockModel stock) {
     final records = _operationRecords[stock.symbol] ?? [];
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (_) => RecordsDialog(
-        stock: stock,
-        operationRecords: records,
-        onDeleteOperationRecord: (symbol, index) {
-          setState(() {
-            final list = _operationRecords[symbol];
-            if (list != null && index < list.length) {
-              list.removeAt(index);
-            }
-            if (list == null || list.isEmpty) {
-              if (_keepStockAfterClose) {
-                _recalculateStockFromRecords(symbol);
-              } else {
-                // 不保留持仓，直接删除股票
-                stocks.removeWhere((s) => s.symbol == symbol);
-                _operationRecords.remove(symbol);
+      isScrollControlled: true,
+      useSafeArea: false,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black54,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.85,
+        builder: (_, scrollController) => RecordsDialog(
+          stock: stock,
+          operationRecords: records,
+          scrollController: scrollController,
+          onDeleteOperationRecord: (symbol, index) {
+            setState(() {
+              final list = _operationRecords[symbol];
+              if (list != null && index < list.length) {
+                list.removeAt(index);
               }
-            } else {
+              if (list == null || list.isEmpty) {
+                if (_keepStockAfterClose) {
+                  _recalculateStockFromRecords(symbol);
+                } else {
+                  // 不保留持仓，直接删除股票
+                  stocks.removeWhere((s) => s.symbol == symbol);
+                  _operationRecords.remove(symbol);
+                }
+              } else {
+                _recalculateStockFromRecords(symbol);
+              }
+            });
+          },
+          onEditOperationRecord: (symbol, index, updated) {
+            setState(() {
+              final list = _operationRecords[symbol];
+              if (list != null && index < list.length) {
+                list[index] = updated;
+              }
               _recalculateStockFromRecords(symbol);
-            }
-          });
-        },
-        onEditOperationRecord: (symbol, index, updated) {
-          setState(() {
-            final list = _operationRecords[symbol];
-            if (list != null && index < list.length) {
-              list[index] = updated;
-            }
-            _recalculateStockFromRecords(symbol);
-          });
-        },
-        onDeleteDividendRecord: (symbol, index) {
-          // 派息记录目前为模拟数据，暂无需同步状态
-        },
+            });
+          },
+          onDeleteDividendRecord: (symbol, index) {
+            // 派息记录目前为模拟数据，暂无需同步状态
+          },
+        ),
       ),
     );
   }
@@ -541,57 +551,67 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
               onRefresh: _refreshAll,
               color: Colors.blue,
               backgroundColor: const Color(0xFF1A1F26),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 8),
-                    AssetCard(
-                      selectedCurrency: selectedCurrency,
-                      totalAssets: totalAssets,
-                      totalCost: totalCost,
-                      totalProfit: totalProfit,
-                      totalProfitPercent: totalProfitPercent,
-                      totalDividends: totalDividends,
-                      exchangeRate: exchangeRate,
-                      isExchangeRateExpanded: _isExchangeRateExpanded,
-                      onToggleExchangeRate: () => setState(
-                        () =>
-                            _isExchangeRateExpanded = !_isExchangeRateExpanded,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
                       ),
-                      onCurrencyChanged: _onCurrencyChanged,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(),
+                          const SizedBox(height: 8),
+                          AssetCard(
+                            selectedCurrency: selectedCurrency,
+                            totalAssets: totalAssets,
+                            totalCost: totalCost,
+                            totalProfit: totalProfit,
+                            totalProfitPercent: totalProfitPercent,
+                            totalDividends: totalDividends,
+                            exchangeRate: exchangeRate,
+                            isExchangeRateExpanded: _isExchangeRateExpanded,
+                            onToggleExchangeRate: () => setState(
+                              () => _isExchangeRateExpanded =
+                                  !_isExchangeRateExpanded,
+                            ),
+                            onCurrencyChanged: _onCurrencyChanged,
+                          ),
+                          const SizedBox(height: 10),
+                          _buildStockListHeader(),
+                          const SizedBox(height: 6),
+                          if (_sortedStocks.isEmpty) ...[
+                            const EmptyStateWidget(
+                              icon: Icons.show_chart,
+                              title: DevConfig.homeEmptyTitle,
+                              subtitle: DevConfig.homeEmptySubtitle,
+                              iconSize: 64,
+                              padding: EdgeInsets.symmetric(vertical: 60),
+                            ),
+                          ] else ...[
+                            Column(
+                              children: _sortedStocks.map((stock) {
+                                return StockCard(
+                                  stock: stock,
+                                  isExpanded:
+                                      _expandedStockSymbol == stock.symbol,
+                                  onExpandTap: () => _onStockTap(stock),
+                                  onRecordTap: () => _showRecordsDialog(stock),
+                                  onMoreTap: () => _showMoreOptions(stock),
+                                  operationRecords:
+                                      _operationRecords[stock.symbol] ?? [],
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                          const SizedBox(height: 80),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    _buildStockListHeader(),
-                    const SizedBox(height: 6),
-                    if (_sortedStocks.isEmpty) ...[
-                      const EmptyStateWidget(
-                        icon: Icons.show_chart,
-                        title: DevConfig.homeEmptyTitle,
-                        subtitle: DevConfig.homeEmptySubtitle,
-                        iconSize: 64,
-                        padding: EdgeInsets.symmetric(vertical: 60),
-                      ),
-                    ] else ...[
-                      Column(
-                        children: _sortedStocks.map((stock) {
-                          return StockCard(
-                            stock: stock,
-                            isExpanded: _expandedStockSymbol == stock.symbol,
-                            onExpandTap: () => _onStockTap(stock),
-                            onRecordTap: () => _showRecordsDialog(stock),
-                            onMoreTap: () => _showMoreOptions(stock),
-                            operationRecords:
-                                _operationRecords[stock.symbol] ?? [],
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                    const SizedBox(height: 80),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
             _buildFloatingAddButton(),
@@ -657,16 +677,20 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   }
 
   Widget _buildFloatingAddButton() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    // 去掉 SafeArea 上下边距，得到实际可用高度
+    final usableHeight =
+        mediaQuery.size.height -
+        mediaQuery.padding.top -
+        mediaQuery.padding.bottom;
     final fabSize = 56.0;
 
     if (!_fabInitialized) {
-      _fabY = screenHeight - fabSize - 100;
+      _fabY = usableHeight - fabSize - 60;
       _fabInitialized = true;
     }
 
-    // 始终固定在右边
     final fabLeft = screenWidth - fabSize - 16;
 
     return Positioned(
@@ -676,8 +700,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
         onPanUpdate: (details) {
           setState(() {
             _fabY = (_fabY + details.delta.dy).clamp(
-              60,
-              screenHeight - fabSize - 80,
+              20,
+              usableHeight - fabSize - 20,
             );
           });
         },

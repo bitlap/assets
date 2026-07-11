@@ -6,10 +6,11 @@ import '../config/app_config.dart';
 import 'common/empty_state_widget.dart';
 import 'common/confirm_delete_dialog.dart';
 
-/// 记录对话框（带Tab切换）
+/// 记录弹窗（底部弹出，支持下拉关闭）
 class RecordsDialog extends StatefulWidget {
   final StockModel stock;
   final List<OperationRecord> operationRecords;
+  final ScrollController scrollController;
   final void Function(String symbol, int index)? onDeleteOperationRecord;
   final void Function(String symbol, int index, OperationRecord updated)?
   onEditOperationRecord;
@@ -18,6 +19,7 @@ class RecordsDialog extends StatefulWidget {
   const RecordsDialog({
     super.key,
     required this.stock,
+    required this.scrollController,
     this.operationRecords = const [],
     this.onDeleteOperationRecord,
     this.onEditOperationRecord,
@@ -46,141 +48,152 @@ class _RecordsDialogState extends State<RecordsDialog>
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: const Color(0xFF0C1117),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: EdgeInsets.zero,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 400),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF303631)),
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0C1117),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border(
+          top: BorderSide(color: Color(0xFF303631)),
+          left: BorderSide(color: Color(0xFF303631)),
+          right: BorderSide(color: Color(0xFF303631)),
         ),
-        child: Column(
-          children: [
-            // 标题
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-              child: Row(
-                children: [
-                  Text(
-                    widget.stock.symbol,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Text(
-                      DevConfig.stockRecord,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF5B9CF6),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF161B22),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF303631)),
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.grey,
-                        size: 14,
-                      ),
-                    ),
-                  ),
-                ],
+      ),
+      child: Column(
+        children: [
+          // 拖拽手柄
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 4),
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[600],
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF161B22),
-                  borderRadius: BorderRadius.circular(10),
+          ),
+          // 标题
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Row(
+              children: [
+                Text(
+                  widget.stock.symbol,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    color: const Color(0xFF1A56DB),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.grey,
-                  labelStyle: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  dividerColor: Colors.transparent,
-                  splashBorderRadius: BorderRadius.circular(10),
-                  tabs: [
-                    Tab(
-                      height: 36,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(DevConfig.recordsOpTab),
-                          const SizedBox(width: 3),
-                          GestureDetector(
-                            onTap: _showOpDeleteHint,
-                            child: const Icon(
-                              Icons.help_outline,
-                              size: 14,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
+                  child: const Text(
+                    DevConfig.stockRecord,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF5B9CF6),
+                      fontWeight: FontWeight.w500,
                     ),
-                    Tab(text: DevConfig.recordsDivTab, height: 36),
-                  ],
+                  ),
                 ),
-              ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF161B22),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF303631)),
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.grey,
+                      size: 14,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: TabBarView(
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF161B22),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: TabBar(
                 controller: _tabController,
-                children: [
-                  _OperationRecordsTab(
-                    stock: widget.stock,
-                    operationRecords: widget.operationRecords,
-                    onDeleteRecord: widget.onDeleteOperationRecord,
-                    onEditRecord: widget.onEditOperationRecord,
+                indicator: BoxDecoration(
+                  color: const Color(0xFF1A56DB),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.grey,
+                labelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                ),
+                dividerColor: Colors.transparent,
+                splashBorderRadius: BorderRadius.circular(10),
+                tabs: [
+                  Tab(
+                    height: 36,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(DevConfig.recordsOpTab),
+                        const SizedBox(width: 3),
+                        GestureDetector(
+                          onTap: _showOpDeleteHint,
+                          child: const Icon(
+                            Icons.help_outline,
+                            size: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  _DividendRecordsTab(
-                    stock: widget.stock,
-                    onDeleteRecord: widget.onDeleteDividendRecord,
-                  ),
+                  Tab(text: DevConfig.recordsDivTab, height: 36),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _OperationRecordsTab(
+                  stock: widget.stock,
+                  operationRecords: widget.operationRecords,
+                  onDeleteRecord: widget.onDeleteOperationRecord,
+                  onEditRecord: widget.onEditOperationRecord,
+                ),
+                _DividendRecordsTab(
+                  stock: widget.stock,
+                  onDeleteRecord: widget.onDeleteDividendRecord,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -209,7 +222,7 @@ class _RecordsDialogState extends State<RecordsDialog>
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
-              DevConfig.btnGotIt,
+              DevConfig.btnClose,
               style: TextStyle(color: Color(0xFF5B9CF6)),
             ),
           ),
@@ -565,7 +578,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                         ),
                         child: const Center(
                           child: Text(
-                            DevConfig.btnGotIt,
+                            DevConfig.btnClose,
                             style: TextStyle(
                               fontSize: 15,
                               color: Colors.white,

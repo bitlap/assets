@@ -46,11 +46,10 @@ class DevConfig {
   static const String licenseSectionData = '数据服务';
 
   // ========== 通用按钮 ==========
-  static const String btnClose = '关闭';
+  static const String btnClose = '确定';
   static const String btnCancel = '取消';
   static const String btnDelete = '删除';
   static const String btnConfirm = '确认删除';
-  static const String btnGotIt = '知道了';
   static const String btnAdd = '添加';
   static const String btnAdded = '已添加';
   static const String btnConfirmAdd = '确认添加';
