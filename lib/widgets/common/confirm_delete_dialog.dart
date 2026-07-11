@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/app_config.dart';
 
 /// 通用删除确认弹窗 - 消除项目中所有删除确认弹窗的重复代码
 class ConfirmDeleteDialog extends StatelessWidget {
@@ -35,11 +36,17 @@ class ConfirmDeleteDialog extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消', style: TextStyle(color: Colors.grey)),
+            child: const Text(
+              DevConfig.btnCancel,
+              style: TextStyle(color: Colors.grey),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('删除', style: TextStyle(color: Colors.redAccent)),
+            child: const Text(
+              DevConfig.btnDelete,
+              style: TextStyle(color: Colors.redAccent),
+            ),
           ),
         ],
       ),
@@ -107,7 +114,7 @@ class ConfirmDeleteDialog extends StatelessWidget {
                       ),
                       child: const Center(
                         child: Text(
-                          '取消',
+                          DevConfig.btnCancel,
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.grey,
@@ -133,7 +140,7 @@ class ConfirmDeleteDialog extends StatelessWidget {
                       ),
                       child: const Center(
                         child: Text(
-                          '删除',
+                          DevConfig.btnDelete,
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.white,

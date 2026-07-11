@@ -4,6 +4,7 @@ import '../utils/currency_helper.dart';
 import '../utils/stock_calculator.dart';
 import '../services/stock_search_service.dart';
 import '../utils/center_toast.dart';
+import '../config/app_config.dart';
 import 'common/app_number_field.dart';
 import 'common/info_row_widget.dart';
 import 'common/confirm_delete_dialog.dart';
@@ -107,7 +108,9 @@ class _EditStockDialogState extends State<EditStockDialog> {
           children: [
             Center(
               child: Text(
-                widget.isAdd ? '加仓' : '减仓',
+                widget.isAdd
+                    ? DevConfig.opAddPosition
+                    : DevConfig.opReducePosition,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -126,25 +129,31 @@ class _EditStockDialogState extends State<EditStockDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InfoRowWidget(label: '股票代码', value: widget.stock.symbol),
-                  const SizedBox(height: 8),
-                  InfoRowWidget(label: '公司名称', value: widget.stock.companyName),
+                  InfoRowWidget(
+                    label: DevConfig.searchStockName,
+                    value: widget.stock.symbol,
+                  ),
                   const SizedBox(height: 8),
                   InfoRowWidget(
-                    label: '当前价格',
+                    label: DevConfig.searchStockName,
+                    value: widget.stock.companyName,
+                  ),
+                  const SizedBox(height: 8),
+                  InfoRowWidget(
+                    label: DevConfig.searchRealtimePrice,
                     value:
                         '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(widget.stock.currentPrice)}',
                   ),
                   const SizedBox(height: 8),
                   InfoRowWidget(
-                    label: '当前持股',
+                    label: DevConfig.searchShares,
                     value:
-                        '${CurrencyHelper.formatShares(widget.stock.shares)}股',
+                        '${CurrencyHelper.formatShares(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
                   ),
                   if (_avgBuyPrice > 0) ...[
                     const SizedBox(height: 8),
                     InfoRowWidget(
-                      label: '买入均价',
+                      label: DevConfig.stockDetailAvgPrice,
                       value:
                           '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(_avgBuyPrice)}',
                     ),
@@ -157,7 +166,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
             Row(
               children: [
                 const Text(
-                  '价格（默认实时价格，可修改）',
+                  DevConfig.editPriceHint,
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey,
@@ -177,12 +186,19 @@ class _EditStockDialogState extends State<EditStockDialog> {
               ],
             ),
             const SizedBox(height: 8),
-            AppNumberField(controller: _priceController, hintText: '请输入价格'),
+            AppNumberField(
+              controller: _priceController,
+              hintText: DevConfig.editPricePlaceholder,
+            ),
             const SizedBox(height: 12),
             AppNumberField(
               controller: _sharesController,
-              label: widget.isAdd ? '加仓股数' : '减仓股数',
-              hintText: widget.isAdd ? '请输入加仓股数' : '请输入减仓股数',
+              label: widget.isAdd
+                  ? DevConfig.editAddSharesLabel
+                  : DevConfig.editReduceSharesLabel,
+              hintText: widget.isAdd
+                  ? DevConfig.editAddSharesHint
+                  : DevConfig.editReduceSharesHint,
             ),
             const SizedBox(height: 20),
             Row(
@@ -198,7 +214,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
                       ),
                       child: const Center(
                         child: Text(
-                          '取消',
+                          DevConfig.btnCancel,
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.grey,
@@ -221,7 +237,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
                           diffShares <= 0 ||
                           newPrice == null ||
                           newPrice <= 0) {
-                        CenterToast.error(context, '请输入有效的股数和价格');
+                        CenterToast.error(context, DevConfig.editInvalidInput);
                         return;
                       }
 
@@ -229,7 +245,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
 
                       // 减仓时检查股数是否足够
                       if (!widget.isAdd && diffShares > oldShares) {
-                        CenterToast.error(context, '减仓股数不能超过持股数');
+                        CenterToast.error(context, DevConfig.editOverflow);
                         return;
                       }
 
@@ -261,15 +277,19 @@ class _EditStockDialogState extends State<EditStockDialog> {
                       // 创建操作记录
                       String recordType, description;
                       if (isClosePosition) {
-                        recordType = '卖出';
-                        description = '平仓 ${widget.stock.symbol}';
-                      } else if (widget.operationRecords.isEmpty) {
-                        recordType = '买入';
-                        description = '开仓 ${widget.stock.symbol}';
-                      } else {
-                        recordType = widget.isAdd ? '买入' : '卖出';
+                        recordType = DevConfig.opSell;
                         description =
-                            '${widget.isAdd ? "加仓" : "减仓"} ${widget.stock.symbol}';
+                            '${DevConfig.opClosePosition} ${widget.stock.symbol}';
+                      } else if (widget.operationRecords.isEmpty) {
+                        recordType = DevConfig.opBuy;
+                        description =
+                            '${DevConfig.opOpenPosition} ${widget.stock.symbol}';
+                      } else {
+                        recordType = widget.isAdd
+                            ? DevConfig.opBuy
+                            : DevConfig.opSell;
+                        description =
+                            '${widget.isAdd ? DevConfig.opAddPosition : DevConfig.opReducePosition} ${widget.stock.symbol}';
                       }
 
                       final record = OperationRecord(
@@ -292,7 +312,9 @@ class _EditStockDialogState extends State<EditStockDialog> {
                       ),
                       child: Center(
                         child: Text(
-                          widget.isAdd ? '确认加仓' : '确认减仓',
+                          widget.isAdd
+                              ? DevConfig.btnConfirmBuy
+                              : DevConfig.btnConfirmSell,
                           style: const TextStyle(
                             fontSize: 15,
                             color: Colors.white,
@@ -326,8 +348,10 @@ class DeleteStockDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConfirmDeleteDialog(
-      title: '确认删除',
-      content: '确定要删除 ${stock.symbol} (${stock.companyName}) 吗?',
+      title: DevConfig.btnConfirm,
+      content: DevConfig.deleteConfirmContent
+          .replaceAll('{symbol}', stock.symbol)
+          .replaceAll('{name}', stock.companyName),
       onConfirm: onDelete,
     );
   }
@@ -368,7 +392,7 @@ class MoreOptionsDialog extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: Text(
-                  '更多操作',
+                  DevConfig.opMoreActions,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -380,7 +404,7 @@ class MoreOptionsDialog extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.add_circle, color: Colors.redAccent),
                 title: const Text(
-                  '加仓',
+                  DevConfig.opAddPosition,
                   style: TextStyle(color: Colors.white, fontSize: 15),
                 ),
                 onTap: () {
@@ -394,7 +418,7 @@ class MoreOptionsDialog extends StatelessWidget {
                   color: Colors.greenAccent,
                 ),
                 title: const Text(
-                  '减仓',
+                  DevConfig.opReducePosition,
                   style: TextStyle(color: Colors.white, fontSize: 15),
                 ),
                 onTap: () {
@@ -405,7 +429,7 @@ class MoreOptionsDialog extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.redAccent),
                 title: const Text(
-                  '删除股票',
+                  DevConfig.opDeleteStock,
                   style: TextStyle(color: Colors.redAccent, fontSize: 15),
                 ),
                 onTap: () {

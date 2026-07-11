@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/stock_model.dart';
 import '../utils/currency_helper.dart';
+import '../config/app_config.dart';
 import 'common/empty_state_widget.dart';
 import 'common/confirm_delete_dialog.dart';
 
@@ -78,7 +79,7 @@ class _RecordsDialogState extends State<RecordsDialog>
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Text(
-                      '记录',
+                      DevConfig.stockRecord,
                       style: TextStyle(
                         fontSize: 12,
                         color: Color(0xFF5B9CF6),
@@ -135,8 +136,8 @@ class _RecordsDialogState extends State<RecordsDialog>
                   dividerColor: Colors.transparent,
                   splashBorderRadius: BorderRadius.circular(10),
                   tabs: const [
-                    Tab(text: '操作', height: 36),
-                    Tab(text: '派息', height: 36),
+                    Tab(text: DevConfig.recordsOpTab, height: 36),
+                    Tab(text: DevConfig.recordsDivTab, height: 36),
                   ],
                 ),
               ),
@@ -198,8 +199,8 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
     if (allRecords.isEmpty) {
       return const EmptyStateWidget(
         icon: Icons.list_alt,
-        title: '暂无操作记录',
-        subtitle: '点击“记录”按钮添加第一次操作',
+        title: DevConfig.recordsEmptyOp,
+        subtitle: DevConfig.recordsEmptyOpHint,
       );
     }
 
@@ -208,8 +209,8 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
       itemCount: allRecords.length,
       itemBuilder: (context, index) {
         final record = allRecords[index];
-        final isBuy = record.type == '买入';
-        final isPriceChange = record.type == '改价';
+        final isBuy = record.type == DevConfig.opBuy;
+        final isPriceChange = record.type == DevConfig.opPriceChange;
         final iconColor = isPriceChange
             ? Colors.blue
             : (isBuy ? Colors.redAccent : Colors.greenAccent);
@@ -237,8 +238,8 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
           ),
           confirmDismiss: (_) => ConfirmDeleteDialog.show(
             context,
-            title: '确认删除',
-            content: '确定删除此条操作记录？',
+            title: DevConfig.btnConfirm,
+            content: DevConfig.recordsDeleteOpConfirm,
           ),
           onDismissed: (_) {
             setState(() => allRecords.removeAt(index));
@@ -284,7 +285,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                       if (record.amount > 0 && !isPriceChange) ...[
                         const SizedBox(height: 4),
                         Text(
-                          '${CurrencyHelper.formatRate(record.amount)} \u00d7 ${CurrencyHelper.formatShares(record.shares)}股 = ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
+                          '${CurrencyHelper.formatRate(record.amount)} × ${CurrencyHelper.formatShares(record.shares)}${DevConfig.stockSharesSuffix} = ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
                           style: TextStyle(
                             color: Colors.grey[500],
                             fontSize: 11,
@@ -294,7 +295,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                       if (isPriceChange) ...[
                         const SizedBox(height: 4),
                         Text(
-                          '新价格: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}',
+                          '${DevConfig.recordsNewPrice}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}',
                           style: TextStyle(
                             color: Colors.grey[500],
                             fontSize: 11,
@@ -309,7 +310,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '${isBuy ? "+" : "-"}${CurrencyHelper.formatShares(record.shares)}股',
+                        '${isBuy ? "+" : "-"}${CurrencyHelper.formatShares(record.shares)}${DevConfig.stockSharesSuffix}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -363,8 +364,8 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
     if (allRecords.isEmpty) {
       return const EmptyStateWidget(
         icon: Icons.attach_money,
-        title: '暂无派息记录',
-        subtitle: '当前股票还没有派息数据',
+        title: DevConfig.recordsEmptyDiv,
+        subtitle: DevConfig.recordsEmptyDivHint,
       );
     }
 
@@ -389,8 +390,8 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
           ),
           confirmDismiss: (_) => ConfirmDeleteDialog.show(
             context,
-            title: '确认删除',
-            content: '确定删除此条派息记录？',
+            title: DevConfig.btnConfirm,
+            content: DevConfig.recordsDeleteDivConfirm,
           ),
           onDismissed: (_) {
             setState(() => allRecords.removeAt(index));
@@ -425,7 +426,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '派息 ${widget.stock.symbol}',
+                        DevConfig.recordsDivTab + ' ${widget.stock.symbol}',
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           color: Colors.white,

@@ -1,3 +1,5 @@
+import '../config/app_config.dart';
+
 /// 股票数据模型
 class StockModel {
   final String symbol;
@@ -12,7 +14,8 @@ class StockModel {
   final String marketType; // 市场类型：美股、港股
   final double changePercent; // 日涨跌幅（%）
   final String? _currency; // 股票币种（美股=USD，港股=HKD）
-  String get currency => _currency ?? (marketType == '港股' ? 'HKD' : 'USD');
+  String get currency =>
+      _currency ?? (marketType == DevConfig.searchMarketHK ? 'HKD' : 'USD');
   final String? secid; // 东方财富 secid（用于获取行情）
 
   StockModel({
@@ -25,7 +28,7 @@ class StockModel {
     required this.profitLossAmount,
     required this.isPositive,
     this.logoUrl,
-    this.marketType = '美股',
+    this.marketType = DevConfig.searchMarketUS,
     this.changePercent = 0.0,
     String? currency,
     this.secid,

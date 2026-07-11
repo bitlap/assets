@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'models/stock_model.dart';
+import 'config/app_config.dart';
 import 'utils/currency_helper.dart';
 import 'utils/center_toast.dart';
 import 'utils/stock_calculator.dart';
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '股票持仓',
+      title: DevConfig.appName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -165,7 +166,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
           market: stock.marketType,
           secid:
               stock.secid ??
-              '${stock.marketType == '美股' ? '105' : '116'}.${stock.symbol}',
+              '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}',
         );
 
         // 获取最新行情
@@ -368,19 +369,24 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     if (record != null) {
       String action;
       if (isClosed) {
-        action = '平仓';
+        action = DevConfig.opClosePosition;
       } else if (_operationRecords[updatedStock.symbol]?.length == 1) {
-        action = '开仓';
+        action = DevConfig.opOpenPosition;
       } else {
-        action = record.type == '买入' ? '加仓' : '减仓';
+        action = record.type == DevConfig.opBuy
+            ? DevConfig.opAddPosition
+            : DevConfig.opReducePosition;
       }
-      CenterToast.success(context, '$action成功');
+      CenterToast.success(
+        context,
+        '${action}${DevConfig.resultAddSuccess.replaceAll(DevConfig.opAddPosition, '')}',
+      );
     }
   }
 
   void _onDeleteStock(StockModel stock) {
     setState(() => stocks.remove(stock));
-    CenterToast.success(context, '删除成功');
+    CenterToast.success(context, DevConfig.resultDeleteSuccess);
   }
 
   void _showRecordsDialog(StockModel stock) {
@@ -454,7 +460,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
             // 根据操作记录重算持仓数据
             _recalculateStockFromRecords(newStock.symbol);
           });
-          CenterToast.success(context, '添加成功');
+          CenterToast.success(context, DevConfig.resultAddStockSuccess);
         },
       ),
     );
@@ -526,8 +532,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 if (_sortedStocks.isEmpty) ...[
                   const EmptyStateWidget(
                     icon: Icons.show_chart,
-                    title: '暂无股票持仓',
-                    subtitle: '点击右上角 + 添加股票开始投资',
+                    title: DevConfig.homeEmptyTitle,
+                    subtitle: DevConfig.homeEmptySubtitle,
                     iconSize: 64,
                     padding: EdgeInsets.symmetric(vertical: 60),
                   ),
@@ -566,7 +572,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                '股票持仓',
+                DevConfig.homeTitle,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -576,7 +582,10 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
               ),
               const SizedBox(height: 2),
               Text(
-                '共 ${stocks.length} 只 · 实时更新',
+                DevConfig.homeSubtitle.replaceAll(
+                  '{count}',
+                  '${stocks.length}',
+                ),
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey[400],
@@ -622,7 +631,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    '股票',
+                    DevConfig.homeStockHeader,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -645,7 +654,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 children: [
                   const SizedBox(width: 4), // 与下方内容对齐
                   Text(
-                    '持仓',
+                    DevConfig.homeHoldingHeader,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -668,7 +677,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '盈亏',
+                    DevConfig.homeProfitHeader,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

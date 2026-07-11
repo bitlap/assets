@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/stock_model.dart';
+import '../config/app_config.dart';
 import '../utils/currency_helper.dart';
 import '../utils/stock_calculator.dart';
 
@@ -40,7 +41,6 @@ class StockCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // 第一行：市场标签 + 总价值
             Row(
               children: [
                 Container(
@@ -49,7 +49,7 @@ class StockCard extends StatelessWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: stock.marketType == '美股'
+                    color: stock.marketType == DevConfig.searchMarketUS
                         ? Colors.blue
                         : Colors.orange,
                     borderRadius: BorderRadius.circular(4),
@@ -66,7 +66,7 @@ class StockCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '总市值',
+                  DevConfig.stockTotalValue,
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey[500],
@@ -89,7 +89,6 @@ class StockCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            // 第二行：Logo + 信息列
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -103,12 +102,10 @@ class StockCard extends StatelessWidget {
             const SizedBox(height: 4),
             Divider(height: 1, color: const Color(0xFF303631)),
             const SizedBox(height: 4),
-            // 展开详情区域
             if (isExpanded) ..._buildExpandedDetails(),
             if (isExpanded) const SizedBox(height: 4),
             if (isExpanded) Divider(height: 1, color: const Color(0xFF303631)),
             if (isExpanded) const SizedBox(height: 4),
-            // 操作按钮
             Row(
               children: [
                 Expanded(child: _buildRecordButton()),
@@ -248,7 +245,7 @@ class StockCard extends StatelessWidget {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
           child: Text(
-            '${StockCalculator.formatCompactShares(stock.shares)}股',
+            '${StockCalculator.formatCompactShares(stock.shares)}${DevConfig.stockSharesSuffix}',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -340,7 +337,7 @@ class StockCard extends StatelessWidget {
             Icon(Icons.list_alt, size: 14, color: Colors.white),
             SizedBox(width: 4),
             Text(
-              '记录',
+              DevConfig.stockRecord,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -368,7 +365,7 @@ class StockCard extends StatelessWidget {
             Icon(Icons.more_horiz, size: 14, color: Colors.grey[400]),
             const SizedBox(width: 4),
             Text(
-              '更多',
+              DevConfig.stockMore,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -387,12 +384,24 @@ class StockCard extends StatelessWidget {
     final totalCost = stats.totalBuyAmount - stats.totalSellAmount;
 
     final items = [
-      _DetailItem('总成本', StockCalculator.formatCompact(totalCost)),
-      _DetailItem('平均持仓价', CurrencyHelper.formatRate(stats.avgBuyPrice)),
-      _DetailItem('最大购买价', CurrencyHelper.formatRate(stats.maxBuyPrice)),
-      _DetailItem('最低购买价', CurrencyHelper.formatRate(stats.minBuyPrice)),
-      _DetailItem('加仓次数', '${stats.buyCount} 次'),
-      _DetailItem('减仓次数', '${stats.sellCount} 次'),
+      _DetailItem(
+        DevConfig.stockDetailTotalCost,
+        StockCalculator.formatCompact(totalCost),
+      ),
+      _DetailItem(
+        DevConfig.stockDetailAvgPrice,
+        CurrencyHelper.formatRate(stats.avgBuyPrice),
+      ),
+      _DetailItem(
+        DevConfig.stockDetailMaxPrice,
+        CurrencyHelper.formatRate(stats.maxBuyPrice),
+      ),
+      _DetailItem(
+        DevConfig.stockDetailMinPrice,
+        CurrencyHelper.formatRate(stats.minBuyPrice),
+      ),
+      _DetailItem(DevConfig.stockDetailBuyCount, '${stats.buyCount} 次'),
+      _DetailItem(DevConfig.stockDetailSellCount, '${stats.sellCount} 次'),
     ];
 
     final rows = <Widget>[];

@@ -5,6 +5,8 @@ import '../models/stock_model.dart';
 import '../services/stock_search_service.dart';
 import '../utils/center_toast.dart';
 import '../utils/currency_helper.dart';
+import '../utils/stock_calculator.dart';
+import '../config/app_config.dart';
 import 'common/app_number_field.dart';
 import 'common/info_row_widget.dart';
 
@@ -84,7 +86,10 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     final cooldownSecs = _service.cooldownRemainingSeconds;
     if (cooldownSecs > 0) {
       setState(() {
-        _errorMessage = '请求过于频繁，请${cooldownSecs}秒后再试';
+        _errorMessage = DevConfig.searchRateLimit.replaceAll(
+          '{secs}',
+          '${cooldownSecs}',
+        );
         _hasSearched = true;
         _isLoading = false;
       });
@@ -106,7 +111,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
         setState(() {
           _isLoading = false;
           _hasSearched = true;
-          _errorMessage = '请求过于频繁，请稍后再试';
+          _errorMessage = DevConfig.searchRateLimitShort;
         });
         return;
       }
@@ -118,8 +123,11 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
         _hasSearched = true;
         if (_results.isEmpty) {
           _errorMessage = _selectedMarket != null
-              ? '未找到相关${_selectedMarket}股票'
-              : '未找到相关股票';
+              ? DevConfig.searchNotFoundMarket.replaceAll(
+                  '{market}',
+                  _selectedMarket ?? '',
+                )
+              : DevConfig.searchNotFound;
         }
       });
       // 从 service 缓存中恢复已有行情（单例缓存跨弹窗保留，无需新请求）
@@ -129,7 +137,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       setState(() {
         _isLoading = false;
         _hasSearched = true;
-        _errorMessage = '搜索失败，请重试';
+        _errorMessage = DevConfig.searchFailed;
       });
     }
   }
@@ -137,7 +145,10 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
   /// 添加股票到持仓列表
   Future<void> _addStock(StockSearchResult stock) async {
     if (widget.existingSymbols.contains(stock.code)) {
-      CenterToast.warning(context, '${stock.code} 已在持仓中');
+      CenterToast.warning(
+        context,
+        DevConfig.searchAlreadyExists.replaceAll('{code}', '${stock.code}'),
+      );
       return;
     }
 
@@ -147,7 +158,10 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       // 检查冷却状态
       final cooldownSecs = _service.cooldownRemainingSeconds;
       if (cooldownSecs > 0) {
-        CenterToast.warning(context, '请求过于频繁，请${cooldownSecs}秒后再试');
+        CenterToast.warning(
+          context,
+          DevConfig.searchRateLimit.replaceAll('{secs}', '${cooldownSecs}'),
+        );
         return;
       }
       setState(() => _loadingQuotes.add(stock.secid));
@@ -198,8 +212,8 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     // 创建建仓操作记录
     final buyRecord = OperationRecord(
       date: DateTime.now(),
-      type: '买入',
-      description: '建仓 ${stock.code}',
+      type: DevConfig.opBuy,
+      description: DevConfig.opOpenPosition + ' ${stock.code}',
       amount: price,
       shares: shares,
     );
@@ -242,7 +256,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
           Row(
             children: [
               const Text(
-                '添加股票',
+                DevConfig.searchTitle,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -275,7 +289,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                     onChanged: _onSearchChanged,
                     style: const TextStyle(color: Colors.white, fontSize: 15),
                     decoration: const InputDecoration(
-                      hintText: '输入股票名称或代码（如 AAPL、腾讯）',
+                      hintText: DevConfig.searchHint,
                       hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                       border: InputBorder.none,
                       isDense: true,
@@ -304,11 +318,17 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
           const SizedBox(height: 8),
           Row(
             children: [
-              _buildTag('全部', _selectedMarket == null),
+              _buildTag(DevConfig.searchAll, _selectedMarket == null),
               const SizedBox(width: 8),
-              _buildTag('美股', _selectedMarket == '美股'),
+              _buildTag(
+                DevConfig.searchMarketUS,
+                _selectedMarket == DevConfig.searchMarketUS,
+              ),
               const SizedBox(width: 8),
-              _buildTag('港股', _selectedMarket == '港股'),
+              _buildTag(
+                DevConfig.searchMarketHK,
+                _selectedMarket == DevConfig.searchMarketHK,
+              ),
               const Spacer(),
               if (_isLoading)
                 const SizedBox(
@@ -330,7 +350,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedMarket = label == '全部' ? null : label;
+          _selectedMarket = label == DevConfig.searchAll ? null : label;
           _results = _applyMarketFilter(_allResults);
         });
       },
@@ -453,12 +473,12 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
               ),
               SizedBox(height: 12),
               Text(
-                '输入名称或代码搜索港股/美股',
+                DevConfig.searchInitHint,
                 style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
               SizedBox(height: 6),
               Text(
-                '如：AAPL、腾讯、00700、TSLA',
+                DevConfig.searchInitExample,
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
@@ -559,7 +579,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                           vertical: 1,
                         ),
                         decoration: BoxDecoration(
-                          color: stock.market == '美股'
+                          color: stock.market == DevConfig.searchMarketUS
                               ? Colors.blue.withValues(alpha: 0.15)
                               : Colors.orange.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(4),
@@ -568,7 +588,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                           stock.market,
                           style: TextStyle(
                             fontSize: 10,
-                            color: stock.market == '美股'
+                            color: stock.market == DevConfig.searchMarketUS
                                 ? const Color(0xFF5B9CF6)
                                 : Colors.orange,
                           ),
@@ -592,7 +612,10 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    _formatPrice(quote.currentPrice),
+                    StockCalculator.formatCompact(
+                      quote.currentPrice,
+                      formatBase: CurrencyHelper.formatRate,
+                    ),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -624,7 +647,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
-                  '已添加',
+                  DevConfig.btnAdded,
                   style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               )
@@ -640,7 +663,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                   border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                 ),
                 child: const Text(
-                  '添加',
+                  DevConfig.btnAdd,
                   style: TextStyle(color: Color(0xFF5B9CF6), fontSize: 12),
                 ),
               ),
@@ -664,13 +687,6 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
         ),
       ),
     );
-  }
-
-  String _formatPrice(double price) {
-    if (price >= 10000) {
-      return '${CurrencyHelper.formatRate(price / 10000)}万';
-    }
-    return CurrencyHelper.formatRate(price);
   }
 }
 
@@ -743,7 +759,7 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
           children: [
             Center(
               child: Text(
-                '添加 ${widget.stockCode}',
+                DevConfig.searchAddTitle.replaceAll('{code}', widget.stockCode),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -763,13 +779,19 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InfoRowWidget(label: '股票名称', value: widget.stockName),
+                  InfoRowWidget(
+                    label: DevConfig.searchStockName,
+                    value: widget.stockName,
+                  ),
                   const SizedBox(height: 8),
-                  InfoRowWidget(label: '市场', value: widget.market),
+                  InfoRowWidget(
+                    label: DevConfig.searchMarket,
+                    value: widget.market,
+                  ),
                   if (widget.defaultPrice > 0) ...[
                     const SizedBox(height: 8),
                     InfoRowWidget(
-                      label: '实时价格',
+                      label: DevConfig.searchRealtimePrice,
                       value: CurrencyHelper.formatRate(widget.defaultPrice),
                     ),
                   ],
@@ -780,15 +802,15 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
             // 买入价格
             AppNumberField(
               controller: _priceController,
-              label: '买入价格',
-              hintText: '请输入买入价格',
+              label: DevConfig.searchBuyPrice,
+              hintText: DevConfig.searchBuyPriceHint,
             ),
             const SizedBox(height: 12),
             // 持股数量
             AppNumberField(
               controller: _sharesController,
-              label: '持股数量',
-              hintText: '请输入持股数量',
+              label: DevConfig.searchShares,
+              hintText: DevConfig.searchSharesHint,
             ),
             const SizedBox(height: 20),
             // 按钮
@@ -805,7 +827,7 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
                       ),
                       child: const Center(
                         child: Text(
-                          '取消',
+                          DevConfig.btnCancel,
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.grey,
@@ -830,7 +852,7 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
                       ),
                       child: const Center(
                         child: Text(
-                          '确认添加',
+                          DevConfig.btnConfirmAdd,
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.white,
@@ -854,11 +876,11 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
     final shares = double.tryParse(_sharesController.text);
 
     if (price == null || price <= 0) {
-      CenterToast.error(context, '请输入有效的买入价格');
+      CenterToast.error(context, DevConfig.searchInvalidPrice);
       return;
     }
     if (shares == null || shares <= 0) {
-      CenterToast.error(context, '请输入有效的持股数量');
+      CenterToast.error(context, DevConfig.searchInvalidShares);
       return;
     }
 

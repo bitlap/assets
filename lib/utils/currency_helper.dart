@@ -1,3 +1,5 @@
+import 'package:assets/config/app_config.dart';
+
 /// 汇率与货币转换工具类
 class CurrencyHelper {
   /// 汇率映射表（以 USD 为基准，1 USD = X 目标货币）
@@ -73,7 +75,7 @@ class CurrencyHelper {
   /// 根据市场类型返回对应币种
   static String currencyForMarket(String marketType) {
     switch (marketType) {
-      case '港股':
+      case DevConfig.searchMarketHK:
         return 'HKD';
       default:
         return 'USD';

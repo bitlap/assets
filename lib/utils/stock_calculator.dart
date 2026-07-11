@@ -1,3 +1,4 @@
+import '../config/app_config.dart';
 import '../models/stock_model.dart';
 import 'currency_helper.dart';
 
@@ -83,13 +84,13 @@ class StockCalculator {
     int sellCount = 0;
 
     for (final record in records) {
-      if (record.type == '买入') {
+      if (record.type == DevConfig.opBuy) {
         currentShares += record.shares;
         totalBuyAmount += record.amount * record.shares;
         buyCount++;
         if (record.amount > maxBuyPrice) maxBuyPrice = record.amount;
         if (record.amount < minBuyPrice) minBuyPrice = record.amount;
-      } else if (record.type == '卖出') {
+      } else if (record.type == DevConfig.opSell) {
         currentShares -= record.shares;
         totalSellAmount += record.amount * record.shares;
         sellCount++;
@@ -123,10 +124,10 @@ class StockCalculator {
     double totalSellAmount = 0.0;
     double currentShares = 0.0;
     for (final r in records) {
-      if (r.type == '买入') {
+      if (r.type == DevConfig.opBuy) {
         totalBuyAmount += r.amount * r.shares;
         currentShares += r.shares;
-      } else if (r.type == '卖出') {
+      } else if (r.type == DevConfig.opSell) {
         totalSellAmount += r.amount * r.shares;
         currentShares -= r.shares;
       }

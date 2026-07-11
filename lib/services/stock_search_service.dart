@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 
+import '../config/app_config.dart';
+
 typedef _CachedAt = DateTime;
 
 /// 股票搜索结果模型
@@ -173,11 +175,11 @@ class StockSearchService {
       switch (marketId) {
         case '105': // 纳斯达克
         case '106': // 纽约证券交易所
-          market = '美股';
+          market = DevConfig.searchMarketUS;
           secid = '$marketId.$code';
           break;
         case '116': // 港股
-          market = '港股';
+          market = DevConfig.searchMarketHK;
           secid = '$marketId.$code';
           break;
         default:
@@ -185,10 +187,10 @@ class StockSearchService {
           if (exchange.contains('纳斯达克') ||
               exchange.contains('纽约') ||
               exchange.contains('美国')) {
-            market = '美股';
+            market = DevConfig.searchMarketUS;
             secid = '105.$code';
           } else if (exchange.contains('港股') || exchange.contains('香港')) {
-            market = '港股';
+            market = DevConfig.searchMarketHK;
             secid = '116.$code';
           }
           break;
@@ -249,7 +251,7 @@ class StockSearchService {
 
     try {
       // 腾讯API格式：https://qt.gtimg.cn/q=usAAPL, hk00700
-      final prefix = stock.market == '美股' ? 'us' : 'hk';
+      final prefix = stock.market == DevConfig.searchMarketUS ? 'us' : 'hk';
       final symbol = '$prefix${stock.code}';
 
       final client = Client();
@@ -278,10 +280,10 @@ class StockSearchService {
   /// 美股：使用 StockTwits CDN（免费、无需 API key）
   /// 港股：暂无免费 CDN 支持，返回 null（UI 会显示 fallback）
   static String? getLogoUrl(String code, String market) {
-    if (market == '美股') {
+    if (market == DevConfig.searchMarketUS) {
       // StockTwits CDN: 免费美股 logo CDN，支持所有 US ticker
       return 'https://logos.stocktwits-cdn.com/${code.toUpperCase()}.png?w=64';
-    } else if (market == '港股') {
+    } else if (market == DevConfig.searchMarketHK) {
       // 港股暂无免费 CDN 支持，返回 null，UI 会显示首字母 fallback
       // 大部分港股可能无法获取，UI 会显示 fallback
       return null;

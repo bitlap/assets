@@ -32,9 +32,9 @@ class _SettingsPageState extends State<SettingsPage> {
   String _selectedSortColumn = 'profit';
 
   static const List<Map<String, String>> sortOptions = [
-    {'key': 'profit', 'label': '按盈亏'},
-    {'key': 'holdings', 'label': '按持仓'},
-    {'key': 'name', 'label': '按名称'},
+    {'key': 'profit', 'label': DevConfig.sortByProfit},
+    {'key': 'holdings', 'label': DevConfig.sortByHoldings},
+    {'key': 'name', 'label': DevConfig.sortByName},
   ];
 
   static const List<_OpenSourceLib> _openSourceLibs = [
@@ -111,7 +111,7 @@ class _SettingsPageState extends State<SettingsPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          '设置',
+          DevConfig.settingsTitle,
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -127,15 +127,18 @@ class _SettingsPageState extends State<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         children: [
-          _buildSectionHeader(Icons.currency_exchange, '本地货币'),
+          _buildSectionHeader(
+            Icons.currency_exchange,
+            DevConfig.sectionCurrency,
+          ),
           const SizedBox(height: 8),
           _buildCurrencySection(),
           const SizedBox(height: 24),
-          _buildSectionHeader(Icons.trending_up, '股票设置'),
+          _buildSectionHeader(Icons.trending_up, DevConfig.sectionStock),
           const SizedBox(height: 8),
           _buildStockSettingsGroup(),
           const SizedBox(height: 24),
-          _buildSectionHeader(Icons.more_horiz, '其他'),
+          _buildSectionHeader(Icons.more_horiz, DevConfig.sectionOther),
           const SizedBox(height: 8),
           _buildOtherGroup(),
           const SizedBox(height: 32),
@@ -289,7 +292,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   Flexible(
                     child: Text(
-                      '平仓后保留持仓',
+                      DevConfig.keepStockLabel,
                       style: TextStyle(fontSize: 15, color: Colors.grey[300]),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -331,7 +334,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
             SizedBox(width: 8),
             Text(
-              '平仓后保留持仓',
+              DevConfig.keepStockLabel,
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           ],
@@ -343,15 +346,15 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildHintRow(
               Icons.check_circle_outline,
               Colors.greenAccent,
-              '开启后',
-              '平仓时保留股票在列表中，持仓数量和金额均变为 0，历史记录依旧保留。',
+              DevConfig.keepStockOnLabel,
+              DevConfig.keepStockOnDesc,
             ),
             const SizedBox(height: 12),
             _buildHintRow(
               Icons.cancel_outlined,
               Colors.redAccent,
-              '关闭后',
-              '平仓时删除股票及所有数据，效果等同直接删除股票和操作记录。',
+              DevConfig.keepStockOffLabel,
+              DevConfig.keepStockOffDesc,
             ),
           ],
         ),
@@ -359,7 +362,7 @@ class _SettingsPageState extends State<SettingsPage> {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
-              '知道了',
+              DevConfig.btnGotIt,
               style: TextStyle(color: Color(0xFF5B9CF6)),
             ),
           ),
@@ -432,7 +435,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(width: 10),
             const Text(
-              '默认排序',
+              DevConfig.sortLabel,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -517,21 +520,21 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildGroupItem(
               icon: Icons.rate_review_outlined,
               iconColor: Colors.amber,
-              label: '意见反馈',
+              label: DevConfig.feedbackLabel,
               onTap: _showFeedbackDialog,
             ),
             _buildGroupDivider(),
             _buildGroupItem(
               icon: Icons.code,
               iconColor: const Color(0xFF64B5F6),
-              label: '开源软件说明',
+              label: DevConfig.openSourceLabel,
               onTap: _showOpenSourceDialog,
             ),
             _buildGroupDivider(),
             _buildGroupItem(
               icon: Icons.info_outline,
               iconColor: Colors.grey,
-              label: '版本',
+              label: DevConfig.versionLabel,
               trailing: DevConfig.appVersion,
             ),
           ],
@@ -607,23 +610,29 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 16),
             _buildContactRow(
               Icons.email_outlined,
-              '邮箱',
+              DevConfig.contactEmail,
               DevConfig.developerEmail,
               onTap: () => _launchEmail(DevConfig.developerEmail),
             ),
             const SizedBox(height: 12),
             _buildContactRow(
               Icons.chat_bubble_outline,
-              '微信',
+              DevConfig.contactWechat,
               DevConfig.developerWechat,
-              onTap: () => _copyToClipboard(DevConfig.developerWechat, '微信号'),
+              onTap: () => _copyToClipboard(
+                DevConfig.developerWechat,
+                DevConfig.toastWechatCopied,
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('关闭', style: TextStyle(color: Color(0xFF5B9CF6))),
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
           ),
         ],
       ),
@@ -666,13 +675,13 @@ class _SettingsPageState extends State<SettingsPage> {
         return;
       }
     } catch (_) {}
-    _copyToClipboard(email, '邮箱地址');
+    _copyToClipboard(email, DevConfig.toastEmailCopied);
   }
 
   void _copyToClipboard(String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
-      CenterToast.success(context, '$label已复制到剪贴板');
+      CenterToast.success(context, '$label${DevConfig.toastClipboardSuffix}');
     }
   }
 
@@ -693,7 +702,7 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                '开源软件说明',
+                DevConfig.openSourceTitle,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -702,7 +711,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                '本应用使用了以下开源库和数据服务',
+                DevConfig.openSourceDesc,
                 style: TextStyle(fontSize: 12, color: Colors.grey[500]),
               ),
               const SizedBox(height: 16),
@@ -710,9 +719,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ListView(
                   shrinkWrap: true,
                   children: [
-                    _buildLicenseSection('Flutter / Dart 开源库', _openSourceLibs),
+                    _buildLicenseSection(
+                      DevConfig.licenseSectionLibs,
+                      _openSourceLibs,
+                    ),
                     const SizedBox(height: 12),
-                    _buildLicenseSection('数据服务', _dataSources),
+                    _buildLicenseSection(
+                      DevConfig.licenseSectionData,
+                      _dataSources,
+                    ),
                   ],
                 ),
               ),
@@ -728,7 +743,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                   child: const Text(
-                    '关闭',
+                    DevConfig.btnClose,
                     style: TextStyle(color: Colors.white),
                   ),
                 ),

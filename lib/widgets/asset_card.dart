@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_config.dart';
 import '../utils/currency_helper.dart';
 import '../utils/stock_calculator.dart';
 
@@ -92,7 +93,7 @@ class _AssetCardState extends State<AssetCard> {
                       child: Row(
                         children: [
                           const Text(
-                            '选择货币',
+                            DevConfig.assetSelectCurrency,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
@@ -233,7 +234,7 @@ class _AssetCardState extends State<AssetCard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                '总资产',
+                DevConfig.assetTotalAssets,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.white70,
@@ -262,7 +263,7 @@ class _AssetCardState extends State<AssetCard> {
               children: [
                 Expanded(
                   child: _buildSummaryCard(
-                    '总成本',
+                    DevConfig.assetTotalCost,
                     _buildTotalCostText(),
                     const Text(
                       ' ',
@@ -278,7 +279,7 @@ class _AssetCardState extends State<AssetCard> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _buildSummaryCard(
-                    '总盈亏',
+                    DevConfig.assetTotalProfit,
                     _buildProfitText(),
                     _buildProfitPercent(),
                   ),
@@ -286,7 +287,7 @@ class _AssetCardState extends State<AssetCard> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _buildSummaryCard(
-                    '总股息',
+                    DevConfig.assetTotalDividends,
                     _buildDividendText(),
                     const Text(
                       '0.00%',
@@ -437,7 +438,7 @@ class _AssetCardState extends State<AssetCard> {
           Row(
             children: [
               const Text(
-                '汇率',
+                DevConfig.assetExchangeRate,
                 style: TextStyle(
                   fontSize: 11,
                   color: Colors.white70,
