@@ -31,14 +31,14 @@ class AssetSummary {
   final double totalCost; // 总成本（目标币种）
   final double totalProfit; // 总盈亏（目标币种）
   final double totalProfitPercent; // 总盈亏百分比
-  final double totalDividends; // 总股息（目标币种）
+  final double totalAfterTaxDividends; // 总税后股息（目标币种）
 
   const AssetSummary({
     this.totalAssets = 0,
     this.totalCost = 0,
     this.totalProfit = 0,
     this.totalProfitPercent = 0,
-    this.totalDividends = 0,
+    this.totalAfterTaxDividends = 0,
   });
 }
 
@@ -150,7 +150,7 @@ class StockCalculator {
     });
 
     // 总股息
-    final totalDividends = stocks.fold(0.0, (sum, stock) {
+    final totalAfterTaxDividends = stocks.fold(0.0, (sum, stock) {
       final divs = dividendRecords?[stock.symbol] ?? [];
       final stockDivTotal = divs.fold(0.0, (s, r) => s + r.afterTaxAmount);
       return sum +
@@ -171,7 +171,7 @@ class StockCalculator {
       totalCost: totalCost,
       totalProfit: totalProfit,
       totalProfitPercent: totalProfitPercent,
-      totalDividends: totalDividends,
+      totalAfterTaxDividends: totalAfterTaxDividends,
     );
   }
 

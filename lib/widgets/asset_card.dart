@@ -9,7 +9,7 @@ class AssetCard extends StatefulWidget {
   final double totalCost;
   final double totalProfit;
   final double totalProfitPercent;
-  final double totalDividends;
+  final double totalAfterTaxDividends;
   final double exchangeRate;
   final bool isExchangeRateExpanded;
   final VoidCallback onToggleExchangeRate;
@@ -23,7 +23,7 @@ class AssetCard extends StatefulWidget {
     required this.totalCost,
     required this.totalProfit,
     required this.totalProfitPercent,
-    required this.totalDividends,
+    required this.totalAfterTaxDividends,
     required this.exchangeRate,
     required this.isExchangeRateExpanded,
     required this.onToggleExchangeRate,
@@ -235,13 +235,26 @@ class _AssetCardState extends State<AssetCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                DevConfig.assetTotalAssets,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white70,
-                  height: 1.2,
-                ),
+              Row(
+                children: [
+                  const Text(
+                    DevConfig.assetTotalAssets,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: _showTotalAssetsHelpDialog,
+                    child: const Icon(
+                      Icons.help_outline,
+                      size: 14,
+                      color: Colors.amber,
+                    ),
+                  ),
+                ],
               ),
               _buildCurrencyButton(),
             ],
@@ -263,45 +276,11 @@ class _AssetCardState extends State<AssetCard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: _buildSummaryCard(
-                    DevConfig.assetTotalCost,
-                    _buildTotalCostText(),
-                    const Text(
-                      ' ',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w500,
-                        height: 1.2,
-                      ),
-                    ),
-                  ),
-                ),
+                Expanded(child: _buildTotalCostSummaryCard()),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: _buildSummaryCard(
-                    DevConfig.assetTotalProfit,
-                    _buildProfitText(),
-                    _buildProfitPercent(),
-                  ),
-                ),
+                Expanded(child: _buildProfitSummaryCard()),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: _buildSummaryCard(
-                    DevConfig.assetTotalDividends,
-                    _buildDividendText(),
-                    const Text(
-                      '0.00%',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w500,
-                        height: 1.2,
-                      ),
-                    ),
-                  ),
-                ),
+                Expanded(child: _buildDividendSummaryCard()),
               ],
             ),
           ),
@@ -377,6 +356,146 @@ class _AssetCardState extends State<AssetCard> {
     );
   }
 
+  Widget _buildTotalCostSummaryCard() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                DevConfig.assetTotalCost,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.white70,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(width: 2),
+              GestureDetector(
+                onTap: _showTotalCostHelpDialog,
+                child: const Icon(
+                  Icons.help_outline,
+                  size: 12,
+                  color: Colors.amber,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          _buildTotalCostText(),
+          const Text(
+            ' ',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.white70,
+              fontWeight: FontWeight.w500,
+              height: 1.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showTotalCostHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1F26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          DevConfig.assetTotalCost,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        content: const Text(
+          DevConfig.assetTotalCostHelp,
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfitSummaryCard() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                DevConfig.assetTotalProfit,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.white70,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(width: 2),
+              GestureDetector(
+                onTap: _showProfitHelpDialog,
+                child: const Icon(
+                  Icons.help_outline,
+                  size: 12,
+                  color: Colors.amber,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          _buildProfitText(),
+          _buildProfitPercent(),
+        ],
+      ),
+    );
+  }
+
+  void _showProfitHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1F26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          DevConfig.assetTotalProfit,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        content: const Text(
+          DevConfig.assetTotalProfitHelp,
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTotalCostText() {
     return Text(
       '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatCompact(widget.totalCost)}',
@@ -417,9 +536,117 @@ class _AssetCardState extends State<AssetCard> {
     );
   }
 
+  Widget _buildDividendSummaryCard() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                DevConfig.assetTotalDividends,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white70,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(width: 2),
+              GestureDetector(
+                onTap: _showDividendHelpDialog,
+                child: const Icon(
+                  Icons.help_outline,
+                  size: 12,
+                  color: Colors.amber,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          _buildDividendText(),
+          _buildDividendPercent(),
+        ],
+      ),
+    );
+  }
+
+  void _showTotalAssetsHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1F26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          DevConfig.assetTotalAssets,
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        content: const Text(
+          DevConfig.assetTotalAssetsHelp,
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDividendHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1F26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          DevConfig.assetTotalDividends,
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        content: const Text(
+          DevConfig.assetTotalDividendsHelp,
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDividendPercent() {
+    final percent = widget.totalCost > 0
+        ? (widget.totalAfterTaxDividends / widget.totalCost * 100)
+        : 0.0;
+    return Text(
+      '${percent.toStringAsFixed(2)}%',
+      style: const TextStyle(
+        fontSize: 11,
+        color: Colors.white70,
+        fontWeight: FontWeight.w500,
+        height: 1.2,
+      ),
+    );
+  }
+
   Widget _buildDividendText() {
     return Text(
-      '${CurrencyHelper.formatCompact(widget.totalDividends)}',
+      '${CurrencyHelper.formatCompact(widget.totalAfterTaxDividends)}',
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,

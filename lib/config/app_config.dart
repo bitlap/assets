@@ -28,11 +28,11 @@ class DevConfig {
   static const String syncHelpStocksDesc = '持仓股票、买入价格、股数等数据';
   static const String syncHelpRecordsDesc = '加仓、减仓、平仓等操作记录';
   static const String syncPrivacyNote =
-      '如果不开启同步，数据仅存在本地，无法跨 Apple 设备使用。（为保证用户隐私，本 APP 不会存储任何用户数据）';
+      '如果不开启同步，数据仅存在本地，无法跨 Apple 设备使用（为保证用户隐私，本 APP 不会存储任何用户数据）';
   static const String keepStockOnLabel = '开启后';
-  static const String keepStockOnDesc = '平仓时保留股票在列表中，持仓数量和金额均变为 0，历史记录依旧保留。';
+  static const String keepStockOnDesc = '平仓时保留股票在列表中，持仓数量和金额均变为 0，历史记录依旧保留';
   static const String keepStockOffLabel = '关闭后';
-  static const String keepStockOffDesc = '平仓时删除股票及所有数据，效果等同直接删除股票和操作记录。';
+  static const String keepStockOffDesc = '平仓时删除股票及所有数据，效果等同直接删除股票和操作记录';
   static const String sortLabel = '默认排序';
   static const String sortByProfit = '按盈亏';
   static const String sortByHoldings = '按持仓';
@@ -107,6 +107,10 @@ class DevConfig {
   static const String assetTotalDividends = '总股息';
   static const String assetExchangeRate = '汇率';
   static const String assetSelectCurrency = '选择货币';
+  static const String assetTotalCostHelp = '买入持仓股票所花费的总成本';
+  static const String assetTotalProfitHelp = '持仓股票的总盈亏，不含股息收益';
+  static const String assetTotalAssetsHelp = '持仓股票的总市值，不含股息';
+  static const String assetTotalDividendsHelp = '总股息率 = 税后总股息 / 总成本';
 
   // ========== StockCard 文案 ==========
   static const String stockTotalValue = '总市值';
@@ -200,8 +204,8 @@ class DevConfig {
   static const String recordsDivAfterTax = '税后金额';
   static const String recordsDeleteOpConfirm = '确定删除此条操作记录？';
   static const String recordsDeleteDivConfirm = '确定删除此条派息记录？';
-  static const String recordsDeleteHint = '左滑可删除，删除后不可恢复，持仓数据将自动重算，请谨慎操作。';
-  static const String recordsDivDeleteHint = '左滑可删除，删除后不可恢复，资产数据将自动重算，请谨慎操作。';
+  static const String recordsDeleteHint = '左滑可删除，删除后不可恢复，持仓数据将自动重算，请谨慎操作';
+  static const String recordsDivDeleteHint = '左滑可删除，删除后不可恢复，资产数据将自动重算，请谨慎操作';
   static const String recordsEditTitle = '编辑{desc}';
   static const String recordsEditPrice = '价格';
   static const String recordsEditShares = '股数';
