@@ -24,6 +24,9 @@ class DevConfig {
   static const String syncItemSettings = '设置';
   static const String syncItemStocks = '股票持仓';
   static const String syncItemRecords = '操作记录';
+  static const String syncHelpSettingsDesc = '默认货币、排序方式等应用设置';
+  static const String syncHelpStocksDesc = '持仓股票、买入价格、股数等数据';
+  static const String syncHelpRecordsDesc = '加仓、减仓、平仓等操作记录';
   static const String syncPrivacyNote =
       '如果不开启同步，数据仅存在本地，无法跨 Apple 设备使用。（为保证用户隐私，本 APP 不会存储任何用户数据）';
   static const String keepStockOnLabel = '开启后';
