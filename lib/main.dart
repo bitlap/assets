@@ -91,6 +91,9 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   /// 数据是否有变更（脏标记），用于延迟写入 iCloud
   bool _dataDirty = false;
 
+  /// 防抖定时器：修改后延迟自动异步同步到 iCloud
+  Timer? _syncTimer;
+
   @override
   void initState() {
     super.initState();
@@ -140,21 +143,41 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     if (!enabled) return;
     final data = await IcloudStorage.loadAll();
     if (!mounted) return;
+
+    final cloudStocks = data.$1;
+    final cloudRecords = data.$2;
+
+    // 保护本地数据：iCloud 为空但本地有数据时，说明还未同步过，不覆盖
+    if (cloudStocks.isEmpty &&
+        cloudRecords.isEmpty &&
+        (stocks.isNotEmpty || _operationRecords.isNotEmpty)) {
+      debugPrint('[首页] ⚠️ iCloud 数据为空，本地有数据，跳过覆盖（可能尚未同步）');
+      return;
+    }
+
     setState(() {
-      stocks = data.$1;
+      stocks = cloudStocks;
       _operationRecords
         ..clear()
-        ..addAll(data.$2);
+        ..addAll(cloudRecords);
     });
   }
 
-  /// 标记数据已变更，延迟到后台/下拉刷新时再写入 iCloud
+  /// 标记数据已变更，并启动防抖定时器异步同步到 iCloud
   void _markDirty() {
     _dataDirty = true;
+    // 取消上一次的定时器，重新计时（防抖）
+    _syncTimer?.cancel();
+    _syncTimer = Timer(const Duration(seconds: 3), () {
+      if (_dataDirty && mounted) {
+        _flushToCloud();
+      }
+    });
   }
 
-  /// 真正写入 iCloud（仅在进入后台或手动触发时调用）
+  /// 真正写入 iCloud（进入后台、手动触发、防抖定时器调用）
   Future<void> _flushToCloud() async {
+    _syncTimer?.cancel();
     if (!_dataDirty) return;
     final enabled = await SettingsService.getSyncSettings();
     if (enabled) {
@@ -171,6 +194,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _syncTimer?.cancel();
     _priceRefreshTimer?.cancel();
     super.dispose();
   }
@@ -441,8 +465,9 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
             );
           }
         } else {
-          // 删除股票：清空数据，效果等同直接删除股票
+          // 删除股票：清空数据，级联删除操作记录
           stocks.removeWhere((s) => s.symbol == updatedStock.symbol);
+          _operationRecords.remove(updatedStock.symbol);
         }
       } else {
         // 加仓或减仓：更新股票
@@ -478,7 +503,10 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   }
 
   void _onDeleteStock(StockModel stock) {
-    setState(() => stocks.remove(stock));
+    setState(() {
+      stocks.remove(stock);
+      _operationRecords.remove(stock.symbol);
+    });
     _markDirty();
     CenterToast.success(context, DevConfig.resultDeleteSuccess);
   }

@@ -181,6 +181,7 @@ class IcloudStorage {
             'profitLossPercent': s.profitLossPercent,
             'profitLossAmount': s.profitLossAmount,
             'isPositive': s.isPositive,
+            'logoUrl': s.logoUrl,
             'marketType': s.marketType,
             'changePercent': s.changePercent,
             'currency': s.currency,
@@ -202,10 +203,11 @@ class IcloudStorage {
             profitLossPercent: (j['profitLossPercent'] as num).toDouble(),
             profitLossAmount: (j['profitLossAmount'] as num).toDouble(),
             isPositive: j['isPositive'] as bool,
+            logoUrl: j['logoUrl'] as String?,
             marketType: j['marketType'] as String,
             changePercent: (j['changePercent'] as num).toDouble(),
-            currency: j['currency'] as String,
-            secid: j['secid'] as String,
+            currency: j['currency'] as String?,
+            secid: j['secid'] as String?,
           ),
         )
         .toList();
