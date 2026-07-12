@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'icloud_storage.dart';
 
@@ -14,31 +15,48 @@ class SettingsService {
   /// 从 iCloud 下载覆盖 SharedPreferences
   static Future<void> pullFromCloud() async {
     final enabled = await getSyncSettings();
-    if (!enabled) return;
+    if (!enabled) {
+      debugPrint('[设置] ⏸️ 同步未启用，跳过下拉同步');
+      return;
+    }
+    debugPrint('[设置] 📥 开始从 iCloud 拉取设置...');
     final cloud = await IcloudStorage.loadSettings();
-    if (cloud.isEmpty) return;
+    if (cloud.isEmpty) {
+      debugPrint('[设置] ⚠️ iCloud 无数据，跳过覆盖');
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
+    int count = 0;
     if (cloud.containsKey(_keyDefaultCurrency)) {
       await prefs.setString(_keyDefaultCurrency, cloud[_keyDefaultCurrency]);
+      count++;
     }
     if (cloud.containsKey(_keyKeepStockAfterClose)) {
       await prefs.setBool(
         _keyKeepStockAfterClose,
         cloud[_keyKeepStockAfterClose],
       );
+      count++;
     }
     if (cloud.containsKey(_keySortColumn)) {
       await prefs.setString(_keySortColumn, cloud[_keySortColumn]);
+      count++;
     }
     if (cloud.containsKey(_keySortAscending)) {
       await prefs.setBool(_keySortAscending, cloud[_keySortAscending]);
+      count++;
     }
+    debugPrint('[设置] ✅ 从 iCloud 拉取完成: ${cloud.length}项设置');
   }
 
   /// 把 SharedPreferences 上传到 iCloud
   static Future<void> pushToCloud() async {
     final enabled = await getSyncSettings();
-    if (!enabled) return;
+    if (!enabled) {
+      debugPrint('[设置] ⏸️ 同步未启用，跳过上传');
+      return;
+    }
+    debugPrint('[设置] 📤 开始上传设置到 iCloud...');
     final prefs = await SharedPreferences.getInstance();
     await IcloudStorage.saveSettings({
       _keyDefaultCurrency: prefs.getString(_keyDefaultCurrency) ?? 'CNY',
@@ -46,6 +64,7 @@ class SettingsService {
       _keySortColumn: prefs.getString(_keySortColumn) ?? 'profit',
       _keySortAscending: prefs.getBool(_keySortAscending) ?? false,
     });
+    debugPrint('[设置] ✅ 设置上传完成');
   }
 
   /// 读取保存的默认货币

@@ -107,8 +107,10 @@ class StockSearchService {
     if (_consecutiveFailures >= _failureThreshold) {
       _cooldownUntil = DateTime.now().add(_cooldownDuration);
       debugPrint(
-        '请求连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inSeconds}秒',
+        '[网络] ❌ 连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inMinutes}分钟',
       );
+    } else {
+      debugPrint('[网络] ❌ 请求失败 ($_consecutiveFailures/$_failureThreshold)');
     }
   }
 
@@ -120,16 +122,17 @@ class StockSearchService {
     final cachedSearch = _searchCache[keyword];
     if (cachedSearch != null &&
         DateTime.now().difference(cachedSearch.$1) < _searchCacheTTL) {
-      debugPrint('搜索命中缓存: $keyword');
+      debugPrint('[搜索] ✅ 缓存命中: $keyword (${cachedSearch.$2.length}条)');
       return cachedSearch.$2;
     }
 
     // 搜索 API 也受熔断保护
     if (_isInCooldown) {
-      debugPrint('处于冷却期，跳过搜索请求');
+      debugPrint('[搜索] ⏸️ 冷却期中，跳过搜索: $keyword');
       return cachedSearch?.$2 ?? [];
     }
 
+    debugPrint('[搜索] 🔍 搜索: $keyword');
     Client? client;
     try {
       final uri = Uri.parse(
@@ -150,12 +153,14 @@ class StockSearchService {
         final results = _parseSearchResults(data);
         // 缓存搜索结果
         _searchCache[keyword] = (DateTime.now(), results);
+        debugPrint('[搜索] ✅ 搜索成功: $keyword -> ${results.length}条结果');
         return results;
       }
+      debugPrint('[搜索] ❌ HTTP ${response.statusCode}');
       return [];
     } catch (e) {
       client?.close();
-      debugPrint('搜索股票失败: $e');
+      debugPrint('[搜索] ❌ 搜索失败: $e');
       _onRequestFailure();
       return [];
     }
@@ -251,6 +256,8 @@ class StockSearchService {
       }
     }
 
+    debugPrint('[行情] 📊 批量获取: ${stocks.length}只, 缓存命中${stocks.length - needFetch.length}只, 需请求${needFetch.length}只');
+
     if (needFetch.isEmpty) return result;
 
     // 2. 逐个请求未缓存的（腾讯API不支持batch）
@@ -266,7 +273,7 @@ class StockSearchService {
   Future<StockQuote?> _fetchTencentQuote(StockSearchResult stock) async {
     // 熔断中，不发请求
     if (_isInCooldown) {
-      debugPrint('处于冷却期，跳过行情请求: ${stock.secid}');
+      debugPrint('[行情] ⏸️ 冷却期中，跳过: ${stock.code}');
       return null;
     }
 
@@ -287,11 +294,13 @@ class StockSearchService {
       if (response.statusCode == 200) {
         final quote = _parseTencentQuote(response.body, stock);
         _quoteCache[stock.secid] = (DateTime.now(), quote);
+        debugPrint('[行情] ✅ ${stock.code}: ¥${quote?.currentPrice ?? "N/A"} (${quote?.changePercent ?? 0}%)');
         return quote;
       }
+      debugPrint('[行情] ❌ HTTP ${response.statusCode}: ${stock.code}');
       return null;
     } catch (e) {
-      debugPrint('腾讯API获取行情失败: $e');
+      debugPrint('[行情] ❌ 获取失败 ${stock.code}: $e');
       _onRequestFailure();
       return null;
     }
@@ -349,7 +358,7 @@ class StockSearchService {
         logoUrl: getLogoUrl(code, stock.market),
       );
     } catch (e) {
-      debugPrint('解析腾讯行情数据失败: $e');
+      debugPrint('[行情] ❌ 解析失败 ${stock.code}: $e');
       return null;
     }
   }

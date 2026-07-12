@@ -182,23 +182,30 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
   /// 刷新汇率（使用独立熔断，失败不影响股票行情）
   Future<void> _refreshExchangeRates() async {
+    debugPrint('[首页] 📡 刷新汇率...');
     final rates = await _exchangeRateService.fetchRates();
     if (rates != null && mounted) {
       setState(() {
         CurrencyHelper.updateRates(rates);
       });
+      debugPrint('[首页] ✅ 汇率刷新完成');
+    } else {
+      debugPrint('[首页] ⚠️ 汇率刷新无更新');
     }
   }
 
   /// 统一刷新：先更新汇率，再更新股票价格
   Future<void> _refreshAll() async {
+    debugPrint('[首页] 🔄 开始全量刷新...');
     await _refreshExchangeRates();
     await _refreshAllPrices();
+    debugPrint('[首页] ✅ 全量刷新完成');
   }
 
   /// 刷新所有持仓股票的实时价格
   Future<void> _refreshAllPrices() async {
     if (stocks.isEmpty) return;
+    debugPrint('[首页] 📊 开始刷新行情: ${stocks.length}只股票');
 
     // 构建搜索对象列表
     final searchResults = stocks
@@ -238,7 +245,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
       }
     });
 
-    debugPrint('价格刷新完成');
+    debugPrint('[首页] ✅ 行情刷新完成');
   }
 
   /// 根据操作记录重算单只股票的股数、总金额、盈亏

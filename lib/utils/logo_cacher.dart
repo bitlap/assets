@@ -14,9 +14,11 @@ class LogoCacher {
     final dir = Directory(
       '${(await getApplicationDocumentsDirectory()).path}/logos',
     );
-    debugPrint('LOGO路径 $dir');
     if (!await dir.exists()) {
       await dir.create(recursive: true);
+      debugPrint('[Logo] 📁 创建缓存目录: ${dir.path}');
+    } else {
+      debugPrint('[Logo] 📁 缓存目录已存在: ${dir.path}');
     }
     _cachePath = dir.path;
   }
@@ -29,9 +31,10 @@ class LogoCacher {
     if (_cachePath == null) return null;
     final file = File(_filePath(code));
     if (file.existsSync()) {
-      debugPrint('获取缓存图片 ${_filePath(code)}');
+      debugPrint('[Logo] ✅ 缓存命中: $code');
       return FileImage(file);
     }
+    debugPrint('[Logo] ⚠️ 缓存未命中: $code');
     return null;
   }
 
@@ -42,10 +45,18 @@ class LogoCacher {
     final key = code.toUpperCase();
     if (!_downloading.contains(key)) {
       _downloading.add(key);
+      debugPrint('[Logo] 📥 开始下载: $code -> $logoUrl');
       await _downloadToCache(key, logoUrl);
+    } else {
+      debugPrint('[Logo] ⏳ 已在下载队列中: $code');
     }
     // 下载完成后从本地缓存读取
     final local = syncCached(code);
+    if (local != null) {
+      debugPrint('[Logo] ✅ 下载完成，使用本地缓存: $code');
+    } else {
+      debugPrint('[Logo] ❌ 下载后仍无缓存，fallback 到网络: $code');
+    }
     return local ?? NetworkImage(logoUrl);
   }
 
@@ -57,12 +68,12 @@ class LogoCacher {
         final file = File(_filePath(code));
         await file.parent.create(recursive: true);
         await file.writeAsBytes(response.bodyBytes);
-        debugPrint('Logo缓存成功: $code -> ${file.path}');
+        debugPrint('[Logo] ✅ 缓存成功: $code (${response.bodyBytes.length} bytes)');
       } else {
-        debugPrint('Logo下载失败 HTTP ${response.statusCode}: $code');
+        debugPrint('[Logo] ❌ 下载失败 HTTP ${response.statusCode}: $code');
       }
     } catch (e) {
-      debugPrint('Logo下载异常 $code: $e');
+      debugPrint('[Logo] ❌ 下载异常 $code: $e');
     }
     _downloading.remove(code);
   }
