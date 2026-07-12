@@ -231,15 +231,13 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     );
   }
 
-  /// 刷新汇率（使用独立熔断，失败不影响股票行情）
-  Future<void> _refreshExchangeRates() async {
+  /// 拉取汇率但不触发 UI 重建
+  Future<void> _fetchExchangeRatesWithoutRebuild() async {
     debugPrint('[首页] 📡 刷新汇率...');
     final rates = await _exchangeRateService.fetchRates();
-    if (rates != null && mounted) {
-      setState(() {
-        CurrencyHelper.updateRates(rates);
-      });
-      debugPrint('[首页] ✅ 汇率刷新完成');
+    if (rates != null) {
+      CurrencyHelper.updateRates(rates);
+      debugPrint('[首页] ✅ 汇率拉取完成');
     } else {
       debugPrint('[首页] ⚠️ 汇率刷新无更新');
     }
@@ -248,21 +246,49 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   /// 统一刷新：先更新汇率，再更新股票价格，同时从 iCloud 拉取最新数据
   Future<void> _refreshAll() async {
     debugPrint('[首页] 🔄 开始全量刷新...');
-    await _refreshExchangeRates();
-    await _refreshAllPrices();
-    // 下拉刷新：只拉取 iCloud 最新数据，不写入本地脏数据（避免覆盖远端）
     await _syncSettingsFromCloud();
-    await _syncStockData();
-    _dataDirty = false; // 拉取后清除脏标记，下次后台写入以 iCloud 数据为准
+
+    // 依次拉取汇率、行情和 iCloud 数据（均不触发 setState）
+    await _fetchExchangeRatesWithoutRebuild();
+    final quotes = stocks.isEmpty
+        ? <String, StockQuote?>{}
+        : await _fetchQuotesWithoutRebuild();
+    final syncEnabled = await SettingsService.getSyncSettings();
+    Map<String, List<OperationRecord>>? cloudRecords;
+    List<StockModel>? cloudStocks;
+    if (syncEnabled) {
+      final data = await IcloudStorage.pullStocksFromCloud();
+      if (!mounted) return;
+      cloudStocks = data.$1;
+      cloudRecords = data.$2;
+      // iCloud 为空但本地有数据时不覆盖
+      if (cloudStocks.isEmpty &&
+          cloudRecords.isEmpty &&
+          (stocks.isNotEmpty || _operationRecords.isNotEmpty)) {
+        cloudStocks = null;
+        cloudRecords = null;
+      }
+    }
+
+    if (!mounted) return;
+
+    // 合并为一次 setState，避免列表多次重建导致 LOGO 缓存日志重复打印
+    setState(() {
+      if (cloudStocks != null && cloudRecords != null) {
+        stocks = cloudStocks;
+        _operationRecords
+          ..clear()
+          ..addAll(cloudRecords);
+      }
+      _applyQuotes(stocks, quotes);
+    });
+    _dataDirty = false;
     debugPrint('[首页] ✅ 全量刷新完成');
   }
 
-  /// 刷新所有持仓股票的实时价格
-  Future<void> _refreshAllPrices() async {
-    if (stocks.isEmpty) return;
+  /// 拉取行情但不触发 UI 重建
+  Future<Map<String, StockQuote?>> _fetchQuotesWithoutRebuild() async {
     debugPrint('[首页] 📊 开始刷新行情: ${stocks.length}只股票');
-
-    // 构建搜索对象列表
     final searchResults = stocks
         .map(
           (stock) => StockSearchResult(
@@ -275,32 +301,32 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
           ),
         )
         .toList();
-
-    // 批量获取行情（内部缓存检测 + 逐条请求）
     final quotes = await _searchService.getStockQuotesBatch(searchResults);
+    debugPrint('[首页] ✅ 行情拉取完成');
+    return quotes;
+  }
 
-    if (!mounted) return;
-
-    setState(() {
-      for (final stock in stocks) {
-        final secid =
-            stock.secid ??
-            '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}';
-        final quote = quotes[secid];
-        if (quote != null) {
-          final index = stocks.indexWhere((s) => s.symbol == stock.symbol);
-          if (index != -1) {
-            stocks[index] = stock.copyWith(
-              currentPrice: quote.currentPrice,
-              changePercent: quote.changePercent,
-            );
-            _recalculateStockFromRecords(stock.symbol);
-          }
+  /// 将行情数据应用到股票列表（在 setState 内调用）
+  void _applyQuotes(
+    List<StockModel> stockList,
+    Map<String, StockQuote?> quotes,
+  ) {
+    for (final stock in stockList) {
+      final secid =
+          stock.secid ??
+          '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}';
+      final quote = quotes[secid];
+      if (quote != null) {
+        final index = stockList.indexWhere((s) => s.symbol == stock.symbol);
+        if (index != -1) {
+          stockList[index] = stock.copyWith(
+            currentPrice: quote.currentPrice,
+            changePercent: quote.changePercent,
+          );
+          _recalculateStockFromRecords(stock.symbol);
         }
       }
-    });
-
-    debugPrint('[首页] ✅ 行情刷新完成');
+    }
   }
 
   /// 根据操作记录重算单只股票的股数、总金额、盈亏
@@ -435,12 +461,6 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   }
 
   // ========== 事件处理 ==========
-  void _onCurrencyChanged(String newCurrency) {
-    setState(() => selectedCurrency = newCurrency);
-    // 持久化保存选择的货币
-    SettingsService.setDefaultCurrency(newCurrency);
-  }
-
   void _onStockTap(StockModel stock) {
     setState(() {
       _expandedStockSymbol = _expandedStockSymbol == stock.symbol
@@ -626,6 +646,14 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     );
   }
 
+  // 设置页面本地货币变更回调
+  void _onCurrencyChanged(String newCurrency) {
+    setState(() => selectedCurrency = newCurrency);
+    // 持久化保存选择的货币
+    SettingsService.setDefaultCurrency(newCurrency);
+    _markDirty();
+  }
+
   /// 设置页面排序变更回调
   void _onSortChanged(String column) {
     setState(() {
@@ -633,12 +661,20 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     });
     SettingsService.setSortColumn(column);
     SettingsService.setSortAscending(false);
+    _markDirty();
   }
 
   /// 设置页面排序方向变更回调
   void _onSortDirectionChanged(bool ascending) {
     setState(() => _sortAscending = ascending);
     SettingsService.setSortAscending(ascending);
+    _markDirty();
+  }
+
+  /// 设置页面平仓保留变更回调
+  void _onKeepStockChanged(bool value) {
+    SettingsService.setKeepStockAfterClose(value);
+    _markDirty();
   }
 
   /// 打开全屏设置页面
@@ -652,6 +688,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
           onSortChanged: _onSortChanged,
           onSortDirectionChanged: _onSortDirectionChanged,
           onSyncToggled: _flushToCloud,
+          onKeepStockChanged: _onKeepStockChanged,
         ),
       ),
     ).then((_) {

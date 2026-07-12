@@ -101,28 +101,32 @@ class IcloudStorage {
   /// 保存设置到 iCloud
   static Future<void> pushSettingsToCloud(Map<String, dynamic> settings) async {
     await ensureInit();
-    debugPrint('[设置] 💾 保存设置 -> ${_cloudPath != null ? "iCloud" : "本地"}');
+    debugPrint(
+      '[设置] 📝 保存设置: $_settingsFile -> ${_cloudPath != null ? "iCloud" : "本地"}',
+    );
     final file = File(_filePath(_settingsFile));
     await file.writeAsString(jsonEncode(settings));
-    debugPrint('[设置] 💾 设置保存完成: $_settingsFile');
+    debugPrint('[设置] 📝 设置保存完成: $_settingsFile');
   }
 
   /// 加载设置（优先 iCloud）
   static Future<Map<String, dynamic>> pullSettingsFromCloud() async {
     await ensureInit();
-    debugPrint('[设置] 📖 加载设置 from: ${_cloudPath != null ? "iCloud" : "本地"}');
+    debugPrint(
+      '[设置] 📝 加载设置: $_settingsFile from ${_cloudPath != null ? "iCloud" : "本地"}',
+    );
     final file = File(_filePath(_settingsFile));
     if (!await file.exists()) {
-      debugPrint('[设置] 📖 设置文件不存在，返回空');
+      debugPrint('[设置] 📝 设置文件不存在: $_settingsFile');
       return {};
     }
     try {
       final data =
           jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-      debugPrint('[设置] 📖 设置加载成功: ${data.length} 项');
+      debugPrint('[设置] 📝 读取文件成功: $_settingsFile (${data.length} 项)');
       return data;
     } catch (e) {
-      debugPrint('[设置] ❌ 设置解析失败: $e');
+      debugPrint('[设置] ❌ 读取文件失败: $_settingsFile - $e');
       return {};
     }
   }
