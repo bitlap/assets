@@ -53,7 +53,9 @@ class ExchangeRateService {
     _consecutiveFailures++;
     if (_consecutiveFailures >= _failureThreshold) {
       _cooldownUntil = DateTime.now().add(_cooldownDuration);
-      debugPrint('[汇率] ❌ 连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inMinutes}分钟');
+      debugPrint(
+        '[汇率] ❌ 连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inMinutes}分钟',
+      );
     } else {
       debugPrint('[汇率] ❌ 请求失败 ($_consecutiveFailures/$_failureThreshold)');
     }

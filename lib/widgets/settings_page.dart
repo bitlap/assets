@@ -36,8 +36,6 @@ class _SettingsPageState extends State<SettingsPage> {
   String _selectedSortColumn = 'profit';
   bool _isSortAscending = false;
   bool _syncSettings = false;
-  bool _syncStocks = false;
-  bool _syncRecords = false;
 
   static const List<Map<String, String>> sortOptions = [
     {'key': 'profit', 'label': DevConfig.sortByProfit},
@@ -83,16 +81,12 @@ class _SettingsPageState extends State<SettingsPage> {
     final sortColumn = await SettingsService.getSortColumn();
     final sortAscending = await SettingsService.getSortAscending();
     final syncSettings = await SettingsService.getSyncSettings();
-    final syncStocks = await SettingsService.getSyncStocks();
-    final syncRecords = await SettingsService.getSyncRecords();
     if (mounted) {
       setState(() {
         _keepStockAfterClose = keepStock;
         _selectedSortColumn = sortColumn;
         _isSortAscending = sortAscending;
         _syncSettings = syncSettings;
-        _syncStocks = syncStocks;
-        _syncRecords = syncRecords;
       });
     }
   }
@@ -705,38 +699,18 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         children: [
           _buildSyncTile(
-            Icons.tune,
+            Icons.cloud_outlined,
             Colors.blueAccent,
             DevConfig.syncSettingsLabel,
             _syncSettings,
             (v) => setState(() {
               _syncSettings = v;
               SettingsService.setSyncSettings(v);
-              if (v) SettingsService.pushToCloud();
-            }),
-          ),
-          _buildGroupDivider(),
-          _buildSyncTile(
-            Icons.show_chart,
-            const Color(0xFF4CAF50),
-            DevConfig.syncStocksLabel,
-            _syncStocks,
-            (v) => setState(() {
-              _syncStocks = v;
-              SettingsService.setSyncStocks(v);
-              if (v) widget.onSyncToggled?.call();
-            }),
-          ),
-          _buildGroupDivider(),
-          _buildSyncTile(
-            Icons.list_alt,
-            Colors.orangeAccent,
-            DevConfig.syncRecordsLabel,
-            _syncRecords,
-            (v) => setState(() {
-              _syncRecords = v;
-              SettingsService.setSyncRecords(v);
-              if (v) widget.onSyncToggled?.call();
+              if (v) {
+                // 开启同步：立即拉取云端数据
+                SettingsService.pushToCloud();
+                widget.onSyncToggled?.call();
+              }
             }),
           ),
         ],

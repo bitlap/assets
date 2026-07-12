@@ -256,7 +256,9 @@ class StockSearchService {
       }
     }
 
-    debugPrint('[行情] 📊 批量获取: ${stocks.length}只, 缓存命中${stocks.length - needFetch.length}只, 需请求${needFetch.length}只');
+    debugPrint(
+      '[行情] 📊 批量获取: ${stocks.length}只, 缓存命中${stocks.length - needFetch.length}只, 需请求${needFetch.length}只',
+    );
 
     if (needFetch.isEmpty) return result;
 
@@ -294,7 +296,9 @@ class StockSearchService {
       if (response.statusCode == 200) {
         final quote = _parseTencentQuote(response.body, stock);
         _quoteCache[stock.secid] = (DateTime.now(), quote);
-        debugPrint('[行情] ✅ ${stock.code}: ¥${quote?.currentPrice ?? "N/A"} (${quote?.changePercent ?? 0}%)');
+        debugPrint(
+          '[行情] ✅ ${stock.code}: ¥${quote?.currentPrice ?? "N/A"} (${quote?.changePercent ?? 0}%)',
+        );
         return quote;
       }
       debugPrint('[行情] ❌ HTTP ${response.statusCode}: ${stock.code}');

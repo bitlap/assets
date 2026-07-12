@@ -62,7 +62,8 @@ class StockPortfolioPage extends StatefulWidget {
   State<StockPortfolioPage> createState() => _StockPortfolioPageState();
 }
 
-class _StockPortfolioPageState extends State<StockPortfolioPage> {
+class _StockPortfolioPageState extends State<StockPortfolioPage>
+    with WidgetsBindingObserver {
   // ========== 状态 ==========
   List<StockModel> stocks = [];
   String selectedCurrency = 'CNY';
@@ -87,9 +88,13 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
   double _fabY = 0;
   bool _fabInitialized = false;
 
+  /// 数据是否有变更（脏标记），用于延迟写入 iCloud
+  bool _dataDirty = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // 同步配置
     _syncSettingsFromCloud();
     _syncStockData();
@@ -131,9 +136,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
   /// 从 iCloud 加载股票和操作记录（本地兜底）
   Future<void> _syncStockData() async {
-    final syncStocks = await SettingsService.getSyncStocks();
-    final syncRecords = await SettingsService.getSyncRecords();
-    if (!syncStocks && !syncRecords) return;
+    final enabled = await SettingsService.getSyncSettings();
+    if (!enabled) return;
     final data = await IcloudStorage.loadAll();
     if (!mounted) return;
     setState(() {
@@ -144,12 +148,18 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     });
   }
 
-  /// 保存股票和操作记录到 iCloud
-  Future<void> _saveData() async {
-    final syncStocks = await SettingsService.getSyncStocks();
-    final syncRecords = await SettingsService.getSyncRecords();
-    if (syncStocks || syncRecords) {
+  /// 标记数据已变更，延迟到后台/下拉刷新时再写入 iCloud
+  void _markDirty() {
+    _dataDirty = true;
+  }
+
+  /// 真正写入 iCloud（仅在进入后台或手动触发时调用）
+  Future<void> _flushToCloud() async {
+    if (!_dataDirty) return;
+    final enabled = await SettingsService.getSyncSettings();
+    if (enabled) {
       await IcloudStorage.saveAll(stocks, _operationRecords);
+      _dataDirty = false;
     }
   }
 
@@ -160,8 +170,22 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _priceRefreshTimer?.cancel();
     super.dispose();
+  }
+
+  /// 应用生命周期监听：进入后台时写入 iCloud，回到前台时拉取
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // 进入后台 / 锁屏：如果有脏数据则写入 iCloud
+      if (_dataDirty) _flushToCloud();
+    } else if (state == AppLifecycleState.resumed) {
+      // 回到前台：拉取最新数据
+      _syncStockData();
+    }
   }
 
   /// 启动定时刷新（价格 + 汇率）
@@ -194,11 +218,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
     }
   }
 
-  /// 统一刷新：先更新汇率，再更新股票价格
+  /// 统一刷新：先更新汇率，再更新股票价格，同时从 iCloud 拉取最新数据
   Future<void> _refreshAll() async {
     debugPrint('[首页] 🔄 开始全量刷新...');
     await _refreshExchangeRates();
     await _refreshAllPrices();
+    // 下拉刷新：只拉取 iCloud 最新数据，不写入本地脏数据（避免覆盖远端）
+    await _syncSettingsFromCloud();
+    await _syncStockData();
+    _dataDirty = false; // 拉取后清除脏标记，下次后台写入以 iCloud 数据为准
     debugPrint('[首页] ✅ 全量刷新完成');
   }
 
@@ -429,7 +457,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
         _recalculateStockFromRecords(updatedStock.symbol);
       }
     });
-    _saveData();
+    _markDirty();
     Navigator.pop(context);
     if (record != null) {
       String action;
@@ -451,7 +479,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
 
   void _onDeleteStock(StockModel stock) {
     setState(() => stocks.remove(stock));
-    _saveData();
+    _markDirty();
     CenterToast.success(context, DevConfig.resultDeleteSuccess);
   }
 
@@ -489,7 +517,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
                 _recalculateStockFromRecords(symbol);
               }
             });
-            _saveData();
+            _markDirty();
           },
           onEditOperationRecord: (symbol, index, updated) {
             setState(() {
@@ -499,7 +527,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
               }
               _recalculateStockFromRecords(symbol);
             });
-            _saveData();
+            _markDirty();
           },
           onDeleteDividendRecord: (symbol, index) {
             // 派息记录目前为模拟数据，暂无需同步状态
@@ -557,7 +585,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
             // 根据操作记录重算持仓数据
             _recalculateStockFromRecords(newStock.symbol);
           });
-          _saveData();
+          _markDirty();
           CenterToast.success(context, DevConfig.resultAddStockSuccess);
         },
       ),
@@ -589,7 +617,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage> {
           onCurrencyChanged: _onCurrencyChanged,
           onSortChanged: _onSortChanged,
           onSortDirectionChanged: _onSortDirectionChanged,
-          onSyncToggled: _saveData,
+          onSyncToggled: _flushToCloud,
         ),
       ),
     ).then((_) {

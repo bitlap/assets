@@ -9,8 +9,6 @@ class SettingsService {
   static const String _keySortColumn = 'sort_column';
   static const String _keySortAscending = 'sort_ascending';
   static const String _keySyncSettings = 'sync_settings';
-  static const String _keySyncStocks = 'sync_stocks';
-  static const String _keySyncRecords = 'sync_records';
 
   /// 从 iCloud 下载覆盖 SharedPreferences
   static Future<void> pullFromCloud() async {
@@ -26,25 +24,20 @@ class SettingsService {
       return;
     }
     final prefs = await SharedPreferences.getInstance();
-    int count = 0;
     if (cloud.containsKey(_keyDefaultCurrency)) {
       await prefs.setString(_keyDefaultCurrency, cloud[_keyDefaultCurrency]);
-      count++;
     }
     if (cloud.containsKey(_keyKeepStockAfterClose)) {
       await prefs.setBool(
         _keyKeepStockAfterClose,
         cloud[_keyKeepStockAfterClose],
       );
-      count++;
     }
     if (cloud.containsKey(_keySortColumn)) {
       await prefs.setString(_keySortColumn, cloud[_keySortColumn]);
-      count++;
     }
     if (cloud.containsKey(_keySortAscending)) {
       await prefs.setBool(_keySortAscending, cloud[_keySortAscending]);
-      count++;
     }
     debugPrint('[设置] ✅ 从 iCloud 拉取完成: ${cloud.length}项设置');
   }
@@ -117,6 +110,7 @@ class SettingsService {
 
   // ========== iCloud 同步开关 ==========
 
+  /// 总同步开关：开启后持仓和操作记录一起同步，关闭则不同步
   static Future<bool> getSyncSettings() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_keySyncSettings) ?? false;
@@ -125,25 +119,5 @@ class SettingsService {
   static Future<void> setSyncSettings(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keySyncSettings, value);
-  }
-
-  static Future<bool> getSyncStocks() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_keySyncStocks) ?? false;
-  }
-
-  static Future<void> setSyncStocks(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_keySyncStocks, value);
-  }
-
-  static Future<bool> getSyncRecords() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_keySyncRecords) ?? false;
-  }
-
-  static Future<void> setSyncRecords(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_keySyncRecords, value);
   }
 }
