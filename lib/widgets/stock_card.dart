@@ -297,7 +297,7 @@ class StockCard extends StatelessWidget {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerRight,
           child: Text(
-            '${stock.profitLossAmount >= 0 ? '+' : '-'}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
+            '${!isZero ? '+' : '-'}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
             style: TextStyle(
               fontSize: 12,
               color: profitColor,
@@ -310,7 +310,7 @@ class StockCard extends StatelessWidget {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerRight,
           child: Text(
-            '${stock.profitLossPercent >= 0 ? '+' : '-'}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
+            '${!isZero ? '+' : '-'}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
