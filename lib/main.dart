@@ -84,6 +84,9 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   String _sortColumn = 'profit'; // 'name', 'holdings', 'profit'
   bool _sortAscending = false;
 
+  // ========== 底部 Tab 状态 ==========
+  int _currentIndex = 0;
+
   // ========== 悬浮按钮位置 ==========
   double _fabY = 0;
   bool _fabInitialized = false;
@@ -708,76 +711,192 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       body: SafeArea(
         child: Stack(
           children: [
-            RefreshIndicator(
-              onRefresh: _refreshAll,
-              color: Colors.blue,
-              backgroundColor: const Color(0xFF1A1F26),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildHeader(),
-                          const SizedBox(height: 8),
-                          AssetCard(
-                            selectedCurrency: selectedCurrency,
-                            totalAssets: totalAssets,
-                            totalCost: totalCost,
-                            totalProfit: totalProfit,
-                            totalProfitPercent: totalProfitPercent,
-                            totalDividends: totalDividends,
-                            exchangeRate: exchangeRate,
-                            isExchangeRateExpanded: _isExchangeRateExpanded,
-                            onToggleExchangeRate: () => setState(
-                              () => _isExchangeRateExpanded =
-                                  !_isExchangeRateExpanded,
-                            ),
-                            onCurrencyChanged: _onCurrencyChanged,
-                          ),
-                          const SizedBox(height: 10),
-                          _buildStockListHeader(),
-                          const SizedBox(height: 6),
-                          if (_sortedStocks.isEmpty) ...[
-                            const EmptyStateWidget(
-                              icon: Icons.show_chart,
-                              title: DevConfig.homeEmptyTitle,
-                              subtitle: DevConfig.homeEmptySubtitle,
-                              iconSize: 64,
-                              padding: EdgeInsets.symmetric(vertical: 60),
-                            ),
-                          ] else ...[
-                            Column(
-                              children: _sortedStocks.map((stock) {
-                                return StockCard(
-                                  stock: stock,
-                                  isExpanded:
-                                      _expandedStockSymbol == stock.symbol,
-                                  onExpandTap: () => _onStockTap(stock),
-                                  onRecordTap: () => _showRecordsDialog(stock),
-                                  onMoreTap: () => _showMoreOptions(stock),
-                                  operationRecords:
-                                      _operationRecords[stock.symbol] ?? [],
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                          const SizedBox(height: 80),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+            IndexedStack(
+              index: _currentIndex,
+              children: [_buildStockTab(), _buildAssetTab()],
             ),
-            _buildFloatingAddButton(),
+            if (_currentIndex == 0) _buildFloatingAddButton(),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildBottomTabBar(),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// 居中圆角矩形底部 Tab Bar
+  Widget _buildBottomTabBar() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Center(
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1F26),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFF2A3038), width: 0.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 12,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildTabItem(
+                icon: Icons.show_chart,
+                label: DevConfig.tabStock,
+                index: 0,
+              ),
+              const SizedBox(width: 4),
+              _buildTabItem(
+                icon: Icons.account_balance_wallet,
+                label: DevConfig.tabAsset,
+                index: 1,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabItem({
+    required IconData icon,
+    required String label,
+    required int index,
+  }) {
+    final isSelected = _currentIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF5B9CF6).withValues(alpha: 0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? const Color(0xFF5B9CF6) : Colors.grey[600],
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: isSelected ? const Color(0xFF5B9CF6) : Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 股票 Tab 内容
+  Widget _buildStockTab() {
+    return RefreshIndicator(
+      onRefresh: _refreshAll,
+      color: Colors.blue,
+      backgroundColor: const Color(0xFF1A1F26),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 8),
+                  AssetCard(
+                    selectedCurrency: selectedCurrency,
+                    totalAssets: totalAssets,
+                    totalCost: totalCost,
+                    totalProfit: totalProfit,
+                    totalProfitPercent: totalProfitPercent,
+                    totalDividends: totalDividends,
+                    exchangeRate: exchangeRate,
+                    isExchangeRateExpanded: _isExchangeRateExpanded,
+                    onToggleExchangeRate: () => setState(
+                      () => _isExchangeRateExpanded = !_isExchangeRateExpanded,
+                    ),
+                    onCurrencyChanged: _onCurrencyChanged,
+                  ),
+                  const SizedBox(height: 10),
+                  _buildStockListHeader(),
+                  const SizedBox(height: 6),
+                  if (_sortedStocks.isEmpty) ...[
+                    const EmptyStateWidget(
+                      icon: Icons.show_chart,
+                      title: DevConfig.homeEmptyTitle,
+                      subtitle: DevConfig.homeEmptySubtitle,
+                      iconSize: 64,
+                      padding: EdgeInsets.symmetric(vertical: 60),
+                    ),
+                  ] else ...[
+                    Column(
+                      children: _sortedStocks.map((stock) {
+                        return StockCard(
+                          stock: stock,
+                          isExpanded: _expandedStockSymbol == stock.symbol,
+                          onExpandTap: () => _onStockTap(stock),
+                          onRecordTap: () => _showRecordsDialog(stock),
+                          onMoreTap: () => _showMoreOptions(stock),
+                          operationRecords:
+                              _operationRecords[stock.symbol] ?? [],
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// 资产 Tab 内容（开发中占位页）
+  Widget _buildAssetTab() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.construction, size: 64, color: Colors.grey[600]),
+          const SizedBox(height: 16),
+          Text(
+            DevConfig.assetComingSoon,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[500],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            DevConfig.assetComingSoonDesc,
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
+        ],
       ),
     );
   }

@@ -94,6 +94,12 @@ class DevConfig {
   static const String homeHoldingHeader = '持仓';
   static const String homeProfitHeader = '盈亏';
 
+  // ========== 底部 Tab 文案 ==========
+  static const String tabStock = '股票';
+  static const String tabAsset = '资产';
+  static const String assetComingSoon = '资产页面正在开发中';
+  static const String assetComingSoonDesc = '敬请期待';
+
   // ========== AssetCard 文案 ==========
   static const String assetTotalAssets = '总资产';
   static const String assetTotalCost = '总成本';
