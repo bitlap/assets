@@ -127,7 +127,6 @@ class DevConfig {
   static const String opReducePosition = '减仓';
   static const String opClosePosition = '平仓';
   static const String opOpenPosition = '开仓';
-  static const String opPriceChange = '改价';
   static const String opDeleteStock = '删除股票';
   static const String opDividend = '派息';
   static const String opMoreActions = '更多操作';
@@ -153,6 +152,10 @@ class DevConfig {
   static const String dividendConfirm = '确认派息';
   static const String dividendInvalidAmount = '请输入有效的派息金额';
   static const String dividendSuccess = '派息成功';
+  static const String dividendEditTitle = '编辑派息记录';
+  static const String dividendEditAmountLabel = '每股派息金额';
+  static const String dividendEditSharesLabel = '持仓股数';
+  static const String dividendEditDateLabel = '派息日期';
 
   // ========== 搜索对话框 文案 ==========
   static const String searchTitle = '添加股票';
@@ -187,14 +190,21 @@ class DevConfig {
   static const String recordsEmptyOp = '暂无操作记录';
   static const String recordsEmptyOpHint = '点击"记录"按钮添加第一次操作';
   static const String recordsEmptyDiv = '暂无派息记录';
-  static const String recordsEmptyDivHint = '当前股票还没有派息数据';
+  static const String recordsEmptyDivHint = '点击更多菜单中的“派息”添加记录';
+  static const String recordsDivAmountPerShare = '每股';
+  static const String recordsDivShares = '持仓股数';
+  static const String recordsDivTotal = '总派息';
+  static const String recordsDivOperationTime = '更新:';
+  static const String recordsOpTotalValue = '总市值';
+  static const String recordsOpTotalCost = '总成本';
+  static const String recordsDivAfterTax = '税后金额';
   static const String recordsDeleteOpConfirm = '确定删除此条操作记录？';
   static const String recordsDeleteDivConfirm = '确定删除此条派息记录？';
-  static const String recordsDeleteHint = '删除后不可恢复，持仓数据将自动重算，请谨慎操作。';
+  static const String recordsDeleteHint = '左滑可删除，删除后不可恢复，持仓数据将自动重算，请谨慎操作。';
+  static const String recordsDivDeleteHint = '左滑可删除，删除后不可恢复，资产数据将自动重算，请谨慎操作。';
   static const String recordsEditTitle = '编辑{desc}';
   static const String recordsEditPrice = '价格';
   static const String recordsEditShares = '股数';
-  static const String recordsNewPrice = '新价格';
 
   // ========== 操作结果 文案 ==========
   static const String resultCloseSuccess = '平仓成功';
