@@ -780,13 +780,13 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
             children: [
               IconButton(
                 onPressed: _showSearchStockDialog,
-                icon: const Icon(Icons.add, color: Color(0xFF5B9CF6), size: 26),
+                icon: const Icon(Icons.add, color: Color(0xFF5B9CF6), size: 30),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               ),
               IconButton(
                 onPressed: _showSettingsPage,
-                icon: const Icon(Icons.settings, color: Colors.white, size: 26),
+                icon: const Icon(Icons.settings, color: Colors.white, size: 30),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               ),

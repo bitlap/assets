@@ -124,7 +124,7 @@ class DevConfig {
   static const String opConfirmDelete = '确认删除';
 
   // ========== 编辑对话框 文案 ==========
-  static const String editPriceHint = '价格（默认实时价格，可修改）';
+  static const String editPriceHint = '价格（由于开仓有手续费，请输入成本价）';
   static const String editPricePlaceholder = '请输入价格';
   static const String editAddSharesLabel = '加仓股数';
   static const String editReduceSharesLabel = '减仓股数';
