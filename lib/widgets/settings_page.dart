@@ -162,6 +162,70 @@ class _SettingsPageState extends State<SettingsPage> {
     SettingsService.setDefaultCurrency(currency);
   }
 
+  void _showSyncHelp() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
+            SizedBox(width: 8),
+            Text(
+              DevConfig.syncSettingsLabel,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHintRow(
+              Icons.tune,
+              Colors.blueAccent,
+              DevConfig.syncItemSettings,
+              '默认货币、排序方式等应用设置',
+            ),
+            const SizedBox(height: 12),
+            _buildHintRow(
+              Icons.show_chart,
+              const Color(0xFF4CAF50),
+              DevConfig.syncItemStocks,
+              '持仓股票、买入价格、股数等数据',
+            ),
+            const SizedBox(height: 12),
+            _buildHintRow(
+              Icons.list_alt,
+              Colors.orangeAccent,
+              DevConfig.syncItemRecords,
+              '加仓、减仓、平仓等操作记录',
+            ),
+            const SizedBox(height: 16),
+            Text(
+              DevConfig.syncPrivacyNote,
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -335,59 +399,52 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildKeepStockTile() {
-    return InkWell(
-      onTap: () => _onKeepStockChanged(!_keepStockAfterClose),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.swap_horiz,
-                size: 18,
-                color: Colors.orange,
-              ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      DevConfig.keepStockLabel,
-                      style: TextStyle(fontSize: 15, color: Colors.grey[300]),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+            child: const Icon(Icons.swap_horiz, size: 18, color: Colors.orange),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    DevConfig.keepStockLabel,
+                    style: TextStyle(fontSize: 15, color: Colors.grey[300]),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: _showKeepStockHint,
-                    child: Icon(
-                      Icons.help_outline,
-                      size: 16,
-                      color: Colors.grey[500],
-                    ),
+                ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: _showKeepStockHint,
+                  child: Icon(
+                    Icons.help_outline,
+                    size: 16,
+                    color: Colors.grey[500],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Switch(
-              value: _keepStockAfterClose,
-              onChanged: _onKeepStockChanged,
-              activeTrackColor: const Color(0xFF5B9CF6).withValues(alpha: 0.4),
-              activeThumbColor: const Color(0xFF5B9CF6),
-              inactiveThumbColor: Colors.grey[600],
-              inactiveTrackColor: Colors.grey[800],
-            ),
-          ],
-        ),
+          ),
+          Switch(
+            value: _keepStockAfterClose,
+            onChanged: _onKeepStockChanged,
+            activeTrackColor: const Color(0xFF5B9CF6).withValues(alpha: 0.4),
+            activeThumbColor: const Color(0xFF5B9CF6),
+            inactiveThumbColor: Colors.grey[600],
+            inactiveTrackColor: Colors.grey[800],
+          ),
+        ],
       ),
     );
   }
@@ -712,6 +769,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 widget.onSyncToggled?.call();
               }
             }),
+            onHelp: _showSyncHelp,
           ),
         ],
       ),
@@ -723,8 +781,9 @@ class _SettingsPageState extends State<SettingsPage> {
     Color iconColor,
     String label,
     bool value,
-    ValueChanged<bool> onChanged,
-  ) {
+    ValueChanged<bool> onChanged, {
+    VoidCallback? onHelp,
+  }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
       child: Row(
@@ -740,9 +799,28 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 15, color: Colors.grey[300]),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(fontSize: 15, color: Colors.grey[300]),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (onHelp != null) ...[
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: onHelp,
+                    child: Icon(
+                      Icons.help_outline,
+                      size: 16,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           Switch(

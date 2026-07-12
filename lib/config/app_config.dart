@@ -21,6 +21,11 @@ class DevConfig {
   // ========== 股票设置 文案 ==========
   static const String keepStockLabel = '平仓后保留持仓';
   static const String syncSettingsLabel = 'iCloud 同步';
+  static const String syncItemSettings = '设置';
+  static const String syncItemStocks = '股票持仓';
+  static const String syncItemRecords = '操作记录';
+  static const String syncPrivacyNote =
+      '如果不开启同步，数据仅存在本地，无法跨 Apple 设备使用。（为保证用户隐私，本 APP 不会存储任何用户数据）';
   static const String keepStockOnLabel = '开启后';
   static const String keepStockOnDesc = '平仓时保留股票在列表中，持仓数量和金额均变为 0，历史记录依旧保留。';
   static const String keepStockOffLabel = '关闭后';

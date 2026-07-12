@@ -352,20 +352,23 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
           cmp = a.companyName.compareTo(b.companyName);
           break;
         case 'holdings':
-          cmp = a.shares.compareTo(b.shares);
+          // 按持仓价值（价格×股数）排序，转换为统一币种
+          final valueA =
+              CurrencyHelper.convertCurrency(
+                a.currentPrice * a.shares,
+                a.currency,
+                selectedCurrency,
+              ).compareTo(
+                CurrencyHelper.convertCurrency(
+                  b.currentPrice * b.shares,
+                  b.currency,
+                  selectedCurrency,
+                ),
+              );
+          cmp = valueA;
           if (cmp == 0) {
-            // 股价币种不同，转换为统一币种再比较
-            final priceA = CurrencyHelper.convertCurrency(
-              a.currentPrice,
-              a.currency,
-              selectedCurrency,
-            );
-            final priceB = CurrencyHelper.convertCurrency(
-              b.currentPrice,
-              b.currency,
-              selectedCurrency,
-            );
-            cmp = priceA.compareTo(priceB);
+            // 持仓价值相同，按股数排序
+            cmp = a.shares.compareTo(b.shares);
           }
           break;
         case 'profit':
