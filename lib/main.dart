@@ -340,8 +340,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
 
   // ========== 排序 ==========
   /// 排序规则：
-  /// 股票列：按名称，次级无
-  /// 持仓列：按股数，相同则按股价
+  /// 股票列：按股票代码，次级无
+  /// 持仓列：按持仓价值（价格×股数），相同则按股数
   /// 盈亏列：按盈亏金额（含负数亏损），相同则按总价值
   List<StockModel> get _sortedStocks {
     final sorted = List<StockModel>.from(stocks);
@@ -349,7 +349,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       int cmp;
       switch (_sortColumn) {
         case 'name':
-          cmp = a.companyName.compareTo(b.companyName);
+          cmp = a.symbol.compareTo(b.symbol);
           break;
         case 'holdings':
           // 按持仓价值（价格×股数）排序，转换为统一币种
