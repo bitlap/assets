@@ -72,6 +72,20 @@ class CurrencyHelper {
     return rate.toStringAsFixed(4);
   }
 
+  /// 紧凑格式化（超过1万显示“万”单位）
+  /// [value] 要格式化的数值
+  /// [formatBase] 基础数字格式化函数，默认保留2位小数
+  static String formatCompact(
+    double value, {
+    String Function(double)? formatBase,
+  }) {
+    final fmt = formatBase ?? (v) => v.toStringAsFixed(2);
+    if (value.abs() >= 10000) {
+      return '${fmt(value / 10000)}万';
+    }
+    return fmt(value);
+  }
+
   /// 根据市场类型返回对应币种
   static String currencyForMarket(String marketType) {
     switch (marketType) {
@@ -80,17 +94,6 @@ class CurrencyHelper {
       default:
         return 'USD';
     }
-  }
-
-  /// 格式化股数：整数不显示小数点，小数保留原样
-  static String formatShares(double shares) {
-    if (shares == shares.toInt()) {
-      return shares.toInt().toString();
-    }
-    return shares
-        .toStringAsFixed(4)
-        .replaceAll(RegExp(r'0+$'), '')
-        .replaceAll(RegExp(r'\.$'), '');
   }
 
   /// 将金额从源币种转换为目标币种（以 USD 为中间货币）
