@@ -58,19 +58,6 @@ class StockCalculator {
     return fmt(value);
   }
 
-  /// 紧凑格式化股数：超过1万时使用"xx万"格式，整数不显示小数点
-  static String formatCompactShares(double shares) {
-    return formatCompact(
-      shares,
-      formatBase: (v) => v == v.toInt()
-          ? v.toInt().toString()
-          : v
-                .toStringAsFixed(4)
-                .replaceAll(RegExp(r'0+$'), '')
-                .replaceAll(RegExp(r'\.$'), ''),
-    );
-  }
-
   /// 从操作记录计算完整统计信息
   static RecordStats calculateRecordStats(List<OperationRecord> records) {
     if (records.isEmpty) return const RecordStats();

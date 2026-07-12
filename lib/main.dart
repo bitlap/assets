@@ -248,6 +248,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
 
   /// 统一刷新：先更新汇率，再更新股票价格，同时从 iCloud 拉取最新数据
   Future<void> _refreshAll() async {
+    _collapseExpandedStock();
     debugPrint('[首页] 🔄 开始全量刷新...');
     await _syncSettingsFromCloud();
 
@@ -439,6 +440,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   }
 
   void _onColumnTap(String column) {
+    _collapseExpandedStock();
     setState(() {
       if (_sortColumn == column) {
         _sortAscending = !_sortAscending;
@@ -470,6 +472,13 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
           ? null
           : stock.symbol;
     });
+  }
+
+  /// 收缩已展开的股票卡片（仅收缩，不切换）
+  void _collapseExpandedStock() {
+    if (_expandedStockSymbol != null) {
+      setState(() => _expandedStockSymbol = null);
+    }
   }
 
   void _onEditStock(
@@ -602,6 +611,21 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
         onAdd: () => _showEditDialog(stock, isAdd: true),
         onReduce: () => _showEditDialog(stock, isAdd: false),
         onDelete: () => _showDeleteDialog(stock),
+        onDividend: () => _showDividendDialog(stock),
+      ),
+    );
+  }
+
+  void _showDividendDialog(StockModel stock) {
+    showDialog(
+      context: context,
+      builder: (_) => DividendDialog(
+        stock: stock,
+        onConfirm: (date, amountPerShare, taxRate) {
+          // TODO: 处理派息记录保存逻辑
+          Navigator.pop(context);
+          CenterToast.success(context, DevConfig.dividendSuccess);
+        },
       ),
     );
   }
@@ -630,6 +654,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   }
 
   void _showSearchStockDialog() {
+    _collapseExpandedStock();
     final existingSymbols = stocks.map((s) => s.symbol).toSet();
     showDialog(
       context: context,
@@ -651,6 +676,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
 
   // 设置页面本地货币变更回调
   void _onCurrencyChanged(String newCurrency) {
+    _collapseExpandedStock();
     setState(() => selectedCurrency = newCurrency);
     // 持久化保存选择的货币
     SettingsService.setDefaultCurrency(newCurrency);
@@ -682,6 +708,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
 
   /// 打开全屏设置页面
   void _showSettingsPage() {
+    _collapseExpandedStock();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -820,53 +847,63 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
             physics: const AlwaysScrollableScrollPhysics(),
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 8),
-                  AssetCard(
-                    selectedCurrency: selectedCurrency,
-                    totalAssets: totalAssets,
-                    totalCost: totalCost,
-                    totalProfit: totalProfit,
-                    totalProfitPercent: totalProfitPercent,
-                    totalDividends: totalDividends,
-                    exchangeRate: exchangeRate,
-                    isExchangeRateExpanded: _isExchangeRateExpanded,
-                    onToggleExchangeRate: () => setState(
-                      () => _isExchangeRateExpanded = !_isExchangeRateExpanded,
-                    ),
-                    onCurrencyChanged: _onCurrencyChanged,
-                  ),
-                  const SizedBox(height: 10),
-                  _buildStockListHeader(),
-                  const SizedBox(height: 6),
-                  if (_sortedStocks.isEmpty) ...[
-                    const EmptyStateWidget(
-                      icon: Icons.show_chart,
-                      title: DevConfig.homeEmptyTitle,
-                      subtitle: DevConfig.homeEmptySubtitle,
-                      iconSize: 64,
-                      padding: EdgeInsets.symmetric(vertical: 60),
-                    ),
-                  ] else ...[
-                    Column(
-                      children: _sortedStocks.map((stock) {
-                        return StockCard(
-                          stock: stock,
-                          isExpanded: _expandedStockSymbol == stock.symbol,
-                          onExpandTap: () => _onStockTap(stock),
-                          onRecordTap: () => _showRecordsDialog(stock),
-                          onMoreTap: () => _showMoreOptions(stock),
-                          operationRecords:
-                              _operationRecords[stock.symbol] ?? [],
+              // 点击空白区域自动收缩已展开的股票卡片
+              child: GestureDetector(
+                behavior: HitTestBehavior.deferToChild,
+                onTap: _collapseExpandedStock,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 8),
+                    AssetCard(
+                      selectedCurrency: selectedCurrency,
+                      totalAssets: totalAssets,
+                      totalCost: totalCost,
+                      totalProfit: totalProfit,
+                      totalProfitPercent: totalProfitPercent,
+                      totalDividends: totalDividends,
+                      exchangeRate: exchangeRate,
+                      isExchangeRateExpanded: _isExchangeRateExpanded,
+                      onToggleExchangeRate: () {
+                        _collapseExpandedStock();
+                        setState(
+                          () => _isExchangeRateExpanded =
+                              !_isExchangeRateExpanded,
                         );
-                      }).toList(),
+                      },
+                      onCurrencyChanged: _onCurrencyChanged,
+                      onCollapse: _collapseExpandedStock,
                     ),
+                    const SizedBox(height: 10),
+                    _buildStockListHeader(),
+                    const SizedBox(height: 6),
+                    if (_sortedStocks.isEmpty) ...[
+                      const EmptyStateWidget(
+                        icon: Icons.show_chart,
+                        title: DevConfig.homeEmptyTitle,
+                        subtitle: DevConfig.homeEmptySubtitle,
+                        iconSize: 64,
+                        padding: EdgeInsets.symmetric(vertical: 60),
+                      ),
+                    ] else ...[
+                      Column(
+                        children: _sortedStocks.map((stock) {
+                          return StockCard(
+                            stock: stock,
+                            isExpanded: _expandedStockSymbol == stock.symbol,
+                            onExpandTap: () => _onStockTap(stock),
+                            onRecordTap: () => _showRecordsDialog(stock),
+                            onMoreTap: () => _showMoreOptions(stock),
+                            operationRecords:
+                                _operationRecords[stock.symbol] ?? [],
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                    const SizedBox(height: 80),
                   ],
-                  const SizedBox(height: 80),
-                ],
+                ),
               ),
             ),
           );

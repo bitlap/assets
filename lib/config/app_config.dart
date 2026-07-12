@@ -129,6 +129,7 @@ class DevConfig {
   static const String opOpenPosition = '开仓';
   static const String opPriceChange = '改价';
   static const String opDeleteStock = '删除股票';
+  static const String opDividend = '派息';
   static const String opMoreActions = '更多操作';
   static const String opConfirmDelete = '确认删除';
 
@@ -142,6 +143,16 @@ class DevConfig {
   static const String editInvalidInput = '请输入有效的股数和价格';
   static const String editOverflow = '减仓股数不能超过持股数';
   static const String deleteConfirmContent = '确定要删除 {symbol} ({name}) 吗?';
+
+  // ========== 派息对话框 文案 ==========
+  static const String dividendTitle = '派息';
+  static const String dividendDateLabel = '派息日期';
+  static const String dividendAmountLabel = '每股派息金额';
+  static const String dividendAmountHint = '请输入每股派息金额';
+  static const String dividendTaxRateLabel = '税率';
+  static const String dividendConfirm = '确认派息';
+  static const String dividendInvalidAmount = '请输入有效的派息金额';
+  static const String dividendSuccess = '派息成功';
 
   // ========== 搜索对话框 文案 ==========
   static const String searchTitle = '添加股票';
@@ -159,6 +170,7 @@ class DevConfig {
   static const String searchAlreadyExists = '{code} 已在持仓中';
   static const String searchAddTitle = '添加 {code}';
   static const String searchStockName = '股票名称';
+  static const String searchStockCode = '股票代码';
   static const String searchMarket = '市场';
   static const String searchRealtimePrice = '实时价格';
   static const String searchBuyPrice = '买入价格';

@@ -26,113 +26,120 @@ class StockCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onExpandTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0C1117),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isExpanded ? Colors.blue : const Color(0xFF303631),
-            width: isExpanded ? 1.5 : 1,
-          ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0C1117),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isExpanded ? Colors.blue : const Color(0xFF303631),
+          width: isExpanded ? 1.5 : 1,
         ),
-        child: Column(
-          children: [
-            Row(
+      ),
+      child: Column(
+        children: [
+          // 头部可点击区域：点击展开/收缩
+          GestureDetector(
+            onTap: onExpandTap,
+            behavior: HitTestBehavior.opaque,
+            child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: stock.marketType == DevConfig.searchMarketUS
-                        ? Colors.blue
-                        : Colors.orange,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    stock.marketType,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      height: 1.2,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  DevConfig.stockTotalValue,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[500],
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    '${CurrencyHelper.getSymbol(stock.currency)}${StockCalculator.formatCompact(stock.totalValue)}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      height: 1.2,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildLogo(),
-                const SizedBox(width: 8),
-                Expanded(flex: 2, child: _buildCompanyInfo()),
-                Expanded(flex: 2, child: _buildSharesAndPrice()),
-                Expanded(flex: 2, child: _buildProfitLoss()),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Divider(height: 1, color: const Color(0xFF303631)),
-            const SizedBox(height: 4),
-            if (isExpanded) ..._buildExpandedDetails(),
-            if (isExpanded) const SizedBox(height: 4),
-            if (isExpanded) Divider(height: 1, color: const Color(0xFF303631)),
-            if (isExpanded) const SizedBox(height: 4),
-            Row(
-              children: [
-                Expanded(child: _buildRecordButton()),
-                const SizedBox(width: 6),
-                GestureDetector(
-                  onTap: onExpandTap,
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: AnimatedRotation(
-                      turns: isExpanded ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 200),
-                      child: Icon(
-                        Icons.keyboard_arrow_down,
-                        size: 18,
-                        color: isExpanded ? Colors.blue : Colors.grey[600],
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: stock.marketType == DevConfig.searchMarketUS
+                            ? Colors.blue
+                            : Colors.orange,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        stock.marketType,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.2,
+                        ),
                       ),
                     ),
-                  ),
+                    const Spacer(),
+                    Text(
+                      DevConfig.stockTotalValue,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[500],
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '${CurrencyHelper.getSymbol(stock.currency)}${StockCalculator.formatCompact(stock.totalValue)}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 6),
-                Expanded(child: _buildMoreButton()),
+                const SizedBox(height: 4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildLogo(),
+                    const SizedBox(width: 8),
+                    Expanded(flex: 2, child: _buildCompanyInfo()),
+                    Expanded(flex: 2, child: _buildSharesAndPrice()),
+                    Expanded(flex: 2, child: _buildProfitLoss()),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+          // 非点击区域：分割线 + 展开详情 + 底部按钮行
+          const SizedBox(height: 4),
+          Divider(height: 1, color: const Color(0xFF303631)),
+          const SizedBox(height: 4),
+          if (isExpanded) ..._buildExpandedDetails(),
+          if (isExpanded) const SizedBox(height: 4),
+          if (isExpanded) Divider(height: 1, color: const Color(0xFF303631)),
+          if (isExpanded) const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(child: _buildRecordButton()),
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: onExpandTap,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 18,
+                      color: isExpanded ? Colors.blue : Colors.grey[600],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(child: _buildMoreButton()),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -244,7 +251,7 @@ class StockCard extends StatelessWidget {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
           child: Text(
-            '${StockCalculator.formatCompactShares(stock.shares)}${DevConfig.stockSharesSuffix}',
+            '${CurrencyHelper.formatRate(stock.shares)}${DevConfig.stockSharesSuffix}',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -297,7 +304,7 @@ class StockCard extends StatelessWidget {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerRight,
           child: Text(
-            '${!isZero ? '+' : '-'}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
+            '${!isZero && stock.isPositive ? '+' : '-'}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
             style: TextStyle(
               fontSize: 12,
               color: profitColor,
@@ -310,7 +317,7 @@ class StockCard extends StatelessWidget {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerRight,
           child: Text(
-            '${!isZero ? '+' : '-'}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
+            '${!isZero && stock.isPositive ? '+' : '-'}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,

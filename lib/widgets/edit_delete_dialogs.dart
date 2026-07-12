@@ -130,7 +130,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   InfoRowWidget(
-                    label: DevConfig.searchStockName,
+                    label: DevConfig.searchStockCode,
                     value: widget.stock.symbol,
                   ),
                   const SizedBox(height: 8),
@@ -363,6 +363,7 @@ class MoreOptionsDialog extends StatelessWidget {
   final VoidCallback onAdd;
   final VoidCallback onReduce;
   final VoidCallback onDelete;
+  final VoidCallback onDividend;
 
   const MoreOptionsDialog({
     super.key,
@@ -370,6 +371,7 @@ class MoreOptionsDialog extends StatelessWidget {
     required this.onAdd,
     required this.onReduce,
     required this.onDelete,
+    required this.onDividend,
   });
 
   @override
@@ -427,6 +429,17 @@ class MoreOptionsDialog extends StatelessWidget {
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.monetization_on, color: Colors.amber),
+                title: const Text(
+                  DevConfig.opDividend,
+                  style: TextStyle(color: Colors.white, fontSize: 15),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  onDividend();
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.delete, color: Colors.redAccent),
                 title: const Text(
                   DevConfig.opDeleteStock,
@@ -439,6 +452,272 @@ class MoreOptionsDialog extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 派息对话框
+class DividendDialog extends StatefulWidget {
+  final StockModel stock;
+  final void Function(DateTime date, double amountPerShare, double taxRate)
+  onConfirm;
+
+  const DividendDialog({
+    super.key,
+    required this.stock,
+    required this.onConfirm,
+  });
+
+  @override
+  State<DividendDialog> createState() => _DividendDialogState();
+}
+
+class _DividendDialogState extends State<DividendDialog> {
+  late TextEditingController _amountController;
+  DateTime _selectedDate = DateTime.now();
+  double _taxRate = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: Color(0xFF5B9CF6),
+              onPrimary: Colors.white,
+              surface: Color(0xFF1A1F26),
+              onSurface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && mounted) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: const Color(0xFF0C1117),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFF303631)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                DevConfig.dividendTitle,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF161B22),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF303631)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InfoRowWidget(
+                    label: DevConfig.searchStockCode,
+                    value: widget.stock.symbol,
+                  ),
+                  const SizedBox(height: 8),
+                  InfoRowWidget(
+                    label: DevConfig.searchStockName,
+                    value: widget.stock.companyName,
+                  ),
+                  const SizedBox(height: 8),
+                  InfoRowWidget(
+                    label: DevConfig.searchShares,
+                    value:
+                        '${CurrencyHelper.formatShares(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // 派息日期
+            const Text(
+              DevConfig.dividendDateLabel,
+              style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.2),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _pickDate,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF161B22),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF303631)),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      _formatDate(_selectedDate),
+                      style: const TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.calendar_today,
+                      size: 18,
+                      color: Colors.grey[600],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // 每股派息金额
+            AppNumberField(
+              controller: _amountController,
+              label: DevConfig.dividendAmountLabel,
+              hintText: DevConfig.dividendAmountHint,
+            ),
+            const SizedBox(height: 12),
+            // 税率
+            Row(
+              children: [
+                Text(
+                  DevConfig.dividendTaxRateLabel,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey,
+                    height: 1.2,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${_taxRate.toStringAsFixed(0)}%',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: const Color(0xFF5B9CF6),
+                inactiveTrackColor: const Color(0xFF303631),
+                thumbColor: const Color(0xFF5B9CF6),
+                overlayColor: const Color(0xFF5B9CF6).withValues(alpha: 0.2),
+                trackHeight: 4,
+              ),
+              child: Slider(
+                value: _taxRate,
+                min: 0,
+                max: 50,
+                divisions: 50,
+                onChanged: (value) => setState(() => _taxRate = value),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF303631)),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          DevConfig.btnCancel,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      final amount = double.tryParse(_amountController.text);
+                      if (amount == null || amount <= 0) {
+                        CenterToast.error(
+                          context,
+                          DevConfig.dividendInvalidAmount,
+                        );
+                        return;
+                      }
+                      widget.onConfirm(_selectedDate, amount, _taxRate / 100);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: const Color(0xFF5B9CF6).withValues(alpha: 0.85),
+                      ),
+                      child: Center(
+                        child: Text(
+                          DevConfig.dividendConfirm,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

@@ -15,6 +15,7 @@ class AssetCard extends StatefulWidget {
   final bool isExchangeRateExpanded;
   final VoidCallback onToggleExchangeRate;
   final ValueChanged<String> onCurrencyChanged;
+  final VoidCallback? onCollapse;
 
   const AssetCard({
     super.key,
@@ -28,6 +29,7 @@ class AssetCard extends StatefulWidget {
     required this.isExchangeRateExpanded,
     required this.onToggleExchangeRate,
     required this.onCurrencyChanged,
+    this.onCollapse,
   });
 
   @override
@@ -40,6 +42,7 @@ class _AssetCardState extends State<AssetCard> {
   OverlayEntry? _overlayEntry;
 
   void _toggleDropdown() {
+    widget.onCollapse?.call();
     if (_isDropdownOpen) {
       _closeDropdown();
     } else {
