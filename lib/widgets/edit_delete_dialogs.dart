@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import '../models/stock_model.dart';
 import '../utils/currency_helper.dart';
@@ -306,9 +307,11 @@ class _EditStockDialogState extends State<EditStockDialog> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        color: widget.isAdd
-                            ? Colors.red.withOpacity(0.85)
-                            : Colors.green.withOpacity(0.85),
+                        gradient: LinearGradient(
+                          colors: widget.isAdd
+                              ? [const Color(0xFFE53935), const Color(0xFFC62828)]
+                              : [const Color(0xFF43A047), const Color(0xFF2E7D32)],
+                        ),
                       ),
                       child: Center(
                         child: Text(
@@ -700,7 +703,7 @@ class _DividendDialogState extends State<DividendDialog> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        color: const Color(0xFF5B9CF6).withValues(alpha: 0.85),
+                        color: Colors.amber,
                       ),
                       child: Center(
                         child: Text(

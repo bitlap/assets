@@ -655,7 +655,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         decoration: BoxDecoration(
                           color: _isSortAscending
                               ? const Color(0xFF5B9CF6).withValues(alpha: 0.25)
-                              : Colors.transparent,
+                              : const Color(0xFF1A1F26),
                           borderRadius: const BorderRadius.horizontal(
                             left: Radius.circular(8),
                           ),
@@ -673,7 +673,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               size: 14,
                               color: _isSortAscending
                                   ? const Color(0xFF5B9CF6)
-                                  : Colors.grey[500],
+                                  : Colors.grey[400],
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -682,7 +682,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 fontSize: 13,
                                 color: _isSortAscending
                                     ? const Color(0xFF5B9CF6)
-                                    : Colors.grey[500],
+                                    : Colors.grey[300],
                                 fontWeight: _isSortAscending
                                     ? FontWeight.w600
                                     : FontWeight.normal,
@@ -702,7 +702,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         decoration: BoxDecoration(
                           color: !_isSortAscending
                               ? const Color(0xFF5B9CF6).withValues(alpha: 0.25)
-                              : Colors.transparent,
+                              : const Color(0xFF1A1F26),
                           borderRadius: const BorderRadius.horizontal(
                             right: Radius.circular(8),
                           ),
@@ -720,7 +720,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               size: 14,
                               color: !_isSortAscending
                                   ? const Color(0xFF5B9CF6)
-                                  : Colors.grey[500],
+                                  : Colors.grey[400],
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -729,7 +729,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 fontSize: 13,
                                 color: !_isSortAscending
                                     ? const Color(0xFF5B9CF6)
-                                    : Colors.grey[500],
+                                    : Colors.grey[300],
                                 fontWeight: !_isSortAscending
                                     ? FontWeight.w600
                                     : FontWeight.normal,
