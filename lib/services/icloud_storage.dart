@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/stock_model.dart';
+import 'settings_service.dart';
 
 /// iCloud 数据同步服务（带本地 fallback）
 class IcloudStorage {
@@ -46,7 +48,7 @@ class IcloudStorage {
   static String _filePath(String name) => '$_storagePath/$name';
 
   /// 保存股票和记录到 iCloud（本地兜底）
-  static Future<void> saveAll(
+  static Future<void> pushStocksToCloud(
     List<StockModel> stocks,
     Map<String, List<OperationRecord>> records,
   ) async {
@@ -64,7 +66,7 @@ class IcloudStorage {
   static Future<
     (List<StockModel> stocks, Map<String, List<OperationRecord>> records)
   >
-  loadAll() async {
+  pullStocksFromCloud() async {
     await ensureInit();
     debugPrint(
       '[iCloud] 📖 开始加载数据 from: ${_cloudPath != null ? "iCloud" : "本地"}',
@@ -85,7 +87,7 @@ class IcloudStorage {
         '[iCloud] 🔄 本地数据: ${localStocks.length} 只股票, ${localRecords.length} 个记录',
       );
       if (localStocks.isNotEmpty || localRecords.isNotEmpty) {
-        await saveAll(localStocks, localRecords);
+        await pushStocksToCloud(localStocks, localRecords);
         debugPrint('[iCloud] ✅ 本地数据迁移到 iCloud 完成');
         return (localStocks, localRecords);
       } else {
@@ -97,7 +99,7 @@ class IcloudStorage {
   }
 
   /// 保存设置到 iCloud
-  static Future<void> saveSettings(Map<String, dynamic> settings) async {
+  static Future<void> pushSettingsToCloud(Map<String, dynamic> settings) async {
     await ensureInit();
     debugPrint('[设置] 💾 保存设置 -> ${_cloudPath != null ? "iCloud" : "本地"}');
     final file = File(_filePath(_settingsFile));
@@ -106,7 +108,7 @@ class IcloudStorage {
   }
 
   /// 加载设置（优先 iCloud）
-  static Future<Map<String, dynamic>> loadSettings() async {
+  static Future<Map<String, dynamic>> pullSettingsFromCloud() async {
     await ensureInit();
     debugPrint('[设置] 📖 加载设置 from: ${_cloudPath != null ? "iCloud" : "本地"}');
     final file = File(_filePath(_settingsFile));
@@ -123,6 +125,69 @@ class IcloudStorage {
       debugPrint('[设置] ❌ 设置解析失败: $e');
       return {};
     }
+  }
+
+  /// 从 iCloud 下载设置覆盖 SharedPreferences
+  static Future<void> loadSettings() async {
+    final enabled = await SettingsService.getSyncSettings();
+    if (!enabled) {
+      debugPrint('[设置] ⏸️ 同步未启用，跳过下拉同步');
+      return;
+    }
+    debugPrint('[设置] 📥 开始从 iCloud 拉取设置...');
+    final cloud = await pullSettingsFromCloud();
+    if (cloud.isEmpty) {
+      debugPrint('[设置] ⚠️ iCloud 无数据，跳过覆盖');
+      return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    if (cloud.containsKey(SettingsService.keyDefaultCurrency)) {
+      await prefs.setString(
+        SettingsService.keyDefaultCurrency,
+        cloud[SettingsService.keyDefaultCurrency],
+      );
+    }
+    if (cloud.containsKey(SettingsService.keyKeepStockAfterClose)) {
+      await prefs.setBool(
+        SettingsService.keyKeepStockAfterClose,
+        cloud[SettingsService.keyKeepStockAfterClose],
+      );
+    }
+    if (cloud.containsKey(SettingsService.keySortColumn)) {
+      await prefs.setString(
+        SettingsService.keySortColumn,
+        cloud[SettingsService.keySortColumn],
+      );
+    }
+    if (cloud.containsKey(SettingsService.keySortAscending)) {
+      await prefs.setBool(
+        SettingsService.keySortAscending,
+        cloud[SettingsService.keySortAscending],
+      );
+    }
+    debugPrint('[设置] ✅ 从 iCloud 拉取完成: ${cloud.length}项设置');
+  }
+
+  /// 把 SharedPreferences 上传到 iCloud
+  static Future<void> saveSettings() async {
+    final enabled = await SettingsService.getSyncSettings();
+    if (!enabled) {
+      debugPrint('[设置] ⏸️ 同步未启用，跳过上传');
+      return;
+    }
+    debugPrint('[设置] 📤 开始上传设置到 iCloud...');
+    final prefs = await SharedPreferences.getInstance();
+    await pushSettingsToCloud({
+      SettingsService.keyDefaultCurrency:
+          prefs.getString(SettingsService.keyDefaultCurrency) ?? 'CNY',
+      SettingsService.keyKeepStockAfterClose:
+          prefs.getBool(SettingsService.keyKeepStockAfterClose) ?? false,
+      SettingsService.keySortColumn:
+          prefs.getString(SettingsService.keySortColumn) ?? 'profit',
+      SettingsService.keySortAscending:
+          prefs.getBool(SettingsService.keySortAscending) ?? false,
+    });
+    debugPrint('[设置] ✅ 设置上传完成');
   }
 
   static Future<void> _writeJson(String name, List<Map> data) async {

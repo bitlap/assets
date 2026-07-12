@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../utils/currency_helper.dart';
 import '../utils/center_toast.dart';
 import '../services/settings_service.dart';
+import '../services/icloud_storage.dart';
 import '../config/app_config.dart';
 import 'common/settings_expansion_card.dart';
 
@@ -765,7 +766,7 @@ class _SettingsPageState extends State<SettingsPage> {
               SettingsService.setSyncSettings(v);
               if (v) {
                 // 开启同步：立即拉取云端数据
-                SettingsService.pushToCloud();
+                IcloudStorage.saveSettings();
                 widget.onSyncToggled?.call();
               }
             }),

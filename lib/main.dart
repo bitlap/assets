@@ -141,7 +141,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   Future<void> _syncStockData() async {
     final enabled = await SettingsService.getSyncSettings();
     if (!enabled) return;
-    final data = await IcloudStorage.loadAll();
+    final data = await IcloudStorage.pullStocksFromCloud();
     if (!mounted) return;
 
     final cloudStocks = data.$1;
@@ -181,14 +181,17 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     if (!_dataDirty) return;
     final enabled = await SettingsService.getSyncSettings();
     if (enabled) {
-      await IcloudStorage.saveAll(stocks, _operationRecords);
+      await Future.wait([
+        IcloudStorage.pushStocksToCloud(stocks, _operationRecords),
+        IcloudStorage.saveSettings(),
+      ]);
       _dataDirty = false;
     }
   }
 
   /// 从 iCloud 下载设置覆盖本地
   Future<void> _syncSettingsFromCloud() async {
-    await SettingsService.pullFromCloud();
+    await IcloudStorage.loadSettings();
   }
 
   @override
