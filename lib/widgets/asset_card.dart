@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/app_config.dart';
 import '../utils/currency_helper.dart';
-import '../utils/stock_calculator.dart';
 
 /// 资产总额卡片组件（纯UI展示）
 class AssetCard extends StatefulWidget {
@@ -250,7 +249,7 @@ class _AssetCardState extends State<AssetCard> {
           const SizedBox(height: 4),
           // 总金额（已经是目标币种，直接格式化）
           Text(
-            '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${StockCalculator.formatCompact(widget.totalAssets)}',
+            '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatCompact(widget.totalAssets)}',
             style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -380,7 +379,7 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildTotalCostText() {
     return Text(
-      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${StockCalculator.formatCompact(widget.totalCost)}',
+      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatCompact(widget.totalCost)}',
       style: const TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.bold,
@@ -392,7 +391,7 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildProfitText() {
     return Text(
-      '${widget.totalProfit >= 0 ? '+' : ''}${StockCalculator.formatCompact(widget.totalProfit)}',
+      '${widget.totalProfit >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(widget.totalProfit)}',
       style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
@@ -420,7 +419,7 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildDividendText() {
     return Text(
-      '${StockCalculator.formatCompact(widget.totalDividends)}',
+      '${CurrencyHelper.formatCompact(widget.totalDividends)}',
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
