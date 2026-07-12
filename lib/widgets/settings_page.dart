@@ -15,6 +15,7 @@ class SettingsPage extends StatefulWidget {
   final ValueChanged<String> onSortChanged;
   final ValueChanged<bool> onSortDirectionChanged;
   final VoidCallback? onSyncToggled;
+  final ValueChanged<bool>? onKeepStockChanged;
 
   const SettingsPage({
     super.key,
@@ -23,6 +24,7 @@ class SettingsPage extends StatefulWidget {
     required this.onSortChanged,
     required this.onSortDirectionChanged,
     this.onSyncToggled,
+    this.onKeepStockChanged,
   });
 
   @override
@@ -145,7 +147,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onPressed: () {
               Navigator.pop(ctx);
               setState(() => _keepStockAfterClose = value);
-              SettingsService.setKeepStockAfterClose(value);
+              widget.onKeepStockChanged?.call(value);
             },
             child: const Text(
               DevConfig.btnClose,
@@ -187,21 +189,21 @@ class _SettingsPageState extends State<SettingsPage> {
               Icons.tune,
               Colors.blueAccent,
               DevConfig.syncItemSettings,
-              '默认货币、排序方式等应用设置',
+              DevConfig.syncHelpSettingsDesc,
             ),
             const SizedBox(height: 12),
             _buildHintRow(
               Icons.show_chart,
               const Color(0xFF4CAF50),
               DevConfig.syncItemStocks,
-              '持仓股票、买入价格、股数等数据',
+              DevConfig.syncHelpStocksDesc,
             ),
             const SizedBox(height: 12),
             _buildHintRow(
               Icons.list_alt,
               Colors.orangeAccent,
               DevConfig.syncItemRecords,
-              '加仓、减仓、平仓等操作记录',
+              DevConfig.syncHelpRecordsDesc,
             ),
             const SizedBox(height: 16),
             Text(
