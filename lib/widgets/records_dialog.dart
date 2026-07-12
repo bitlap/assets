@@ -5,25 +5,31 @@ import '../utils/currency_helper.dart';
 import '../config/app_config.dart';
 import 'common/empty_state_widget.dart';
 import 'common/confirm_delete_dialog.dart';
+import 'common/app_number_field.dart';
 
 /// 记录弹窗（底部弹出，支持下拉关闭）
 class RecordsDialog extends StatefulWidget {
   final StockModel stock;
   final List<OperationRecord> operationRecords;
+  final List<DividendRecord> dividendRecords;
   final ScrollController scrollController;
   final void Function(String symbol, int index)? onDeleteOperationRecord;
   final void Function(String symbol, int index, OperationRecord updated)?
   onEditOperationRecord;
   final void Function(String symbol, int index)? onDeleteDividendRecord;
+  final void Function(String symbol, int index, DividendRecord updated)?
+  onEditDividendRecord;
 
   const RecordsDialog({
     super.key,
     required this.stock,
     required this.scrollController,
     this.operationRecords = const [],
+    this.dividendRecords = const [],
     this.onDeleteOperationRecord,
     this.onEditOperationRecord,
     this.onDeleteDividendRecord,
+    this.onEditDividendRecord,
   });
 
   @override
@@ -170,7 +176,24 @@ class _RecordsDialogState extends State<RecordsDialog>
                       ],
                     ),
                   ),
-                  Tab(text: DevConfig.recordsDivTab, height: 36),
+                  Tab(
+                    height: 36,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(DevConfig.recordsDivTab),
+                        const SizedBox(width: 3),
+                        GestureDetector(
+                          onTap: _showDivDeleteHint,
+                          child: const Icon(
+                            Icons.help_outline,
+                            size: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -188,7 +211,9 @@ class _RecordsDialogState extends State<RecordsDialog>
                 ),
                 _DividendRecordsTab(
                   stock: widget.stock,
+                  dividendRecords: widget.dividendRecords,
                   onDeleteRecord: widget.onDeleteDividendRecord,
+                  onEditRecord: widget.onEditDividendRecord,
                 ),
               ],
             ),
@@ -216,6 +241,39 @@ class _RecordsDialogState extends State<RecordsDialog>
         ),
         content: Text(
           DevConfig.recordsDeleteHint,
+          style: TextStyle(color: Colors.grey[400], fontSize: 13, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDivDeleteHint() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, size: 20, color: Colors.amber),
+            SizedBox(width: 8),
+            Text(
+              DevConfig.recordsDivTab,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+        content: Text(
+          DevConfig.recordsDivDeleteHint,
           style: TextStyle(color: Colors.grey[400], fontSize: 13, height: 1.4),
         ),
         actions: [
@@ -276,20 +334,15 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
       itemBuilder: (context, index) {
         final record = allRecords[index];
         final isBuy = record.type == DevConfig.opBuy;
-        final isPriceChange = record.type == DevConfig.opPriceChange;
-        final iconColor = isPriceChange
-            ? Colors.blue
-            : (isBuy ? Colors.redAccent : Colors.greenAccent);
-        final iconBgColor = isPriceChange
-            ? Colors.blue.withOpacity(0.15)
-            : (isBuy
-                  ? Colors.red.withOpacity(0.15)
-                  : Colors.green.withOpacity(0.15));
-        final icon = isPriceChange
-            ? Icons.edit
-            : (isBuy ? Icons.arrow_upward : Icons.arrow_downward);
+        final iconColor = isBuy ? Colors.redAccent : Colors.greenAccent;
+        final iconBgColor = isBuy
+            ? Colors.red.withOpacity(0.15)
+            : Colors.green.withOpacity(0.15);
+        final icon = isBuy ? Icons.arrow_upward : Icons.arrow_downward;
         return Dismissible(
-          key: ValueKey('op_${index}_${record.date.millisecondsSinceEpoch}'),
+          key: ValueKey(
+            'op_${index}_${record.operationTime.millisecondsSinceEpoch}',
+          ),
           direction: DismissDirection.endToStart,
           background: Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -345,62 +398,49 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                             fontSize: 13,
                           ),
                         ),
+                        if (record.amount > 0) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            '${DevConfig.recordsOpTotalCost}: ${CurrencyHelper.formatRate(record.amount)}/${DevConfig.recordsDivAmountPerShare} × ${CurrencyHelper.formatRate(record.shares)}${DevConfig.stockSharesSuffix}',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 2),
                         Text(
-                          DateFormat('yyyy-MM-dd HH:mm:ss').format(record.date),
+                          '${DevConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
                           style: TextStyle(
                             color: Colors.grey[600],
-                            fontSize: 11,
+                            fontSize: 10,
                           ),
                         ),
-                        if (record.amount > 0 && !isPriceChange) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            '${CurrencyHelper.formatRate(record.amount)} × ${CurrencyHelper.formatShares(record.shares)}${DevConfig.stockSharesSuffix} = ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
-                            style: TextStyle(
-                              color: Colors.grey[500],
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                        if (isPriceChange) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            '${DevConfig.recordsNewPrice}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}',
-                            style: TextStyle(
-                              color: Colors.grey[500],
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),
-                  if (!isPriceChange)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${isBuy ? "+" : "-"}${CurrencyHelper.formatShares(record.shares)}${DevConfig.stockSharesSuffix}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${isBuy ? "+" : "-"}${CurrencyHelper.formatRate(record.shares)}${DevConfig.stockSharesSuffix}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Colors.white,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
-                          style: TextStyle(
-                            color: isBuy
-                                ? Colors.redAccent
-                                : Colors.greenAccent,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12,
-                          ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${DevConfig.recordsOpTotalCost}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
+                        style: TextStyle(
+                          color: isBuy ? Colors.redAccent : Colors.greenAccent,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -419,7 +459,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
       text: CurrencyHelper.formatRate(record.amount),
     );
     final sharesCtrl = TextEditingController(
-      text: CurrencyHelper.formatShares(record.shares),
+      text: CurrencyHelper.formatRate(record.shares),
     );
 
     showDialog(
@@ -553,10 +593,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                             newShares <= 0) {
                           return;
                         }
-                        final updated = OperationRecord(
-                          date: record.date,
-                          type: record.type,
-                          description: record.description,
+                        final updated = record.copyWith(
                           amount: newPrice,
                           shares: newShares,
                         );
@@ -602,9 +639,17 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
 /// 派息记录Tab
 class _DividendRecordsTab extends StatefulWidget {
   final StockModel stock;
+  final List<DividendRecord> dividendRecords;
   final void Function(String symbol, int index)? onDeleteRecord;
+  final void Function(String symbol, int index, DividendRecord updated)?
+  onEditRecord;
 
-  const _DividendRecordsTab({required this.stock, this.onDeleteRecord});
+  const _DividendRecordsTab({
+    required this.stock,
+    this.dividendRecords = const [],
+    this.onDeleteRecord,
+    this.onEditRecord,
+  });
 
   @override
   State<_DividendRecordsTab> createState() => _DividendRecordsTabState();
@@ -616,7 +661,18 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
   @override
   void initState() {
     super.initState();
-    allRecords = [];
+    // 按操作时间降序排序（最新在前）
+    allRecords = List.from(widget.dividendRecords)
+      ..sort((a, b) => b.operationTime.compareTo(a.operationTime));
+  }
+
+  @override
+  void didUpdateWidget(covariant _DividendRecordsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.dividendRecords != oldWidget.dividendRecords) {
+      allRecords = List.from(widget.dividendRecords)
+        ..sort((a, b) => b.operationTime.compareTo(a.operationTime));
+    }
   }
 
   @override
@@ -635,7 +691,9 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
       itemBuilder: (context, index) {
         final record = allRecords[index];
         return Dismissible(
-          key: ValueKey('div_${index}_${record.date.millisecondsSinceEpoch}'),
+          key: ValueKey(
+            'div_${index}_${record.operationTime.millisecondsSinceEpoch}',
+          ),
           direction: DismissDirection.endToStart,
           background: Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -657,63 +715,343 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
             setState(() => allRecords.removeAt(index));
             widget.onDeleteRecord?.call(widget.stock.symbol, index);
           },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF161B22),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF303631)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
+          child: InkWell(
+            onTap: () => _showEditDividendDialog(context, index, record),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF161B22),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF303631)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.monetization_on,
+                      color: Colors.amber,
+                      size: 16,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.attach_money,
-                    color: Colors.orangeAccent,
-                    size: 16,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          DevConfig.recordsDivTab + ' ${widget.stock.symbol}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${DevConfig.dividendDateLabel}: ${DateFormat('yyyy-MM-dd').format(record.date)}',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${DevConfig.recordsDivTotal}: ${CurrencyHelper.formatRate(record.shares)}${DevConfig.stockSharesSuffix} × ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}/${DevConfig.recordsDivAmountPerShare} × ${1 - record.taxRate}',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${DevConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        DevConfig.recordsDivTab + ' ${widget.stock.symbol}',
+                        '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.totalAmount)}',
                         style: const TextStyle(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                           color: Colors.white,
-                          fontSize: 13,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        DateFormat('yyyy-MM-dd').format(record.date),
-                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                        '${DevConfig.recordsDivAfterTax}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.afterTaxAmount)}',
+                        style: const TextStyle(
+                          color: Colors.amber,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
-                ),
-                Text(
-                  '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}',
-                  style: const TextStyle(
-                    color: Colors.orangeAccent,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  void _showEditDividendDialog(
+    BuildContext context,
+    int index,
+    DividendRecord record,
+  ) {
+    final amountCtrl = TextEditingController(
+      text: CurrencyHelper.formatRate(record.amount),
+    );
+    final sharesCtrl = TextEditingController(
+      text: CurrencyHelper.formatRate(record.shares),
+    );
+    DateTime selectedDate = record.date;
+    double editTaxRate = record.taxRate * 100; // 显示为百分比（0~50）
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => Dialog(
+          backgroundColor: const Color(0xFF0C1117),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF303631)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Text(
+                    DevConfig.dividendEditTitle,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // 派息日期
+                Text(
+                  DevConfig.dividendEditDateLabel,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: ctx,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.dark(
+                              primary: Color(0xFF5B9CF6),
+                              onPrimary: Colors.white,
+                              surface: Color(0xFF1A1F26),
+                              onSurface: Colors.white,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (picked != null) {
+                      setDialogState(() => selectedDate = picked);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF161B22),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF303631)),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.calendar_today,
+                          size: 18,
+                          color: Colors.grey[600],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // 每股派息金额
+                AppNumberField(
+                  controller: amountCtrl,
+                  label: DevConfig.dividendEditAmountLabel,
+                  hintText: DevConfig.dividendAmountHint,
+                ),
+                const SizedBox(height: 12),
+                // 持仓股数
+                AppNumberField(
+                  controller: sharesCtrl,
+                  label: DevConfig.dividendEditSharesLabel,
+                  hintText: DevConfig.editAddSharesHint,
+                ),
+                const SizedBox(height: 12),
+                // 税率
+                Row(
+                  children: [
+                    Text(
+                      DevConfig.dividendTaxRateLabel,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey,
+                        height: 1.2,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${editTaxRate.toStringAsFixed(0)}%',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: const Color(0xFF5B9CF6),
+                    inactiveTrackColor: const Color(0xFF303631),
+                    thumbColor: const Color(0xFF5B9CF6),
+                    overlayColor: const Color(
+                      0xFF5B9CF6,
+                    ).withValues(alpha: 0.2),
+                    trackHeight: 4,
+                  ),
+                  child: Slider(
+                    value: editTaxRate,
+                    min: 0,
+                    max: 50,
+                    divisions: 50,
+                    onChanged: (value) =>
+                        setDialogState(() => editTaxRate = value),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFF303631)),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              DevConfig.btnCancel,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          final newAmount = double.tryParse(amountCtrl.text);
+                          final newShares = double.tryParse(sharesCtrl.text);
+                          if (newAmount == null ||
+                              newAmount <= 0 ||
+                              newShares == null ||
+                              newShares <= 0) {
+                            return;
+                          }
+                          final updated = record.copyWith(
+                            date: selectedDate,
+                            amount: newAmount,
+                            shares: newShares,
+                            taxRate: editTaxRate / 100,
+                          );
+                          setState(() => allRecords[index] = updated);
+                          widget.onEditRecord?.call(
+                            widget.stock.symbol,
+                            index,
+                            updated,
+                          );
+                          Navigator.pop(ctx);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.amber,
+                          ),
+                          child: const Center(
+                            child: Text(
+                              DevConfig.btnClose,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

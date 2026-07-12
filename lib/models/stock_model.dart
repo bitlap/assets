@@ -70,7 +70,8 @@ class StockModel {
 
 /// 操作记录模型
 class OperationRecord {
-  final DateTime date;
+  final DateTime date; // 创建时间
+  final DateTime operationTime; // 操作时间（含时分秒，编辑时更新）
   final String type;
   final String description;
   final double amount;
@@ -78,22 +79,73 @@ class OperationRecord {
 
   OperationRecord({
     required this.date,
+    DateTime? operationTime,
     required this.type,
     required this.description,
     required this.amount,
     required this.shares,
-  });
+  }) : operationTime = operationTime ?? DateTime.now();
+
+  /// 复制并修改
+  OperationRecord copyWith({
+    DateTime? date,
+    DateTime? operationTime,
+    String? type,
+    String? description,
+    double? amount,
+    double? shares,
+  }) {
+    return OperationRecord(
+      date: date ?? this.date,
+      operationTime: operationTime ?? DateTime.now(),
+      type: type ?? this.type,
+      description: description ?? this.description,
+      amount: amount ?? this.amount,
+      shares: shares ?? this.shares,
+    );
+  }
 }
 
 /// 股息记录模型
 class DividendRecord {
-  final DateTime date;
-  final double amount;
+  final DateTime date; // 派息日期（仅日期）
+  final DateTime operationTime; // 操作时间（含时分秒，编辑时更新）
+  final double amount; // 每股派息金额
+  final double shares; // 持仓股数
+  final double taxRate; // 税率（0~1，如 0.1 表示 10%）
   final String currency;
 
   DividendRecord({
     required this.date,
+    DateTime? operationTime,
     required this.amount,
+    required this.shares,
+    this.taxRate = 0.1,
     required this.currency,
-  });
+  }) : operationTime = operationTime ?? DateTime.now();
+
+  /// 总派息金额（税前）
+  double get totalAmount => amount * shares;
+
+  /// 税后金额
+  double get afterTaxAmount => totalAmount * (1 - taxRate);
+
+  /// 复制并修改
+  DividendRecord copyWith({
+    DateTime? date,
+    DateTime? operationTime,
+    double? amount,
+    double? shares,
+    double? taxRate,
+    String? currency,
+  }) {
+    return DividendRecord(
+      date: date ?? this.date,
+      operationTime: operationTime ?? DateTime.now(),
+      amount: amount ?? this.amount,
+      shares: shares ?? this.shares,
+      taxRate: taxRate ?? this.taxRate,
+      currency: currency ?? this.currency,
+    );
+  }
 }

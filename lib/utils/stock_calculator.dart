@@ -44,20 +44,6 @@ class AssetSummary {
 
 /// 持仓计算工具类 - 所有与操作记录相关的计算逻辑
 class StockCalculator {
-  /// 紧凑格式化：超过1万时使用"xx万"格式
-  /// [value] 要格式化的数值
-  /// [formatBase] 基础数字格式化函数，默认保留2位小数
-  static String formatCompact(
-    double value, {
-    String Function(double)? formatBase,
-  }) {
-    final fmt = formatBase ?? (v) => v.toStringAsFixed(2);
-    if (value.abs() >= 10000) {
-      return '${fmt(value / 10000)}万';
-    }
-    return fmt(value);
-  }
-
   /// 从操作记录计算完整统计信息
   static RecordStats calculateRecordStats(List<OperationRecord> records) {
     if (records.isEmpty) return const RecordStats();
@@ -126,9 +112,10 @@ class StockCalculator {
   /// 计算资产汇总（所有金额转换为目标币种）
   static AssetSummary calculateAssetSummary(
     List<StockModel> stocks,
-    Map<String, List<OperationRecord>> operationRecords,
-    String targetCurrency,
-  ) {
+    Map<String, List<OperationRecord>> operationRecords, [
+    Map<String, List<DividendRecord>>? dividendRecords,
+    String targetCurrency = 'CNY',
+  ]) {
     // 总资产
     final totalAssets = stocks.fold(
       0.0,
@@ -162,8 +149,17 @@ class StockCalculator {
           CurrencyHelper.convertCurrency(cost, stock.currency, targetCurrency);
     });
 
-    // 总股息（目前为 0）
-    const totalDividends = 0.0;
+    // 总股息
+    final totalDividends = stocks.fold(0.0, (sum, stock) {
+      final divs = dividendRecords?[stock.symbol] ?? [];
+      final stockDivTotal = divs.fold(0.0, (s, r) => s + r.afterTaxAmount);
+      return sum +
+          CurrencyHelper.convertCurrency(
+            stockDivTotal,
+            stock.currency,
+            targetCurrency,
+          );
+    });
 
     // 总盈亏百分比 = 总盈亏 / (总资产 - 总盈亏) * 100
     final totalProfitPercent = totalAssets > 0

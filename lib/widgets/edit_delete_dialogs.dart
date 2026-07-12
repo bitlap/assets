@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../models/stock_model.dart';
 import '../utils/currency_helper.dart';
@@ -149,7 +148,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
                   InfoRowWidget(
                     label: DevConfig.searchShares,
                     value:
-                        '${CurrencyHelper.formatShares(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
+                        '${CurrencyHelper.formatRate(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
                   ),
                   if (_avgBuyPrice > 0) ...[
                     const SizedBox(height: 8),
@@ -309,8 +308,14 @@ class _EditStockDialogState extends State<EditStockDialog> {
                         borderRadius: BorderRadius.circular(12),
                         gradient: LinearGradient(
                           colors: widget.isAdd
-                              ? [const Color(0xFFE53935), const Color(0xFFC62828)]
-                              : [const Color(0xFF43A047), const Color(0xFF2E7D32)],
+                              ? [
+                                  const Color(0xFFE53935),
+                                  const Color(0xFFC62828),
+                                ]
+                              : [
+                                  const Color(0xFF43A047),
+                                  const Color(0xFF2E7D32),
+                                ],
                         ),
                       ),
                       child: Center(
@@ -573,7 +578,7 @@ class _DividendDialogState extends State<DividendDialog> {
                   InfoRowWidget(
                     label: DevConfig.searchShares,
                     value:
-                        '${CurrencyHelper.formatShares(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
+                        '${CurrencyHelper.formatRate(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
                   ),
                 ],
               ),

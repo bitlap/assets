@@ -40,10 +40,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('zh', 'CN'),
-        Locale('en', 'US'),
-      ],
+      supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,
@@ -82,6 +79,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   String? _expandedStockSymbol;
   // 每只股票的操作记录
   final Map<String, List<OperationRecord>> _operationRecords = {};
+  // 每只股票的派息记录
+  final Map<String, List<DividendRecord>> _dividendRecords = {};
 
   // 行情服务实例和定时刷新
   final StockSearchService _searchService = StockSearchService();
@@ -160,6 +159,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
 
     final cloudStocks = data.$1;
     final cloudRecords = data.$2;
+    final cloudDivRecords = data.$3;
 
     // 保护本地数据：iCloud 为空但本地有数据时，说明还未同步过，不覆盖
     if (cloudStocks.isEmpty &&
@@ -174,6 +174,9 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       _operationRecords
         ..clear()
         ..addAll(cloudRecords);
+      _dividendRecords
+        ..clear()
+        ..addAll(cloudDivRecords);
     });
   }
 
@@ -196,7 +199,11 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     final enabled = await SettingsService.getSyncSettings();
     if (enabled) {
       await Future.wait([
-        IcloudStorage.pushStocksToCloud(stocks, _operationRecords),
+        IcloudStorage.pushStocksToCloud(
+          stocks,
+          _operationRecords,
+          _dividendRecords,
+        ),
         IcloudStorage.saveSettings(),
       ]);
       _dataDirty = false;
@@ -270,18 +277,21 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
         : await _fetchQuotesWithoutRebuild();
     final syncEnabled = await SettingsService.getSyncSettings();
     Map<String, List<OperationRecord>>? cloudRecords;
+    Map<String, List<DividendRecord>>? cloudDivRecords;
     List<StockModel>? cloudStocks;
     if (syncEnabled) {
       final data = await IcloudStorage.pullStocksFromCloud();
       if (!mounted) return;
       cloudStocks = data.$1;
       cloudRecords = data.$2;
+      cloudDivRecords = data.$3;
       // iCloud 为空但本地有数据时不覆盖
       if (cloudStocks.isEmpty &&
           cloudRecords.isEmpty &&
           (stocks.isNotEmpty || _operationRecords.isNotEmpty)) {
         cloudStocks = null;
         cloudRecords = null;
+        cloudDivRecords = null;
       }
     }
 
@@ -294,6 +304,11 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
         _operationRecords
           ..clear()
           ..addAll(cloudRecords);
+      }
+      if (cloudDivRecords != null) {
+        _dividendRecords
+          ..clear()
+          ..addAll(cloudDivRecords);
       }
       _applyQuotes(stocks, quotes);
     });
@@ -373,6 +388,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   AssetSummary get _assetSummary => StockCalculator.calculateAssetSummary(
     stocks,
     _operationRecords,
+    _dividendRecords,
     selectedCurrency,
   );
   double get totalAssets => _assetSummary.totalAssets;
@@ -555,6 +571,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     setState(() {
       stocks.remove(stock);
       _operationRecords.remove(stock.symbol);
+      _dividendRecords.remove(stock.symbol);
     });
     _markDirty();
     CenterToast.success(context, DevConfig.resultDeleteSuccess);
@@ -562,6 +579,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
 
   void _showRecordsDialog(StockModel stock) {
     final records = _operationRecords[stock.symbol] ?? [];
+    final divRecords = _dividendRecords[stock.symbol] ?? [];
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -575,6 +593,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
         builder: (_, scrollController) => RecordsDialog(
           stock: stock,
           operationRecords: records,
+          dividendRecords: divRecords,
           scrollController: scrollController,
           onDeleteOperationRecord: (symbol, index) {
             setState(() {
@@ -589,6 +608,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
                   // 不保留持仓，直接删除股票
                   stocks.removeWhere((s) => s.symbol == symbol);
                   _operationRecords.remove(symbol);
+                  _dividendRecords.remove(symbol);
                 }
               } else {
                 _recalculateStockFromRecords(symbol);
@@ -607,7 +627,22 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
             _markDirty();
           },
           onDeleteDividendRecord: (symbol, index) {
-            // 派息记录目前为模拟数据，暂无需同步状态
+            setState(() {
+              final list = _dividendRecords[symbol];
+              if (list != null && index < list.length) {
+                list.removeAt(index);
+              }
+            });
+            _markDirty();
+          },
+          onEditDividendRecord: (symbol, index, updated) {
+            setState(() {
+              final list = _dividendRecords[symbol];
+              if (list != null && index < list.length) {
+                list[index] = updated;
+              }
+            });
+            _markDirty();
           },
         ),
       ),
@@ -633,7 +668,18 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       builder: (_) => DividendDialog(
         stock: stock,
         onConfirm: (date, amountPerShare, taxRate) {
-          // TODO: 处理派息记录保存逻辑
+          setState(() {
+            final record = DividendRecord(
+              date: date,
+              amount: amountPerShare,
+              shares: stock.shares,
+              taxRate: taxRate,
+              currency: stock.currency,
+            );
+            _dividendRecords.putIfAbsent(stock.symbol, () => []);
+            _dividendRecords[stock.symbol]!.add(record);
+          });
+          _markDirty();
           Navigator.pop(context);
           CenterToast.success(context, DevConfig.dividendSuccess);
         },

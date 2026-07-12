@@ -194,7 +194,7 @@ class DevConfig {
   static const String recordsDivAmountPerShare = '每股';
   static const String recordsDivShares = '持仓股数';
   static const String recordsDivTotal = '总派息';
-  static const String recordsDivOperationTime = '更新:';
+  static const String recordsOperationTime = '更新时间';
   static const String recordsOpTotalValue = '总市值';
   static const String recordsOpTotalCost = '总成本';
   static const String recordsDivAfterTax = '税后金额';

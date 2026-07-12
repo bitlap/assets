@@ -12,6 +12,7 @@ class IcloudStorage {
   static const _channel = MethodChannel('org.bitlap.assets/icloud');
   static const _stocksFile = 'stocks.json';
   static const _recordsFile = 'records.json';
+  static const _dividendRecordsFile = 'dividend_records.json';
   static const _settingsFile = 'settings.json';
 
   static String? _cloudPath;
@@ -50,8 +51,9 @@ class IcloudStorage {
   /// 保存股票和记录到 iCloud（本地兜底）
   static Future<void> pushStocksToCloud(
     List<StockModel> stocks,
-    Map<String, List<OperationRecord>> records,
-  ) async {
+    Map<String, List<OperationRecord>> records, [
+    Map<String, List<DividendRecord>>? dividendRecords,
+  ]) async {
     await ensureInit();
     debugPrint(
       '[iCloud] 💾 开始保存: ${stocks.length} 只股票, ${records.length} 个股票记录 -> ${_cloudPath != null ? "iCloud" : "本地"}',
@@ -60,11 +62,22 @@ class IcloudStorage {
     debugPrint('[iCloud] 💾 股票保存完成: $_stocksFile');
     await _writeJson(_recordsFile, _recordsToJson(records));
     debugPrint('[iCloud] 💾 记录保存完成: $_recordsFile');
+    if (dividendRecords != null) {
+      await _writeJson(
+        _dividendRecordsFile,
+        _dividendRecordsToJson(dividendRecords),
+      );
+      debugPrint('[iCloud] 💾 派息记录保存完成: $_dividendRecordsFile');
+    }
   }
 
   /// 加载股票和记录（优先 iCloud）
   static Future<
-    (List<StockModel> stocks, Map<String, List<OperationRecord>> records)
+    (
+      List<StockModel> stocks,
+      Map<String, List<OperationRecord>> records,
+      Map<String, List<DividendRecord>> dividendRecords,
+    )
   >
   pullStocksFromCloud() async {
     await ensureInit();
@@ -74,8 +87,11 @@ class IcloudStorage {
 
     final stocks = _stocksFromJson(await _readJson(_stocksFile));
     final records = _recordsFromJson(await _readJson(_recordsFile));
+    final dividendRecords = _dividendRecordsFromJson(
+      await _readJson(_dividendRecordsFile),
+    );
     debugPrint(
-      '[iCloud] 📖 加载完成: ${stocks.length} 只股票, ${records.length} 个股票记录',
+      '[iCloud] 📖 加载完成: ${stocks.length} 只股票, ${records.length} 个股票记录, ${dividendRecords.length} 个派息记录',
     );
 
     // 首次启动：若 iCloud 为空，尝试从本地迁移
@@ -83,19 +99,22 @@ class IcloudStorage {
       debugPrint('[iCloud] 🔄 iCloud 数据为空，尝试从本地迁移...');
       final localStocks = _stocksFromJson(await _readLocalJson(_stocksFile));
       final localRecords = _recordsFromJson(await _readLocalJson(_recordsFile));
+      final localDivRecords = _dividendRecordsFromJson(
+        await _readLocalJson(_dividendRecordsFile),
+      );
       debugPrint(
         '[iCloud] 🔄 本地数据: ${localStocks.length} 只股票, ${localRecords.length} 个记录',
       );
       if (localStocks.isNotEmpty || localRecords.isNotEmpty) {
-        await pushStocksToCloud(localStocks, localRecords);
+        await pushStocksToCloud(localStocks, localRecords, localDivRecords);
         debugPrint('[iCloud] ✅ 本地数据迁移到 iCloud 完成');
-        return (localStocks, localRecords);
+        return (localStocks, localRecords, localDivRecords);
       } else {
         debugPrint('[iCloud] ⚠️ 本地也无数据，无需迁移');
       }
     }
 
-    return (stocks, records);
+    return (stocks, records, dividendRecords);
   }
 
   /// 保存设置到 iCloud
@@ -135,13 +154,10 @@ class IcloudStorage {
   static Future<void> loadSettings() async {
     final enabled = await SettingsService.getSyncSettings();
     if (!enabled) {
-      debugPrint('[设置] ⏸️ 同步未启用，跳过下拉同步');
       return;
     }
-    debugPrint('[设置] 📥 开始从 iCloud 拉取设置...');
     final cloud = await pullSettingsFromCloud();
     if (cloud.isEmpty) {
-      debugPrint('[设置] ⚠️ iCloud 无数据，跳过覆盖');
       return;
     }
     final prefs = await SharedPreferences.getInstance();
@@ -176,10 +192,8 @@ class IcloudStorage {
   static Future<void> saveSettings() async {
     final enabled = await SettingsService.getSyncSettings();
     if (!enabled) {
-      debugPrint('[设置] ⏸️ 同步未启用，跳过上传');
       return;
     }
-    debugPrint('[设置] 📤 开始上传设置到 iCloud...');
     final prefs = await SharedPreferences.getInstance();
     await pushSettingsToCloud({
       SettingsService.keyDefaultCurrency:
@@ -191,7 +205,6 @@ class IcloudStorage {
       SettingsService.keySortAscending:
           prefs.getBool(SettingsService.keySortAscending) ?? false,
     });
-    debugPrint('[设置] ✅ 设置上传完成');
   }
 
   static Future<void> _writeJson(String name, List<Map> data) async {
@@ -286,6 +299,7 @@ class IcloudStorage {
     Map<String, List<OperationRecord>> records,
   ) {
     return records.entries
+        .where((e) => e.value.isNotEmpty)
         .map(
           (e) => {
             'symbol': e.key,
@@ -293,6 +307,7 @@ class IcloudStorage {
                 .map(
                   (r) => {
                     'date': r.date.toIso8601String(),
+                    'operationTime': r.operationTime.toIso8601String(),
                     'type': r.type,
                     'description': r.description,
                     'amount': r.amount,
@@ -313,11 +328,70 @@ class IcloudStorage {
       map[entry['symbol'] as String] = (entry['records'] as List)
           .map(
             (r) => OperationRecord(
-              date: DateTime.parse(r['date'] as String),
+              date: r.containsKey('date')
+                  ? DateTime.parse(r['date'] as String)
+                  : DateTime.now(),
+              operationTime: r.containsKey('operationTime')
+                  ? DateTime.parse(r['operationTime'] as String)
+                  : DateTime.parse(r['date'] as String),
               type: r['type'] as String,
               description: r['description'] as String,
               amount: (r['amount'] as num).toDouble(),
               shares: (r['shares'] as num).toDouble(),
+            ),
+          )
+          .toList();
+    }
+    return map;
+  }
+
+  // ========== 派息记录序列化 ==========
+
+  static List<Map<String, dynamic>> _dividendRecordsToJson(
+    Map<String, List<DividendRecord>> records,
+  ) {
+    return records.entries
+        .where((e) => e.value.isNotEmpty)
+        .map(
+          (e) => {
+            'symbol': e.key,
+            'records': e.value
+                .map(
+                  (r) => {
+                    'date': r.date.toIso8601String(),
+                    'operationTime': r.operationTime.toIso8601String(),
+                    'amount': r.amount,
+                    'shares': r.shares,
+                    'taxRate': r.taxRate,
+                    'currency': r.currency,
+                  },
+                )
+                .toList(),
+          },
+        )
+        .toList();
+  }
+
+  static Map<String, List<DividendRecord>> _dividendRecordsFromJson(
+    List<Map<String, dynamic>> json,
+  ) {
+    final map = <String, List<DividendRecord>>{};
+    for (final entry in json) {
+      map[entry['symbol'] as String] = (entry['records'] as List)
+          .map(
+            (r) => DividendRecord(
+              date: r.containsKey('date')
+                  ? DateTime.parse(r['date'] as String)
+                  : DateTime.now(),
+              operationTime: r.containsKey('operationTime')
+                  ? DateTime.parse(r['operationTime'] as String)
+                  : DateTime.parse(r['date'] as String),
+              amount: (r['amount'] as num).toDouble(),
+              shares: (r['shares'] as num).toDouble(),
+              taxRate: r.containsKey('taxRate')
+                  ? (r['taxRate'] as num).toDouble()
+                  : 0.0,
+              currency: r['currency'] as String? ?? 'USD',
             ),
           )
           .toList();

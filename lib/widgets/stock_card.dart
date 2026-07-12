@@ -82,7 +82,7 @@ class StockCard extends StatelessWidget {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        '${CurrencyHelper.getSymbol(stock.currency)}${StockCalculator.formatCompact(stock.totalValue)}',
+                        '${CurrencyHelper.getSymbol(stock.currency)}${CurrencyHelper.formatCompact(stock.totalValue)}',
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -397,7 +397,7 @@ class StockCard extends StatelessWidget {
     final items = [
       _DetailItem(
         DevConfig.stockDetailTotalCost,
-        StockCalculator.formatCompact(totalCost),
+        CurrencyHelper.formatCompact(totalCost),
       ),
       _DetailItem(
         DevConfig.stockDetailAvgPrice,

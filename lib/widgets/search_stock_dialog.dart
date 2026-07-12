@@ -5,7 +5,6 @@ import '../models/stock_model.dart';
 import '../services/stock_search_service.dart';
 import '../utils/center_toast.dart';
 import '../utils/currency_helper.dart';
-import '../utils/stock_calculator.dart';
 import '../utils/logo_cacher.dart';
 import '../config/app_config.dart';
 import 'common/app_number_field.dart';
@@ -655,7 +654,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    StockCalculator.formatCompact(
+                    CurrencyHelper.formatCompact(
                       quote.currentPrice,
                       formatBase: CurrencyHelper.formatRate,
                     ),
