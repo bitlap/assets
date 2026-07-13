@@ -6,6 +6,9 @@ class DevConfig {
   static const String appName = '股票持仓';
   static const String appVersion = '1.0.0';
 
+  // UI 布局
+  static const double dialogWidthRatio = 0.75;
+
   // 开发者信息
   static const String developerName = 'LI GUOBIN';
   static const String developerEmail = 'dreamylost@outlook.com';

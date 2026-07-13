@@ -240,7 +240,8 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 60),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.5,
+          maxWidth:
+              MediaQuery.of(context).size.width * DevConfig.dialogWidthRatio,
           maxHeight: 600,
         ),
         child: Column(
@@ -637,85 +638,108 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                 ],
               ),
             ),
-            // 行情数据
-            if (isLoadingQuote)
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.grey,
-                ),
-              )
-            else if (isFailedQuote)
-              Text(
-                DevConfig.searchQuoteUnavailable,
-                style: TextStyle(color: Colors.grey[600], fontSize: 11),
-              )
-            else if (quote != null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+            // 行情数据 + 添加按钮（右侧固定区域，限制最大宽度防溢出）
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.35,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    CurrencyHelper.formatCompact(
-                      quote.currentPrice,
-                      formatBase: CurrencyHelper.formatRate,
+                  // 行情数据
+                  if (isLoadingQuote)
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.grey,
+                      ),
+                    )
+                  else if (isFailedQuote)
+                    Flexible(
+                      child: Text(
+                        DevConfig.searchQuoteUnavailable,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )
+                  else if (quote != null)
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            CurrencyHelper.formatCompact(
+                              quote.currentPrice,
+                              formatBase: CurrencyHelper.formatRate,
+                            ),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${isPositive ? '+' : '-'}${changePercent.abs().toStringAsFixed(2)}%',
+                            style: TextStyle(color: priceColor, fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.grey,
+                      ),
                     ),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                  // 添加按钮
+                  const SizedBox(width: 12),
+                  if (isExisting)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800]!,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        DevConfig.btnAdded,
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: Colors.blue.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: const Text(
+                        DevConfig.btnAdd,
+                        style: TextStyle(
+                          color: Color(0xFF5B9CF6),
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${isPositive ? '+' : '-'}${changePercent.abs().toStringAsFixed(2)}%',
-                    style: TextStyle(color: priceColor, fontSize: 12),
-                  ),
                 ],
-              )
-            else
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.grey,
-                ),
               ),
-            // 添加按钮
-            const SizedBox(width: 12),
-            if (isExisting)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey[800]!,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  DevConfig.btnAdded,
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-                ),
-                child: const Text(
-                  DevConfig.btnAdd,
-                  style: TextStyle(color: Color(0xFF5B9CF6), fontSize: 12),
-                ),
-              ),
+            ),
           ],
         ),
       ),
@@ -798,128 +822,131 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.5,
+        width: MediaQuery.of(context).size.width * DevConfig.dialogWidthRatio,
         child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF303631)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Text(
-                DevConfig.searchAddTitle.replaceAll('{code}', widget.stockCode),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF303631)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  DevConfig.searchAddTitle.replaceAll(
+                    '{code}',
+                    widget.stockCode,
+                  ),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            // 股票信息
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF161B22),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF303631)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InfoRowWidget(
-                    label: DevConfig.searchStockName,
-                    value: widget.stockName,
-                  ),
-                  const SizedBox(height: 8),
-                  InfoRowWidget(
-                    label: DevConfig.searchMarket,
-                    value: widget.market,
-                  ),
-                  if (widget.defaultPrice > 0) ...[
+              const SizedBox(height: 16),
+              // 股票信息
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF161B22),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF303631)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    InfoRowWidget(
+                      label: DevConfig.searchStockName,
+                      value: widget.stockName,
+                    ),
                     const SizedBox(height: 8),
                     InfoRowWidget(
-                      label: DevConfig.searchRealtimePrice,
-                      value: CurrencyHelper.formatRate(widget.defaultPrice),
+                      label: DevConfig.searchMarket,
+                      value: widget.market,
                     ),
+                    if (widget.defaultPrice > 0) ...[
+                      const SizedBox(height: 8),
+                      InfoRowWidget(
+                        label: DevConfig.searchRealtimePrice,
+                        value: CurrencyHelper.formatRate(widget.defaultPrice),
+                      ),
+                    ],
                   ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // 买入价格
+              AppNumberField(
+                controller: _priceController,
+                label: DevConfig.searchBuyPrice,
+                hintText: DevConfig.searchBuyPriceHint,
+              ),
+              const SizedBox(height: 12),
+              // 持股数量
+              AppNumberField(
+                controller: _sharesController,
+                label: DevConfig.searchShares,
+                hintText: DevConfig.searchSharesHint,
+              ),
+              const SizedBox(height: 20),
+              // 按钮
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF303631)),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            DevConfig.btnCancel,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _onConfirm,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+                          ),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            DevConfig.btnConfirmAdd,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            // 买入价格
-            AppNumberField(
-              controller: _priceController,
-              label: DevConfig.searchBuyPrice,
-              hintText: DevConfig.searchBuyPriceHint,
-            ),
-            const SizedBox(height: 12),
-            // 持股数量
-            AppNumberField(
-              controller: _sharesController,
-              label: DevConfig.searchShares,
-              hintText: DevConfig.searchSharesHint,
-            ),
-            const SizedBox(height: 20),
-            // 按钮
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF303631)),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          DevConfig.btnCancel,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _onConfirm,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
-                        ),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          DevConfig.btnConfirmAdd,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
