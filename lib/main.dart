@@ -72,7 +72,7 @@ class StockPortfolioPage extends StatefulWidget {
 
 class _StockPortfolioPageState extends State<StockPortfolioPage>
     with WidgetsBindingObserver {
-  // ========== 状态 ==========
+  // 状态
   List<StockModel> stocks = [];
   String selectedCurrency = 'CNY';
   bool _isExchangeRateExpanded = false;
@@ -90,14 +90,14 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   /// 平仓后是否保留持仓股票（若选择删除，则清空数据，效果等同直接删除股票）
   bool _keepStockAfterClose = false;
 
-  // ========== 排序状态 ==========
+  // 排序状态
   String _sortColumn = 'profit'; // 'name', 'holdings', 'profit'
   bool _sortAscending = false;
 
-  // ========== 底部 Tab 状态 ==========
+  // 底部 Tab 状态
   int _currentIndex = 0;
 
-  // ========== 悬浮按钮位置 ==========
+  // 悬浮按钮位置
   double _fabY = 0;
   bool _fabInitialized = false;
 
@@ -384,7 +384,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     stocks[stockIndex] = updated;
   }
 
-  // ========== 计算属性 ==========
+  // 计算属性
   AssetSummary get _assetSummary => StockCalculator.calculateAssetSummary(
     stocks,
     _operationRecords,
@@ -398,7 +398,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   double get totalProfitPercent => _assetSummary.totalProfitPercent;
   double get exchangeRate => CurrencyHelper.getExchangeRate(selectedCurrency);
 
-  // ========== 排序 ==========
+  // 排序
   /// 排序规则：
   /// 股票列：按股票代码，次级无
   /// 持仓列：按持仓价值（价格×股数），相同则按股数
@@ -492,7 +492,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     );
   }
 
-  // ========== 事件处理 ==========
+  // 事件处理
   void _onStockTap(StockModel stock) {
     setState(() {
       _expandedStockSymbol = _expandedStockSymbol == stock.symbol
@@ -586,10 +586,14 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       useSafeArea: false,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black54,
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width,
+        maxHeight: MediaQuery.of(context).size.height * 0.95,
+      ),
       builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.85,
+        initialChildSize: 0.95,
         minChildSize: 0.5,
-        maxChildSize: 0.85,
+        maxChildSize: 0.95,
         builder: (_, scrollController) => RecordsDialog(
           stock: stock,
           operationRecords: records,
@@ -787,7 +791,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     });
   }
 
-  // ========== 页面组装 ==========
+  // 页面组装
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -96,7 +96,9 @@ class _EditStockDialogState extends State<EditStockDialog> {
       backgroundColor: const Color(0xFF0C1117),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      child: Container(
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.5,
+        child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
@@ -338,6 +340,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
           ],
         ),
       ),
+      ),
     );
   }
 }
@@ -388,7 +391,9 @@ class MoreOptionsDialog extends StatelessWidget {
       backgroundColor: const Color(0xFF0C1117),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-      child: Container(
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.5,
+        child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -461,6 +466,7 @@ class MoreOptionsDialog extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

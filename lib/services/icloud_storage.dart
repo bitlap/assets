@@ -249,8 +249,7 @@ class IcloudStorage {
     }
   }
 
-  // ========== 序列化 ==========
-
+  // 序列化
   static List<Map<String, dynamic>> _stocksToJson(List<StockModel> stocks) {
     return stocks
         .map(
@@ -345,8 +344,7 @@ class IcloudStorage {
     return map;
   }
 
-  // ========== 派息记录序列化 ==========
-
+  // 派息记录序列化
   static List<Map<String, dynamic>> _dividendRecordsToJson(
     Map<String, List<DividendRecord>> records,
   ) {

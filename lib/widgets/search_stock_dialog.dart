@@ -239,7 +239,10 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 60),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.5,
+          maxHeight: 600,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -794,7 +797,9 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
       backgroundColor: const Color(0xFF0C1117),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      child: Container(
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.5,
+        child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
@@ -914,6 +919,7 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -2,23 +2,23 @@
 class DevConfig {
   DevConfig._();
 
-  // ========== 应用信息 ==========
+  // 应用信息
   static const String appName = '股票持仓';
   static const String appVersion = '1.0.0';
 
-  // ========== 开发者信息 ==========
+  // 开发者信息
   static const String developerName = 'LI GUOBIN';
   static const String developerEmail = 'dreamylost@outlook.com';
   static const String developerWechat = 'naive_dddd';
 
-  // ========== 设置页 分区标题 ==========
+  // 设置页 分区标题
   static const String settingsTitle = '设置';
   static const String sectionCurrency = '本地货币';
   static const String sectionStock = '股票设置';
   static const String sectionSync = '数据同步';
   static const String sectionOther = '其他';
 
-  // ========== 股票设置 文案 ==========
+  // 股票设置 文案
   static const String keepStockLabel = '平仓后保留持仓';
   static const String syncSettingsLabel = 'iCloud 同步';
   static const String syncItemSettings = '设置';
@@ -41,24 +41,24 @@ class DevConfig {
   static const String sortAscending = '升序';
   static const String sortDescending = '降序';
 
-  // ========== 其他设置 文案 ==========
+  // 其他设置 文案
   static const String feedbackLabel = '意见反馈';
   static const String openSourceLabel = '开源软件说明';
   static const String versionLabel = '版本';
 
-  // ========== 反馈提示 ==========
+  // 反馈提示
   static const String feedbackTitle = '意见反馈';
   static const String feedbackHint = '如有建议或问题，欢迎通过以下方式联系开发者：';
   static const String contactEmail = '邮箱';
   static const String contactWechat = '微信';
 
-  // ========== 开源说明 ==========
+  // 开源说明
   static const String openSourceTitle = '开源软件说明';
   static const String openSourceDesc = '本应用使用了以下开源库和数据服务';
   static const String licenseSectionLibs = 'Flutter / Dart 开源库';
   static const String licenseSectionData = '数据服务';
 
-  // ========== 通用按钮 ==========
+  // 通用按钮
   static const String btnClose = '确定';
   static const String btnCancel = '取消';
   static const String btnDelete = '删除';
@@ -69,7 +69,7 @@ class DevConfig {
   static const String btnConfirmBuy = '确认加仓';
   static const String btnConfirmSell = '确认减仓';
 
-  // ========== 定时器 / 缓存 / 超时 ==========
+  // 定时器 / 缓存 / 超时
   static const int refreshInitialDelaySec = 300;
   static const int refreshIntervalSec = 3600;
   static const int quoteCacheTTLMin = 55;
@@ -80,12 +80,12 @@ class DevConfig {
   static const int httpTimeoutSec = 10;
   static const int searchDebounceMs = 1000;
 
-  // ========== Toast 文案 ==========
+  // Toast 文案
   static const String toastEmailCopied = '邮箱地址';
   static const String toastWechatCopied = '微信号';
   static const String toastClipboardSuffix = '已复制到剪贴板';
 
-  // ========== 首页 文案 ==========
+  // 首页 文案
   static const String homeTitle = '股票持仓';
   static const String homeSubtitle = '共 {count} 只 · 实时更新';
   static const String homeEmptyTitle = '暂无股票持仓';
@@ -94,13 +94,13 @@ class DevConfig {
   static const String homeHoldingHeader = '持仓';
   static const String homeProfitHeader = '盈亏';
 
-  // ========== 底部 Tab 文案 ==========
+  // 底部 Tab 文案
   static const String tabStock = '股票';
   static const String tabAsset = '资产';
   static const String assetComingSoon = '资产页面正在开发中';
   static const String assetComingSoonDesc = '敬请期待';
 
-  // ========== AssetCard 文案 ==========
+  // AssetCard 文案
   static const String assetTotalAssets = '总资产';
   static const String assetTotalCost = '总成本';
   static const String assetTotalProfit = '总盈亏';
@@ -112,7 +112,7 @@ class DevConfig {
   static const String assetTotalAssetsHelp = '持仓股票的总市值，不含股息';
   static const String assetTotalDividendsHelp = '总股息率 = 税后总股息 / 总成本';
 
-  // ========== StockCard 文案 ==========
+  // StockCard 文案
   static const String stockTotalValue = '总市值';
   static const String stockRecord = '记录';
   static const String stockMore = '更多';
@@ -124,7 +124,7 @@ class DevConfig {
   static const String stockDetailBuyCount = '加仓次数';
   static const String stockDetailSellCount = '减仓次数';
 
-  // ========== 操作/记录 文案 ==========
+  // 操作/记录 文案
   static const String opBuy = '买入';
   static const String opSell = '卖出';
   static const String opAddPosition = '加仓';
@@ -136,7 +136,7 @@ class DevConfig {
   static const String opMoreActions = '更多操作';
   static const String opConfirmDelete = '确认删除';
 
-  // ========== 编辑对话框 文案 ==========
+  // 编辑对话框 文案
   static const String editPriceHint = '价格（由于开仓有手续费，请输入成本价）';
   static const String editPricePlaceholder = '请输入价格';
   static const String editAddSharesLabel = '加仓股数';
@@ -147,7 +147,7 @@ class DevConfig {
   static const String editOverflow = '减仓股数不能超过持股数';
   static const String deleteConfirmContent = '确定要删除 {symbol} ({name}) 吗?';
 
-  // ========== 派息对话框 文案 ==========
+  // 派息对话框 文案
   static const String dividendTitle = '派息';
   static const String dividendDateLabel = '派息日期';
   static const String dividendAmountLabel = '每股派息金额';
@@ -161,7 +161,7 @@ class DevConfig {
   static const String dividendEditSharesLabel = '持仓股数';
   static const String dividendEditDateLabel = '派息日期';
 
-  // ========== 搜索对话框 文案 ==========
+  // 搜索对话框 文案
   static const String searchTitle = '添加股票';
   static const String searchHint = '输入股票名称或代码（如 AAPL、腾讯）';
   static const String searchAll = '全部';
@@ -188,7 +188,7 @@ class DevConfig {
   static const String searchInvalidShares = '请输入有效的持股数量';
   static const String searchQuoteUnavailable = '暂无法获取';
 
-  // ========== 记录对话框 文案 ==========
+  // 记录对话框 文案
   static const String recordsOpTab = '操作';
   static const String recordsDivTab = '派息';
   static const String recordsEmptyOp = '暂无操作记录';
@@ -210,7 +210,7 @@ class DevConfig {
   static const String recordsEditPrice = '价格';
   static const String recordsEditShares = '股数';
 
-  // ========== 操作结果 文案 ==========
+  // 操作结果 文案
   static const String resultCloseSuccess = '平仓成功';
   static const String resultOpenSuccess = '开仓成功';
   static const String resultAddSuccess = '加仓成功';
