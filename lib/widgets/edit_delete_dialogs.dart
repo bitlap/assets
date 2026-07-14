@@ -47,7 +47,9 @@ class _EditStockDialogState extends State<EditStockDialog> {
   @override
   void initState() {
     super.initState();
-    _sharesController = TextEditingController();
+    _sharesController = TextEditingController(
+      text: widget.isAdd ? '' : CurrencyHelper.formatRate(widget.stock.shares),
+    );
     // 先用当前存储的价格初始化
     _priceController = TextEditingController(
       text: widget.stock.currentPrice > 0
