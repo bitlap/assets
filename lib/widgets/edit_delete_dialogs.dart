@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/stock_model.dart';
+import '../models/stock_search_models.dart';
 import '../utils/currency_helper.dart';
 import '../utils/stock_calculator.dart';
 import '../services/stock_search_service.dart';

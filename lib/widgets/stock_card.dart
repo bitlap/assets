@@ -295,6 +295,7 @@ class StockCard extends StatelessWidget {
     final profitColor = isZero
         ? Colors.grey
         : (stock.isPositive ? Colors.redAccent : Colors.greenAccent);
+    final isPositive = isZero ? '' : (stock.isPositive ? '+' : '-');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
@@ -304,7 +305,7 @@ class StockCard extends StatelessWidget {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerRight,
           child: Text(
-            '${!isZero && stock.isPositive ? '+' : '-'}${CurrencyHelper.formatRate(stock.profitLossAmount.abs())}',
+            '${isPositive}${CurrencyHelper.formatCompact(stock.profitLossAmount.abs())}',
             style: TextStyle(
               fontSize: 12,
               color: profitColor,
@@ -317,7 +318,7 @@ class StockCard extends StatelessWidget {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerRight,
           child: Text(
-            '${!isZero && stock.isPositive ? '+' : '-'}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
+            '${isPositive}${stock.profitLossPercent.abs().toStringAsFixed(2)}%',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,

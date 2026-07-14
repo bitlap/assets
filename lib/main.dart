@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'models/stock_model.dart';
+import 'models/stock_search_models.dart';
+import 'models/calculator_models.dart';
 import 'config/app_config.dart';
 import 'utils/currency_helper.dart';
 import 'utils/center_toast.dart';

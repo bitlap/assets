@@ -3,44 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 
 import '../config/app_config.dart';
-
-typedef _CachedAt = DateTime;
-
-/// 股票搜索结果模型
-class StockSearchResult {
-  final String code; // 股票代码，如 AAPL, 00700
-  final String name; // 股票名称
-  final String market; // 市场标识：美股、港股
-  final String secid; // 东方财富 secid，如 105.AAPL, 116.00700
-  final String? exchange; // 交易所名称
-
-  StockSearchResult({
-    required this.code,
-    required this.name,
-    required this.market,
-    required this.secid,
-    this.exchange,
-  });
-}
-
-/// 股票实时行情
-class StockQuote {
-  final String code;
-  final String name;
-  final double currentPrice;
-  final double changePercent;
-  final String market;
-  final String? logoUrl;
-
-  StockQuote({
-    required this.code,
-    required this.name,
-    required this.currentPrice,
-    required this.changePercent,
-    required this.market,
-    this.logoUrl,
-  });
-}
+import '../models/stock_search_models.dart';
 
 /// 股票搜索服务 - 使用东方财富 API（AKShare 底层数据源）
 /// 单例模式：缓存和熔断状态跨 dialog 持久化，避免重复请求被封IP
@@ -57,14 +20,16 @@ class StockSearchService {
 
   // 不再复用共享 Client，每次请求都新建，避免连接异常后持续失败
 
-  /// 行情缓存：secid -> (缓存时间, StockQuote)
-  final Map<String, (_CachedAt, StockQuote?)> _quoteCache = {};
+  /// 行情缓存：secid -> 缓存时间 / StockQuote
+  final Map<String, DateTime> _quoteCacheTime = {};
+  final Map<String, StockQuote?> _quoteCacheValue = {};
   static const Duration _cacheTTL = Duration(
     minutes: DevConfig.quoteCacheTTLMin,
   );
 
-  /// 搜索缓存：keyword -> (缓存时间, 搜索结果)
-  final Map<String, (_CachedAt, List<StockSearchResult>)> _searchCache = {};
+  /// 搜索缓存：keyword -> 缓存时间 / 搜索结果
+  final Map<String, DateTime> _searchCacheTime = {};
+  final Map<String, List<StockSearchResult>> _searchCacheValue = {};
   static const Duration _searchCacheTTL = Duration(
     minutes: DevConfig.searchCacheTTLMin,
   );
@@ -119,17 +84,19 @@ class StockSearchService {
     if (keyword.trim().isEmpty) return [];
 
     // 先查搜索缓存，同样的关键词不重复请求
-    final cachedSearch = _searchCache[keyword];
-    if (cachedSearch != null &&
-        DateTime.now().difference(cachedSearch.$1) < _searchCacheTTL) {
-      debugPrint('[搜索] ✅ 缓存命中: $keyword (${cachedSearch.$2.length}条)');
-      return cachedSearch.$2;
+    final cachedTime = _searchCacheTime[keyword];
+    final cachedResults = _searchCacheValue[keyword];
+    if (cachedTime != null &&
+        cachedResults != null &&
+        DateTime.now().difference(cachedTime) < _searchCacheTTL) {
+      debugPrint('[搜索] ✅ 缓存命中: $keyword (${cachedResults.length}条)');
+      return cachedResults;
     }
 
     // 搜索 API 也受熔断保护
     if (_isInCooldown) {
       debugPrint('[搜索] ⏸️ 冷却期中，跳过搜索: $keyword');
-      return cachedSearch?.$2 ?? [];
+      return cachedResults ?? [];
     }
 
     debugPrint('[搜索] 🔍 搜索: $keyword');
@@ -152,7 +119,8 @@ class StockSearchService {
         final data = json.decode(response.body);
         final results = _parseSearchResults(data);
         // 缓存搜索结果
-        _searchCache[keyword] = (DateTime.now(), results);
+        _searchCacheTime[keyword] = DateTime.now();
+        _searchCacheValue[keyword] = results;
         debugPrint('[搜索] ✅ 搜索成功: $keyword -> ${results.length}条结果');
         return results;
       }
@@ -248,9 +216,10 @@ class StockSearchService {
     for (final stock in stocks) {
       if (seenSecids.contains(stock.secid)) continue;
       seenSecids.add(stock.secid);
-      final cached = _quoteCache[stock.secid];
-      if (cached != null && now.difference(cached.$1) < _cacheTTL) {
-        result[stock.secid] = cached.$2;
+      final cachedTime = _quoteCacheTime[stock.secid];
+      final cachedValue = _quoteCacheValue[stock.secid];
+      if (cachedTime != null && now.difference(cachedTime) < _cacheTTL) {
+        result[stock.secid] = cachedValue;
       } else {
         needFetch.add(stock);
       }
@@ -295,7 +264,8 @@ class StockSearchService {
 
       if (response.statusCode == 200) {
         final quote = _parseTencentQuote(response.body, stock);
-        _quoteCache[stock.secid] = (DateTime.now(), quote);
+        _quoteCacheTime[stock.secid] = DateTime.now();
+        _quoteCacheValue[stock.secid] = quote;
         debugPrint(
           '[行情] ✅ ${stock.code}: ¥${quote?.currentPrice ?? "N/A"} (${quote?.changePercent ?? 0}%)',
         );
@@ -369,9 +339,10 @@ class StockSearchService {
 
   /// 获取缓存中的行情（不发起网络请求，仅查缓存）
   StockQuote? getCachedQuote(String secid) {
-    final cached = _quoteCache[secid];
-    if (cached != null && DateTime.now().difference(cached.$1) < _cacheTTL) {
-      return cached.$2;
+    final cachedTime = _quoteCacheTime[secid];
+    if (cachedTime != null &&
+        DateTime.now().difference(cachedTime) < _cacheTTL) {
+      return _quoteCacheValue[secid];
     }
     return null;
   }
@@ -379,9 +350,10 @@ class StockSearchService {
   /// 获取单只股票实时行情（使用腾讯API，无重试，带熔断 + 缓存）
   Future<StockQuote?> getStockQuote(StockSearchResult stock) async {
     // 先查缓存
-    final cached = _quoteCache[stock.secid];
-    if (cached != null && DateTime.now().difference(cached.$1) < _cacheTTL) {
-      return cached.$2;
+    final cachedTime = _quoteCacheTime[stock.secid];
+    if (cachedTime != null &&
+        DateTime.now().difference(cachedTime) < _cacheTTL) {
+      return _quoteCacheValue[stock.secid];
     }
     // 委托给内部获取方法
     return _fetchTencentQuote(stock);

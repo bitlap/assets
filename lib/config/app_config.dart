@@ -75,9 +75,9 @@ class DevConfig {
   // 定时器 / 缓存 / 超时
   static const int refreshInitialDelaySec = 300;
   static const int refreshIntervalSec = 3600;
-  static const int quoteCacheTTLMin = 55;
+  static const int quoteCacheTTLMin = 15;
   static const int searchCacheTTLMin = 10;
-  static const int exchangeRateCacheTTLMin = 10;
+  static const int exchangeRateCacheTTLMin = 24 * 60;
   static const int cooldownDurationMin = 5;
   static const int failureThreshold = 3;
   static const int httpTimeoutSec = 10;
