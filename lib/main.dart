@@ -17,7 +17,7 @@ import 'widgets/edit_delete_dialogs.dart';
 import 'widgets/search_stock_dialog.dart';
 import 'widgets/settings_page.dart';
 import 'widgets/common/empty_state_widget.dart';
-import 'services/stock_search_service.dart';
+import 'services/stock_quote_service.dart';
 import 'services/exchange_rate_service.dart';
 import 'services/settings_service.dart';
 import 'services/icloud_storage.dart';
@@ -85,9 +85,10 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   final Map<String, List<DividendRecord>> _dividendRecords = {};
 
   // 行情服务实例和定时刷新
-  final StockSearchService _searchService = StockSearchService();
+  final StockQuoteService _quoteService = StockQuoteService();
   final ExchangeRateService _exchangeRateService = ExchangeRateService();
   Timer? _priceRefreshTimer;
+  bool _isForeground = true;
 
   /// 平仓后是否保留持仓股票（若选择删除，则清空数据，效果等同直接删除股票）
   bool _keepStockAfterClose = false;
@@ -230,10 +231,10 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      // 进入后台 / 锁屏：如果有脏数据则写入 iCloud
+      _isForeground = false;
       if (_dataDirty) _flushToCloud();
     } else if (state == AppLifecycleState.resumed) {
-      // 回到前台：拉取最新数据
+      _isForeground = true;
       _syncStockData();
     }
   }
@@ -268,6 +269,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
 
   /// 统一刷新：先更新汇率，再更新股票价格，同时从 iCloud 拉取最新数据
   Future<void> _refreshAll() async {
+    if (!_isForeground) return;
     _collapseExpandedStock();
     debugPrint('[首页] 🔄 开始全量刷新...');
     await _syncSettingsFromCloud();
@@ -333,7 +335,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
           ),
         )
         .toList();
-    final quotes = await _searchService.getStockQuotesBatch(searchResults);
+    final quotes = await _quoteService.getStockQuotesBatch(searchResults);
     debugPrint('[首页] ✅ 行情拉取完成');
     return quotes;
   }

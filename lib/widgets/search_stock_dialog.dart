@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/stock_model.dart';
 import '../models/stock_search_models.dart';
 import '../services/stock_search_service.dart';
+import '../services/stock_quote_service.dart';
 import '../utils/center_toast.dart';
 import '../utils/currency_helper.dart';
 import '../utils/logo_cacher.dart';
@@ -31,7 +32,8 @@ class SearchStockDialog extends StatefulWidget {
 
 class _SearchStockDialogState extends State<SearchStockDialog> {
   final _controller = TextEditingController();
-  final _service = StockSearchService();
+  final _searchService = StockSearchService();
+  final _quoteService = StockQuoteService();
   final _focusNode = FocusNode();
 
   List<StockSearchResult> _results = [];
@@ -89,7 +91,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
   /// 执行搜索
   Future<void> _doSearch(String keyword) async {
     // 检查是否在冷却期
-    final cooldownSecs = _service.cooldownRemainingSeconds;
+    final cooldownSecs = _searchService.cooldownRemainingSeconds;
     if (cooldownSecs > 0) {
       setState(() {
         _errorMessage = DevConfig.searchRateLimit.replaceAll(
@@ -110,11 +112,11 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     });
 
     try {
-      final results = await _service.searchStocks(keyword);
+      final results = await _searchService.searchStocks(keyword);
       if (!mounted) return;
 
       // 搜索后再次检查冷却状态
-      if (_service.cooldownRemainingSeconds > 0 && results.isEmpty) {
+      if (_searchService.cooldownRemainingSeconds > 0 && results.isEmpty) {
         setState(() {
           _isLoading = false;
           _hasSearched = true;
@@ -163,7 +165,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     StockQuote? quote = _quoteCache[stock.secid];
     if (quote == null) {
       // 检查冷却状态
-      final cooldownSecs = _service.cooldownRemainingSeconds;
+      final cooldownSecs = _searchService.cooldownRemainingSeconds;
       if (cooldownSecs > 0) {
         CenterToast.warning(
           context,
@@ -172,7 +174,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
         return;
       }
       setState(() => _loadingQuotes.add(stock.secid));
-      quote = await _service.getStockQuote(stock);
+      quote = await _quoteService.getStockQuote(stock);
       if (!mounted) return;
       setState(() => _loadingQuotes.remove(stock.secid));
     }
@@ -209,7 +211,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       profitLossPercent: quote?.changePercent ?? 0.0,
       profitLossAmount: 0.0, // 刚建仓，盈亏为0
       isPositive: (quote?.changePercent ?? 0.0) >= 0,
-      logoUrl: StockSearchService.getLogoUrl(stock.code, stock.market),
+      logoUrl: StockQuoteService.getLogoUrl(stock.code, stock.market),
       marketType: stock.market,
       changePercent: quote?.changePercent ?? 0.0,
       currency: CurrencyHelper.currencyForMarket(stock.market),
@@ -401,7 +403,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     final needFetch = <StockSearchResult>[];
     for (final stock in _allResults) {
       if (!_quoteCache.containsKey(stock.secid)) {
-        final cached = _service.getCachedQuote(stock.secid);
+        final cached = _quoteService.getCachedQuote(stock.secid);
         if (cached != null) {
           _quoteCache[stock.secid] = cached;
         } else {
@@ -424,7 +426,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
         _loadingQuotes.add(stock.secid);
       }
     });
-    final quotes = await _service.getStockQuotesBatch(stocks);
+    final quotes = await _quoteService.getStockQuotesBatch(stocks);
     if (!mounted) return;
     setState(() {
       _isLoading = false;
@@ -556,7 +558,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: () {
-                  final logoUrl = StockSearchService.getLogoUrl(
+                  final logoUrl = StockQuoteService.getLogoUrl(
                     stock.code,
                     stock.market,
                   );
