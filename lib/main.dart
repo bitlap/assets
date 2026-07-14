@@ -316,7 +316,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       }
       _applyQuotes(stocks, quotes);
     });
-    _dataDirty = false;
+    _markDirty();
     debugPrint('[首页] ✅ 全量刷新完成');
   }
 
