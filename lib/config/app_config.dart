@@ -106,16 +106,21 @@ class DevConfig {
 
   // AssetCard 文案
   static const String assetTotalAssets = '总资产';
-  static const String assetTotalCost = '总持仓市值';
+  static const String assetTotalCost = '持仓总市值';
   static const String assetTotalProfit = '总盈亏';
   static const String assetTotalDividends = '总股息';
   static const String assetExchangeRate = '汇率';
   static const String assetSelectCurrency = '选择货币';
-  static const String assetTotalCostHelp = '持仓股票的总成本';
+  static const String assetTotalCostHelp = '持仓总成本';
   static const String assetTotalRealizedPL = '已实现盈亏';
-  static const String assetTotalProfitHelp = '持仓浮盈 + 已实现盈亏';
-  static const String assetTotalAssetsHelp = '总持仓市值 + 总卖出金额';
-  static const String assetTotalDividendsHelp = '税后总股息/总持仓成本';
+  static const String assetTotalProfitHelp = '持仓总浮盈 + 已实现盈亏';
+  static const String assetTotalAssetsHelp = '持仓总市值 + 总卖出金额';
+  static const String assetTotalDividendsHelp = '税后总股息/持仓总成本';
+  static const String assetHelpExplanation = '说明';
+  static const String assetCostDetailLabel = '持仓总成本';
+  static const String assetFloatProfitLabel = '持仓总浮盈';
+  static const String assetAfterTaxDividendsLabel = '税后总股息';
+  static const String assetDividendRateLabel = '股息率';
 
   // StockCard 文案
   static const String stockTotalValue = '总市值';
@@ -123,7 +128,7 @@ class DevConfig {
   static const String stockMore = '更多';
   static const String stockSharesSuffix = '股';
   static const String stockDetailTotalCost = '总成本';
-  static const String stockDetailAvgPrice = '平均持仓价';
+  static const String stockDetailAvgPrice = '持仓均价';
   static const String stockDetailMaxPrice = '最大购买价';
   static const String stockDetailMinPrice = '最低购买价';
   static const String stockDetailBuyCount = '加仓次数';
