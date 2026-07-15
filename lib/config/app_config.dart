@@ -33,7 +33,8 @@ class DevConfig {
   static const String syncPrivacyNote =
       '如果不开启同步，数据仅存在本地，无法跨 Apple 设备使用（为保证用户隐私，本 APP 不会存储任何用户数据）';
   static const String keepStockOnLabel = '开启后';
-  static const String keepStockOnDesc = '平仓时保留股票在列表中，持仓数量和金额均变为 0，历史记录依旧保留';
+  static const String keepStockOnDesc =
+      '平仓时保留股票在列表中，持仓数量和市值变为 0，已实现盈亏保留，历史记录依旧保留';
   static const String keepStockOffLabel = '关闭后';
   static const String keepStockOffDesc = '平仓时删除股票及所有数据，效果等同直接删除股票和操作记录';
   static const String sortLabel = '默认排序';
@@ -105,15 +106,16 @@ class DevConfig {
 
   // AssetCard 文案
   static const String assetTotalAssets = '总资产';
-  static const String assetTotalCost = '总成本';
+  static const String assetTotalCost = '总持仓市值';
   static const String assetTotalProfit = '总盈亏';
   static const String assetTotalDividends = '总股息';
   static const String assetExchangeRate = '汇率';
   static const String assetSelectCurrency = '选择货币';
-  static const String assetTotalCostHelp = '买入持仓股票所花费的总成本';
-  static const String assetTotalProfitHelp = '持仓股票的总盈亏，不含股息收益';
-  static const String assetTotalAssetsHelp = '持仓股票的总市值，不含股息';
-  static const String assetTotalDividendsHelp = '总股息率 = 税后总股息 / 总成本';
+  static const String assetTotalCostHelp = '持仓股票的总成本';
+  static const String assetTotalRealizedPL = '已实现盈亏';
+  static const String assetTotalProfitHelp = '持仓浮盈 + 已实现盈亏';
+  static const String assetTotalAssetsHelp = '总持仓市值 + 总卖出金额';
+  static const String assetTotalDividendsHelp = '税后总股息/总持仓成本';
 
   // StockCard 文案
   static const String stockTotalValue = '总市值';

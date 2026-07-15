@@ -23,16 +23,20 @@ class RecordStats {
 
 /// 资产汇总结果
 class AssetSummary {
-  final double totalAssets; // 总资产（目标币种）
-  final double totalCost; // 总成本（目标币种）
-  final double totalProfit; // 总盈亏（目标币种）
-  final double totalProfitPercent; // 总盈亏百分比
-  final double totalAfterTaxDividends; // 总税后股息（目标币种）
+  final double totalAssets; // 总资产 = 总市值 + 累计卖出金额
+  final double totalMarketValue; // 总市值，仅当前持仓
+  final double totalCost; // 总持仓成本，仅当前持仓净成本
+  final double totalProfit; // 总盈亏 = 持仓浮盈 + 已实现盈亏
+  final double totalRealizedPL; // 已平仓已实现盈亏
+  final double totalProfitPercent; // 总盈亏百分比 = 总盈亏 / 总买入金额
+  final double totalAfterTaxDividends; // 总税后股息
 
   const AssetSummary({
     this.totalAssets = 0,
+    this.totalMarketValue = 0,
     this.totalCost = 0,
     this.totalProfit = 0,
+    this.totalRealizedPL = 0,
     this.totalProfitPercent = 0,
     this.totalAfterTaxDividends = 0,
   });

@@ -396,9 +396,11 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     selectedCurrency,
   );
   double get totalAssets => _assetSummary.totalAssets;
+  double get totalMarketValue => _assetSummary.totalMarketValue;
   double get totalCost => _assetSummary.totalCost;
   double get totalProfit => _assetSummary.totalProfit;
   double get totalAfterTaxDividends => _assetSummary.totalAfterTaxDividends;
+  double get totalRealizedPL => _assetSummary.totalRealizedPL;
   double get totalProfitPercent => _assetSummary.totalProfitPercent;
   double get exchangeRate => CurrencyHelper.getExchangeRate(selectedCurrency);
 
@@ -519,24 +521,10 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   ) {
     setState(() {
       if (isClosed) {
-        if (_keepStockAfterClose) {
-          // 保留股票：持仓数量变为 0，清空盈亏数据
-          final index = stocks.indexWhere(
-            (s) => s.symbol == updatedStock.symbol,
-          );
-          if (index != -1) {
-            stocks[index] = stocks[index].copyWith(
-              shares: 0,
-              totalValue: 0,
-              profitLossAmount: 0,
-              profitLossPercent: 0,
-              isPositive: true,
-            );
-          }
-        } else {
-          // 删除股票：清空数据，级联删除操作记录
-          stocks.removeWhere((s) => s.symbol == updatedStock.symbol);
-          _operationRecords.remove(updatedStock.symbol);
+        // 平仓后保留股票记录，只清持仓数量，保留已实现盈亏
+        final index = stocks.indexWhere((s) => s.symbol == updatedStock.symbol);
+        if (index == -1) {
+          stocks.add(updatedStock.copyWith(shares: 0, totalValue: 0));
         }
       } else {
         // 加仓或减仓：更新股票
@@ -924,8 +912,10 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
                     AssetCard(
                       selectedCurrency: selectedCurrency,
                       totalAssets: totalAssets,
+                      totalMarketValue: totalMarketValue,
                       totalCost: totalCost,
                       totalProfit: totalProfit,
+                      totalRealizedPL: totalRealizedPL,
                       totalProfitPercent: totalProfitPercent,
                       totalAfterTaxDividends: totalAfterTaxDividends,
                       exchangeRate: exchangeRate,

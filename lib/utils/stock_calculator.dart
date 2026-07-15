@@ -77,38 +77,63 @@ class StockCalculator {
     Map<String, List<DividendRecord>>? dividendRecords,
     String targetCurrency = 'CNY',
   ]) {
-    // 总资产
-    final totalAssets = stocks.fold(
-      0.0,
-      (sum, stock) =>
-          sum +
-          CurrencyHelper.convertCurrency(
-            stock.totalValue,
-            stock.currency,
-            targetCurrency,
-          ),
-    );
+    double totalMarketValue = 0.0;
+    double unrealizedPL = 0.0;
+    double realizedPL = 0.0;
+    double totalBuyAmount = 0.0;
+    double totalSellAmount = 0.0;
+    double totalCost = 0.0;
 
-    // 总盈亏
-    final totalProfit = stocks.fold(
-      0.0,
-      (sum, stock) =>
-          sum +
-          CurrencyHelper.convertCurrency(
-            stock.profitLossAmount,
-            stock.currency,
-            targetCurrency,
-          ),
-    );
+    for (final stock in stocks) {
+      final mv = CurrencyHelper.convertCurrency(
+        stock.totalValue,
+        stock.currency,
+        targetCurrency,
+      );
+      totalMarketValue += mv;
 
-    // 总成本
-    final totalCost = stocks.fold(0.0, (sum, stock) {
+      if (stock.shares > 0) {
+        final pl = CurrencyHelper.convertCurrency(
+          stock.profitLossAmount,
+          stock.currency,
+          targetCurrency,
+        );
+        unrealizedPL += pl;
+      } else {
+        final pl = CurrencyHelper.convertCurrency(
+          stock.profitLossAmount,
+          stock.currency,
+          targetCurrency,
+        );
+        realizedPL += pl;
+      }
+
       final records = operationRecords[stock.symbol] ?? [];
       final stats = calculateRecordStats(records);
-      final cost = stats.totalBuyAmount - stats.totalSellAmount;
-      return sum +
-          CurrencyHelper.convertCurrency(cost, stock.currency, targetCurrency);
-    });
+      totalBuyAmount += CurrencyHelper.convertCurrency(
+        stats.totalBuyAmount,
+        stock.currency,
+        targetCurrency,
+      );
+      totalSellAmount += CurrencyHelper.convertCurrency(
+        stats.totalSellAmount,
+        stock.currency,
+        targetCurrency,
+      );
+      if (stock.shares > 0) {
+        totalCost += CurrencyHelper.convertCurrency(
+          stats.totalBuyAmount - stats.totalSellAmount,
+          stock.currency,
+          targetCurrency,
+        );
+      }
+    }
+
+    // 总盈亏 = 持仓浮盈 + 已实现盈亏
+    final totalProfit = unrealizedPL + realizedPL;
+
+    // 总资产 = 当前持仓市值 + 累计卖出金额
+    final totalAssets = totalMarketValue + totalSellAmount;
 
     // 总股息
     final totalAfterTaxDividends = stocks.fold(0.0, (sum, stock) {
@@ -122,15 +147,20 @@ class StockCalculator {
           );
     });
 
-    // 总盈亏百分比 = 总盈亏 / (总资产 - 总盈亏) * 100
-    final totalProfitPercent = totalAssets > 0
-        ? (totalProfit / (totalAssets - totalProfit) * 100)
-        : 0.0;
+    // 总盈亏百分比 = 总盈亏 / 总买入金额
+    final double totalProfitPercent;
+    if (totalBuyAmount > 0) {
+      totalProfitPercent = totalProfit / totalBuyAmount * 100;
+    } else {
+      totalProfitPercent = 0.0;
+    }
 
     return AssetSummary(
       totalAssets: totalAssets,
+      totalMarketValue: totalMarketValue,
       totalCost: totalCost,
       totalProfit: totalProfit,
+      totalRealizedPL: realizedPL,
       totalProfitPercent: totalProfitPercent,
       totalAfterTaxDividends: totalAfterTaxDividends,
     );
@@ -149,14 +179,15 @@ class StockCalculator {
     // 当前总持仓金额 = 当前价格 × 当前数量
     final totalValue = stock.currentPrice * stats.currentShares;
 
-    // 如果当前没有持股，直接归零
+    // 如果当前没有持股，已实现盈亏 = 总卖出 - 总买入
     if (stats.currentShares == 0) {
+      final realizedPL = stats.totalSellAmount - stats.totalBuyAmount;
       return stock.copyWith(
         shares: 0,
         totalValue: 0,
-        profitLossAmount: 0,
+        profitLossAmount: realizedPL,
         profitLossPercent: 0,
-        isPositive: true,
+        isPositive: realizedPL >= 0,
       );
     }
 

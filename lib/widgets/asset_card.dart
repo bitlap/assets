@@ -6,8 +6,10 @@ import '../utils/currency_helper.dart';
 class AssetCard extends StatefulWidget {
   final String selectedCurrency;
   final double totalAssets;
+  final double totalMarketValue;
   final double totalCost;
   final double totalProfit;
+  final double totalRealizedPL;
   final double totalProfitPercent;
   final double totalAfterTaxDividends;
   final double exchangeRate;
@@ -20,8 +22,10 @@ class AssetCard extends StatefulWidget {
     super.key,
     required this.selectedCurrency,
     required this.totalAssets,
+    required this.totalMarketValue,
     required this.totalCost,
     required this.totalProfit,
+    required this.totalRealizedPL,
     required this.totalProfitPercent,
     required this.totalAfterTaxDividends,
     required this.exchangeRate,
@@ -330,32 +334,6 @@ class _AssetCardState extends State<AssetCard> {
     );
   }
 
-  Widget _buildSummaryCard(String label, Widget valueText, Widget percentText) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.white70,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 2),
-          valueText,
-          percentText,
-        ],
-      ),
-    );
-  }
-
   Widget _buildTotalCostSummaryCard() {
     return Container(
       padding: const EdgeInsets.all(8),
@@ -368,6 +346,8 @@ class _AssetCardState extends State<AssetCard> {
         children: [
           Row(
             children: [
+              Icon(Icons.show_chart, size: 12, color: Colors.amber),
+              const SizedBox(width: 4),
               Text(
                 DevConfig.assetTotalCost,
                 style: const TextStyle(
@@ -388,7 +368,7 @@ class _AssetCardState extends State<AssetCard> {
             ],
           ),
           const SizedBox(height: 2),
-          _buildTotalCostText(),
+          _buildTotalMarketText(),
           const Text(
             ' ',
             style: TextStyle(
@@ -404,26 +384,28 @@ class _AssetCardState extends State<AssetCard> {
   }
 
   void _showTotalCostHelpDialog() {
+    final symbol = CurrencyHelper.getSymbol(widget.selectedCurrency);
+    final costText = '$symbol${CurrencyHelper.formatCompact(widget.totalCost)}';
+    final floatPL = widget.totalMarketValue - widget.totalCost;
+    final floatText =
+        '$symbol${floatPL >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(floatPL)}';
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F26),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          DevConfig.assetTotalCost,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
-        ),
-        content: const Text(
-          DevConfig.assetTotalCostHelp,
-          style: TextStyle(color: Colors.white70, fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              DevConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
-            ),
+      builder: (ctx) => _helpDialogFrame(
+        title: DevConfig.assetTotalCost,
+        icon: Icons.shopping_cart,
+        children: [
+          _helpLine(
+            DevConfig.assetHelpExplanation,
+            DevConfig.assetTotalCostHelp,
+          ),
+          const SizedBox(height: 10),
+          _helpLine(DevConfig.assetCostDetailLabel, costText, Colors.white),
+          const SizedBox(height: 6),
+          _helpLine(
+            DevConfig.assetFloatProfitLabel,
+            floatText,
+            floatPL >= 0 ? const Color(0xFFFF5252) : const Color(0xFF69F0AE),
           ),
         ],
       ),
@@ -442,6 +424,8 @@ class _AssetCardState extends State<AssetCard> {
         children: [
           Row(
             children: [
+              Icon(Icons.trending_up, size: 12, color: Colors.amber),
+              const SizedBox(width: 4),
               Text(
                 DevConfig.assetTotalProfit,
                 style: const TextStyle(
@@ -470,35 +454,45 @@ class _AssetCardState extends State<AssetCard> {
   }
 
   void _showProfitHelpDialog() {
+    final symbol = CurrencyHelper.getSymbol(widget.selectedCurrency);
+    final totalText =
+        '${widget.totalProfit >= 0 ? '+' : ''}$symbol${CurrencyHelper.formatCompact(widget.totalProfit)}';
+    final realizedText =
+        '${widget.totalRealizedPL >= 0 ? '+' : ''}$symbol${CurrencyHelper.formatCompact(widget.totalRealizedPL)}';
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F26),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          DevConfig.assetTotalProfit,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
-        ),
-        content: const Text(
-          DevConfig.assetTotalProfitHelp,
-          style: TextStyle(color: Colors.white70, fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              DevConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
-            ),
+      builder: (ctx) => _helpDialogFrame(
+        title: DevConfig.assetTotalProfit,
+        icon: Icons.trending_up,
+        children: [
+          _helpLine(
+            DevConfig.assetHelpExplanation,
+            DevConfig.assetTotalProfitHelp,
+          ),
+          const SizedBox(height: 10),
+          _helpLine(
+            DevConfig.assetTotalProfit,
+            totalText,
+            widget.totalProfit >= 0
+                ? const Color(0xFFFF5252)
+                : const Color(0xFF69F0AE),
+          ),
+          const SizedBox(height: 6),
+          _helpLine(
+            DevConfig.assetTotalRealizedPL,
+            realizedText,
+            widget.totalRealizedPL >= 0
+                ? const Color(0xFFFF5252)
+                : const Color(0xFF69F0AE),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTotalCostText() {
+  Widget _buildTotalMarketText() {
     return Text(
-      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatCompact(widget.totalCost)}',
+      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatCompact(widget.totalMarketValue)}',
       style: const TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.bold,
@@ -548,6 +542,8 @@ class _AssetCardState extends State<AssetCard> {
         children: [
           Row(
             children: [
+              const Icon(Icons.monetization_on, size: 12, color: Colors.amber),
+              const SizedBox(width: 4),
               const Text(
                 DevConfig.assetTotalDividends,
                 style: TextStyle(
@@ -575,54 +571,125 @@ class _AssetCardState extends State<AssetCard> {
     );
   }
 
-  void _showTotalAssetsHelpDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F26),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          DevConfig.assetTotalAssets,
-          style: TextStyle(color: Colors.white, fontSize: 16),
+  Widget _helpLine(String label, String value, [Color? valueColor]) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 13),
         ),
-        content: const Text(
-          DevConfig.assetTotalAssetsHelp,
-          style: TextStyle(color: Colors.white70, fontSize: 14),
+        Text(
+          value,
+          style: TextStyle(
+            color: valueColor ?? Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              DevConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
+      ],
+    );
+  }
+
+  Widget _helpDialogFrame({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1A1F26),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+      contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
+      title: Column(
+        children: [
+          Icon(icon, color: Colors.amber, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
             ),
           ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Divider(color: Colors.white12, height: 1),
+          const SizedBox(height: 12),
+          ...children,
+        ],
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          style: TextButton.styleFrom(
+            foregroundColor: const Color(0xFF5B9CF6),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          ),
+          child: const Text(
+            DevConfig.btnClose,
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showTotalAssetsHelpDialog() {
+    final symbol = CurrencyHelper.getSymbol(widget.selectedCurrency);
+    final valueText =
+        '$symbol${CurrencyHelper.formatCompact(widget.totalAssets)}';
+    showDialog(
+      context: context,
+      builder: (ctx) => _helpDialogFrame(
+        title: DevConfig.assetTotalAssets,
+        icon: Icons.account_balance_wallet,
+        children: [
+          _helpLine(
+            DevConfig.assetHelpExplanation,
+            DevConfig.assetTotalAssetsHelp,
+          ),
+          const SizedBox(height: 10),
+          _helpLine(DevConfig.assetTotalAssets, valueText, Colors.white),
         ],
       ),
     );
   }
 
   void _showDividendHelpDialog() {
+    final symbol = CurrencyHelper.getSymbol(widget.selectedCurrency);
+    final valueText =
+        '$symbol${CurrencyHelper.formatCompact(widget.totalAfterTaxDividends)}';
+    final percent = widget.totalCost > 0
+        ? (widget.totalAfterTaxDividends / widget.totalCost * 100)
+        : 0.0;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F26),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          DevConfig.assetTotalDividends,
-          style: TextStyle(color: Colors.white, fontSize: 16),
-        ),
-        content: const Text(
-          DevConfig.assetTotalDividendsHelp,
-          style: TextStyle(color: Colors.white70, fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              DevConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
-            ),
+      builder: (ctx) => _helpDialogFrame(
+        title: DevConfig.assetTotalDividends,
+        icon: Icons.monetization_on,
+        children: [
+          _helpLine(
+            DevConfig.assetHelpExplanation,
+            DevConfig.assetTotalDividendsHelp,
+          ),
+          const SizedBox(height: 10),
+          _helpLine(
+            DevConfig.assetAfterTaxDividendsLabel,
+            valueText,
+            Colors.white,
+          ),
+          const SizedBox(height: 6),
+          _helpLine(
+            DevConfig.assetDividendRateLabel,
+            '${percent.toStringAsFixed(2)}%',
+            Colors.white,
           ),
         ],
       ),
