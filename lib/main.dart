@@ -168,7 +168,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     if (cloudStocks.isEmpty &&
         cloudRecords.isEmpty &&
         (stocks.isNotEmpty || _operationRecords.isNotEmpty)) {
-      debugPrint('[首页] ⚠️ iCloud 数据为空，本地有数据，跳过覆盖（可能尚未同步）');
+      debugPrint('[首页] iCloud 数据为空，本地有数据，跳过覆盖（可能尚未同步）');
       return;
     }
 
@@ -261,9 +261,9 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     final rates = await _exchangeRateService.fetchRates();
     if (rates != null) {
       CurrencyHelper.updateRates(rates);
-      debugPrint('[首页] ✅ 汇率拉取完成');
+      debugPrint('[首页] 汇率拉取完成');
     } else {
-      debugPrint('[首页] ⚠️ 汇率刷新无更新');
+      debugPrint('[首页] 汇率刷新无更新');
     }
   }
 
@@ -271,7 +271,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   Future<void> _refreshAll() async {
     if (!_isForeground) return;
     _collapseExpandedStock();
-    debugPrint('[首页] 🔄 开始全量刷新...');
+    debugPrint('[首页] 开始全量刷新...');
     await _syncSettingsFromCloud();
 
     // 依次拉取汇率、行情和 iCloud 数据（均不触发 setState）
@@ -317,12 +317,12 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       _applyQuotes(stocks, quotes);
     });
     _markDirty();
-    debugPrint('[首页] ✅ 全量刷新完成');
+    debugPrint('[首页] 全量刷新完成');
   }
 
   /// 拉取行情但不触发 UI 重建
   Future<Map<String, StockQuote?>> _fetchQuotesWithoutRebuild() async {
-    debugPrint('[首页] 📊 开始刷新行情: ${stocks.length}只股票');
+    debugPrint('[首页] 开始刷新行情: ${stocks.length}只股票');
     final searchResults = stocks
         .map(
           (stock) => StockSearchResult(
@@ -336,7 +336,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
         )
         .toList();
     final quotes = await _quoteService.getStockQuotesBatch(searchResults);
-    debugPrint('[首页] ✅ 行情拉取完成');
+    debugPrint('[首页] 行情拉取完成');
     return quotes;
   }
 

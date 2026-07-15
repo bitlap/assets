@@ -15,7 +15,7 @@ class TencentQuoteService {
 
   Future<StockQuote?> fetchQuote(StockSearchResult stock) async {
     if (_breaker.isInCooldown) {
-      debugPrint('[腾讯] ⏸️ 冷却中，跳过: ${stock.code}');
+      debugPrint('[腾讯] 冷却中，跳过: ${stock.code}');
       return null;
     }
 
@@ -36,14 +36,14 @@ class TencentQuoteService {
         final quote = _parseQuote(response.body, stock);
         if (quote != null) {
           debugPrint(
-            '[腾讯] ✅ ${stock.code}: HKD${quote.currentPrice} (${quote.changePercent}%)',
+            '[腾讯] ${stock.code}: HKD${quote.currentPrice} (${quote.changePercent}%)',
           );
         }
         return quote;
       }
       return null;
     } catch (e) {
-      debugPrint('[腾讯] ❌ 获取失败 ${stock.code}: $e');
+      debugPrint('[腾讯] 获取失败 ${stock.code}: $e');
       _breaker.onFailure();
       return null;
     }
@@ -80,7 +80,7 @@ class TencentQuoteService {
         logoUrl: logoUrl,
       );
     } catch (e) {
-      debugPrint('[腾讯] ❌ 解析失败 ${stock.code}: $e');
+      debugPrint('[腾讯] 解析失败 ${stock.code}: $e');
       return null;
     }
   }

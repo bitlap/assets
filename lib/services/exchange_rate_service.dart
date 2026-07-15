@@ -54,10 +54,10 @@ class ExchangeRateService {
     if (_consecutiveFailures >= _failureThreshold) {
       _cooldownUntil = DateTime.now().add(_cooldownDuration);
       debugPrint(
-        '[汇率] ❌ 连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inMinutes}分钟',
+        '[汇率] 连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inMinutes}分钟',
       );
     } else {
-      debugPrint('[汇率] ❌ 请求失败 ($_consecutiveFailures/$_failureThreshold)');
+      debugPrint('[汇率] 请求失败 ($_consecutiveFailures/$_failureThreshold)');
     }
   }
 
@@ -75,17 +75,17 @@ class ExchangeRateService {
   Future<Map<String, double>?> fetchRates() async {
     // 缓存有效，直接返回
     if (hasValidCache) {
-      debugPrint('[汇率] ✅ 缓存有效，跳过请求');
+      debugPrint('[汇率] 缓存有效，跳过请求');
       return _cachedRates;
     }
 
     // 熔断中
     if (_isInCooldown) {
-      debugPrint('[汇率] ⏸️ 冷却期中，跳过请求 (剩余${cooldownRemainingSeconds}秒)');
+      debugPrint('[汇率] 冷却期中，跳过请求 (剩余${cooldownRemainingSeconds}秒)');
       return _cachedRates; // 返回旧缓存
     }
 
-    debugPrint('[汇率] 📡 开始请求汇率...');
+    debugPrint('[汇率] 开始请求汇率...');
     Client? client;
     try {
       client = Client();
@@ -108,15 +108,15 @@ class ExchangeRateService {
         _cachedRates = rates;
         _lastFetchTime = DateTime.now();
         debugPrint(
-          '[汇率] ✅ 更新成功: USD=${rates['USD']}, CNY=${rates['CNY']}, HKD=${rates['HKD']}',
+          '[汇率] 更新成功: USD=${rates['USD']}, CNY=${rates['CNY']}, HKD=${rates['HKD']}',
         );
         return rates;
       }
-      debugPrint('[汇率] ❌ HTTP ${response.statusCode}');
+      debugPrint('[汇率] HTTP ${response.statusCode}');
       return _cachedRates;
     } catch (e) {
       client?.close();
-      debugPrint('[汇率] ❌ 请求失败: $e');
+      debugPrint('[汇率] 请求失败: $e');
       _onRequestFailure();
       return _cachedRates; // 失败时返回旧缓存
     }

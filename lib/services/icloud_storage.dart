@@ -34,12 +34,12 @@ class IcloudStorage {
         final dir = Directory(cloudPath);
         if (!await dir.exists()) await dir.create(recursive: true);
         _cloudPath = cloudPath;
-        debugPrint('[iCloud] ✅ iCloud 路径获取成功: $_cloudPath');
+        debugPrint('[iCloud] iCloud 路径获取成功: $_cloudPath');
       } else {
-        debugPrint('[iCloud] ⚠️ iCloud 路径为空，使用本地 fallback');
+        debugPrint('[iCloud] iCloud 路径为空，使用本地 fallback');
       }
     } catch (e) {
-      debugPrint('[iCloud] ❌ 获取 iCloud 路径失败: $e，使用本地 fallback');
+      debugPrint('[iCloud] 获取 iCloud 路径失败: $e，使用本地 fallback');
     }
   }
 
@@ -56,18 +56,18 @@ class IcloudStorage {
   ]) async {
     await ensureInit();
     debugPrint(
-      '[iCloud] 💾 开始保存: ${stocks.length} 只股票, ${records.length} 个股票记录 -> ${_cloudPath != null ? "iCloud" : "本地"}',
+      '[iCloud] 开始保存: ${stocks.length} 只股票, ${records.length} 个股票记录 -> ${_cloudPath != null ? "iCloud" : "本地"}',
     );
     await _writeJson(_stocksFile, _stocksToJson(stocks));
-    debugPrint('[iCloud] 💾 股票保存完成: $_stocksFile');
+    debugPrint('[iCloud] 股票保存完成: $_stocksFile');
     await _writeJson(_recordsFile, _recordsToJson(records));
-    debugPrint('[iCloud] 💾 记录保存完成: $_recordsFile');
+    debugPrint('[iCloud] 记录保存完成: $_recordsFile');
     if (dividendRecords != null) {
       await _writeJson(
         _dividendRecordsFile,
         _dividendRecordsToJson(dividendRecords),
       );
-      debugPrint('[iCloud] 💾 派息记录保存完成: $_dividendRecordsFile');
+      debugPrint('[iCloud] 派息记录保存完成: $_dividendRecordsFile');
     }
   }
 
@@ -96,21 +96,21 @@ class IcloudStorage {
 
     // 首次启动：若 iCloud 为空，尝试从本地迁移
     if (stocks.isEmpty && records.isEmpty && _cloudPath != null) {
-      debugPrint('[iCloud] 🔄 iCloud 数据为空，尝试从本地迁移...');
+      debugPrint('[iCloud] iCloud 数据为空，尝试从本地迁移...');
       final localStocks = _stocksFromJson(await _readLocalJson(_stocksFile));
       final localRecords = _recordsFromJson(await _readLocalJson(_recordsFile));
       final localDivRecords = _dividendRecordsFromJson(
         await _readLocalJson(_dividendRecordsFile),
       );
       debugPrint(
-        '[iCloud] 🔄 本地数据: ${localStocks.length} 只股票, ${localRecords.length} 个记录',
+        '[iCloud] 本地数据: ${localStocks.length} 只股票, ${localRecords.length} 个记录',
       );
       if (localStocks.isNotEmpty || localRecords.isNotEmpty) {
         await pushStocksToCloud(localStocks, localRecords, localDivRecords);
-        debugPrint('[iCloud] ✅ 本地数据迁移到 iCloud 完成');
+        debugPrint('[iCloud] 本地数据迁移到 iCloud 完成');
         return (localStocks, localRecords, localDivRecords);
       } else {
-        debugPrint('[iCloud] ⚠️ 本地也无数据，无需迁移');
+        debugPrint('[iCloud] 本地也无数据，无需迁移');
       }
     }
 
@@ -121,31 +121,31 @@ class IcloudStorage {
   static Future<void> pushSettingsToCloud(Map<String, dynamic> settings) async {
     await ensureInit();
     debugPrint(
-      '[设置] 📝 保存设置: $_settingsFile -> ${_cloudPath != null ? "iCloud" : "本地"}',
+      '[设置] 保存设置: $_settingsFile -> ${_cloudPath != null ? "iCloud" : "本地"}',
     );
     final file = File(_filePath(_settingsFile));
     await file.writeAsString(jsonEncode(settings));
-    debugPrint('[设置] 📝 设置保存完成: $_settingsFile');
+    debugPrint('[设置] 设置保存完成: $_settingsFile');
   }
 
   /// 加载设置（优先 iCloud）
   static Future<Map<String, dynamic>> pullSettingsFromCloud() async {
     await ensureInit();
     debugPrint(
-      '[设置] 📝 加载设置: $_settingsFile from ${_cloudPath != null ? "iCloud" : "本地"}',
+      '[设置] 加载设置: $_settingsFile from ${_cloudPath != null ? "iCloud" : "本地"}',
     );
     final file = File(_filePath(_settingsFile));
     if (!await file.exists()) {
-      debugPrint('[设置] 📝 设置文件不存在: $_settingsFile');
+      debugPrint('[设置] 设置文件不存在: $_settingsFile');
       return {};
     }
     try {
       final data =
           jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-      debugPrint('[设置] 📝 读取文件成功: $_settingsFile (${data.length} 项)');
+      debugPrint('[设置] 读取文件成功: $_settingsFile (${data.length} 项)');
       return data;
     } catch (e) {
-      debugPrint('[设置] ❌ 读取文件失败: $_settingsFile - $e');
+      debugPrint('[设置] 读取文件失败: $_settingsFile - $e');
       return {};
     }
   }
@@ -185,7 +185,7 @@ class IcloudStorage {
         cloud[SettingsService.keySortAscending],
       );
     }
-    debugPrint('[设置] ✅ 从 iCloud 拉取完成: ${cloud.length}项设置');
+    debugPrint('[设置] 从 iCloud 拉取完成: ${cloud.length}项设置');
   }
 
   /// 把 SharedPreferences 上传到 iCloud
@@ -211,24 +211,24 @@ class IcloudStorage {
     final file = File(_filePath(name));
     try {
       await file.writeAsString(jsonEncode(data));
-      debugPrint('[iCloud] 📝 写入文件成功: $name (${data.length} 条)');
+      debugPrint('[iCloud] 写入文件成功: $name (${data.length} 条)');
     } catch (e) {
-      debugPrint('[iCloud] ❌ 写入文件失败: $name - $e');
+      debugPrint('[iCloud] 写入文件失败: $name - $e');
     }
   }
 
   static Future<List<Map<String, dynamic>>> _readJson(String name) async {
     final file = File(_filePath(name));
     if (!await file.exists()) {
-      debugPrint('[iCloud] 📝 文件不存在: $name');
+      debugPrint('[iCloud] 文件不存在: $name');
       return [];
     }
     try {
       final list = jsonDecode(await file.readAsString()) as List;
-      debugPrint('[iCloud] 📝 读取文件成功: $name (${list.length} 条)');
+      debugPrint('[iCloud] 读取文件成功: $name (${list.length} 条)');
       return list.cast<Map<String, dynamic>>();
     } catch (e) {
-      debugPrint('[iCloud] ❌ 读取文件失败: $name - $e');
+      debugPrint('[iCloud] 读取文件失败: $name - $e');
       return [];
     }
   }
@@ -236,15 +236,15 @@ class IcloudStorage {
   static Future<List<Map<String, dynamic>>> _readLocalJson(String name) async {
     final file = File('$_localPath/$name');
     if (!await file.exists()) {
-      debugPrint('[iCloud] 📝 本地文件不存在: $name');
+      debugPrint('[iCloud] 本地文件不存在: $name');
       return [];
     }
     try {
       final list = jsonDecode(await file.readAsString()) as List;
-      debugPrint('[iCloud] 📝 读取本地文件成功: $name (${list.length} 条)');
+      debugPrint('[iCloud] 读取本地文件成功: $name (${list.length} 条)');
       return list.cast<Map<String, dynamic>>();
     } catch (e) {
-      debugPrint('[iCloud] ❌ 读取本地文件失败: $name - $e');
+      debugPrint('[iCloud] 读取本地文件失败: $name - $e');
       return [];
     }
   }
