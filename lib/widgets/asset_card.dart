@@ -388,7 +388,7 @@ class _AssetCardState extends State<AssetCard> {
     final costText = '$symbol${CurrencyHelper.formatCompact(widget.totalCost)}';
     final floatPL = widget.totalMarketValue - widget.totalCost;
     final floatText =
-        '$symbol${floatPL >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(floatPL)}';
+        '${floatPL >= 0 ? '+' : ''}$symbol${CurrencyHelper.formatCompact(floatPL)}';
     showDialog(
       context: context,
       builder: (ctx) => _helpDialogFrame(
