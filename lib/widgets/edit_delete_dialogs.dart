@@ -67,20 +67,19 @@ class _EditStockDialogState extends State<EditStockDialog> {
     if (_quoteService.cooldownRemainingSeconds > 0) return;
     setState(() => _isLoadingPrice = true);
     try {
-      final quote = await _quoteService.getStockQuote(
-        StockSearchResult(
-          code: widget.stock.symbol,
-          name: widget.stock.companyName,
-          market: widget.stock.marketType,
-          secid: secid,
-        ),
+      final stock = StockSearchResult(
+        code: widget.stock.symbol,
+        name: widget.stock.companyName,
+        market: widget.stock.marketType,
+        secid: secid,
       );
+      final quotes = await _quoteService.getStockQuotesBatch([stock]);
       if (!mounted) return;
+      final quote = quotes[secid];
       if (quote != null && quote.currentPrice > 0) {
         _priceController.text = CurrencyHelper.formatRate(quote.currentPrice);
       }
     } catch (_) {
-      // 获取失败时保持原有价格
     } finally {
       if (mounted) setState(() => _isLoadingPrice = false);
     }

@@ -174,9 +174,10 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
         return;
       }
       setState(() => _loadingQuotes.add(stock.secid));
-      quote = await _quoteService.getStockQuote(stock);
+      final quotes = await _quoteService.getStockQuotesBatch([stock]);
       if (!mounted) return;
       setState(() => _loadingQuotes.remove(stock.secid));
+      quote = quotes[stock.secid];
     }
 
     final defaultPrice = quote?.currentPrice ?? 0.0;

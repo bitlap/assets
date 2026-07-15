@@ -82,7 +82,8 @@ class StockSearchService {
     if (quoteList == null) return results;
 
     for (final item in quoteList) {
-      final code = item['Code']?.toString() ?? '';
+      final rawCode = item['Code']?.toString() ?? '';
+      final code = rawCode.replaceAll('_', '.');
       final name = item['Name']?.toString() ?? '';
       final marketId = item['MktNum']?.toString() ?? '';
       final exchange = item['ExchangeName']?.toString() ?? '';
@@ -95,31 +96,28 @@ class StockSearchService {
         case '105':
         case '106':
           market = DevConfig.searchMarketUS;
-          secid = '$marketId.$code';
+          secid = '$marketId.$rawCode';
           break;
         case '107':
           market = DevConfig.searchMarketUS;
-          secid = '105.$code';
+          secid = '105.$rawCode';
           break;
         case '116':
           market = DevConfig.searchMarketHK;
-          secid = '$marketId.$code';
+          secid = '$marketId.$rawCode';
           break;
         default:
-          if (marketId.startsWith('10')) {
-            market = DevConfig.searchMarketUS;
-            secid = '105.$code';
-          } else if (exchange.contains('纳斯达克') ||
+          if (exchange.contains('纳斯达克') ||
               exchange.contains('纽约') ||
               exchange.contains('美国') ||
               exchange.contains('NYSE') ||
               exchange.contains('NASDAQ') ||
               exchange.contains('ARCA')) {
             market = DevConfig.searchMarketUS;
-            secid = '105.$code';
+            secid = '105.$rawCode';
           } else if (exchange.contains('港股') || exchange.contains('香港')) {
             market = DevConfig.searchMarketHK;
-            secid = '116.$code';
+            secid = '116.$rawCode';
           }
           break;
       }
