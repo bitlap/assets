@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../config/app_config.dart';
 import '../../services/icloud_storage.dart';
 import '../../models/stock_model.dart';
+import '../../utils/currency_helper.dart';
 
 class ProfitChartWidget extends StatefulWidget {
   final double totalProfit;
@@ -274,11 +275,11 @@ class _ProfitChartPainter extends CustomPainter {
       final y = paintHeight - (i / 4) * (paintHeight - 8);
       final tp = TextPainter(
         text: TextSpan(
-          text: val.toStringAsFixed(1),
+          text: CurrencyHelper.formatCompact(val),
           style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 9),
         ),
         textDirection: ui.TextDirection.ltr,
-      )..layout(maxWidth: 40);
+      )..layout(maxWidth: 60);
       tp.paint(canvas, Offset(-tp.width, y - tp.height / 2));
     }
 
@@ -375,7 +376,7 @@ class _ProfitChartPainter extends CustomPainter {
       }
 
       // value label at top
-      final valueText = data[selectedIndex!].toStringAsFixed(2);
+      final valueText = CurrencyHelper.formatCompact(data[selectedIndex!]);
       final valueTp = TextPainter(
         text: TextSpan(
           text: valueText,
