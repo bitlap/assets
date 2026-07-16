@@ -5,8 +5,16 @@
 ## ✨ 功能特性
 
 ### 📊 资产总览
-- 展示总资产、总成本、总盈亏（金额 + 百分比）、总股息
-- 实时汇率换算，支持下拉刷新和定时自动刷新（60 分钟间隔，缓存 55 分钟）
+- 展示总资产、总市值、总成本、总盈亏（金额 + 百分比）、总股息、持仓比例
+- 股息率 = 税后总股息 / 总资产
+- 持仓比例 = 持仓总市值 / 总资产
+- 点击帮助图标查看明细说明；设置页提供"计算公式"对话框
+
+### 📈 收益曲线
+- 展示总收益走势图（每小时后台自动记录快照）
+- 支持今天（10 分钟粒度）/ 7 天 / 30 天 / 180 天 / 360 天切换
+- 点击/拖动查看各时间点的收益数值和日期标签
+- 后台定时刷新（`BGTaskScheduler`），进入/回到前台也触发记录
 
 ### 💱 多币种支持
 - 支持 CNY / USD / HKD / EUR / GBP / JPY 一键切换
@@ -39,6 +47,7 @@
 - 意见反馈（邮箱可唤起邮件客户端，微信一键复制）
 - 开源软件说明
 - 平仓保留持仓开关
+- 计算公式说明（股息率、持仓比例、总盈亏等）
 
 ### 🎨 用户体验
 - 全局深色 UI，Material 3 设计
@@ -54,17 +63,22 @@ lib/
 ├── config/
 │   └── app_config.dart                # 全局常量（文案、配置、时间参数）
 ├── models/
-│   └── stock_model.dart               # 数据模型（Stock / Record / Dividend）
+│   ├── stock_model.dart               # 数据模型（Stock / Record / Dividend / ProfitSnapshot）
+│   └── calculator_models.dart         # 计算模型（AssetSummary）
 ├── services/
 │   ├── exchange_rate_service.dart     # 实时汇率（缓存 + 熔断）
 │   ├── settings_service.dart          # 用户设置持久化
-│   └── stock_search_service.dart      # 股票搜索 + 行情（缓存 + 熔断）
+│   ├── stock_search_service.dart      # 股票搜索（缓存 + 熔断）
+│   ├── stock_quote_service.dart       # 行情服务（腾讯 + 东方财富，缓存 + 熔断）
+│   └── icloud_storage.dart            # iCloud 同步 + 收益快照持久化
 ├── utils/
 │   ├── center_toast.dart              # 居中 Toast 提示
 │   ├── currency_helper.dart           # 汇率换算 / 货币符号
-│   └── stock_calculator.dart          # 盈亏 / 均成本计算
+│   ├── logo_cacher.dart               # Logo 图片缓存
+│   ├── stock_calculator.dart          # 盈亏 / 均成本 / 资产汇总计算
+│   └── circuit_breaker.dart           # API 熔断保护
 └── widgets/
-    ├── asset_card.dart                # 资产总额卡片
+    ├── asset_card.dart                # 资产总额卡片（含收益曲线）
     ├── stock_card.dart                # 股票卡片（展开详情）
     ├── records_dialog.dart            # 操作/派息记录底部弹窗
     ├── edit_delete_dialogs.dart       # 加仓/减仓/删除对话框
@@ -75,6 +89,7 @@ lib/
         ├── confirm_delete_dialog.dart # 统一删除确认弹窗
         ├── empty_state_widget.dart    # 统一空状态组件
         ├── info_row_widget.dart       # 统一信息行组件
+        ├── profit_chart.dart          # 收益曲线组件（CustomPaint 渲染）
         └── settings_expansion_card.dart # 统一设置折叠卡片
 ```
 
@@ -86,8 +101,10 @@ lib/
 | 设计     | Material 3                 |
 | HTTP   | http                       |
 | 本地存储   | shared_preferences         |
+| 云存储    | iCloud（云端同步持仓/设置/收益快照）    |
 | 国际化    | intl                       |
 | 系统调用   | url_launcher（邮件）           |
+| 后台任务   | BGTaskScheduler（iOS 原生）     |
 
 ## 🚀 快速开始
 

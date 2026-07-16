@@ -74,7 +74,7 @@ class DevConfig {
   static const String btnConfirmSell = '确认减仓';
 
   // 定时器 / 缓存 / 超时
-  static const int refreshInitialDelaySec = 300;
+  static const int refreshInitialDelaySec = 30;
   static const int refreshIntervalSec = 60;
   static const int quoteCacheTTLMin = 15;
   static const int searchCacheTTLMin = 5;
