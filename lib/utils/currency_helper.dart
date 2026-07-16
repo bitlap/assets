@@ -81,7 +81,7 @@ class CurrencyHelper {
   }) {
     final fmt = formatBase ?? (v) => v.toStringAsFixed(2);
     if (value.abs() >= 10000) {
-      return '${fmt(value / 10000)}万';
+      return '${fmt(value / 10000)}${DevConfig.suffixWan}';
     }
     return fmt(value);
   }

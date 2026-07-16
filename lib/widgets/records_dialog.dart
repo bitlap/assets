@@ -401,7 +401,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                         if (record.amount > 0) ...[
                           const SizedBox(height: 4),
                           Text(
-                            '${DevConfig.recordsOpTotalCost}: ${CurrencyHelper.formatRate(record.amount)}/${DevConfig.recordsDivAmountPerShare} × ${CurrencyHelper.formatRate(record.shares)}${DevConfig.stockSharesSuffix}',
+                            '${DevConfig.recordsFormulaLabel}: ${CurrencyHelper.formatRate(record.amount)}/${DevConfig.recordsDivAmountPerShare} × ${CurrencyHelper.formatRate(record.shares)}${DevConfig.stockSharesSuffix}',
                             style: TextStyle(
                               color: Colors.grey[500],
                               fontSize: 11,
@@ -432,7 +432,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${DevConfig.recordsOpTotalCost}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
+                        '${DevConfig.recordsFormulaLabel}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
                         style: TextStyle(
                           color: isBuy ? Colors.redAccent : Colors.greenAccent,
                           fontWeight: FontWeight.w500,
@@ -758,7 +758,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${DevConfig.recordsDivTotal}: ${CurrencyHelper.formatRate(record.shares)}${DevConfig.stockSharesSuffix} × ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}/${DevConfig.recordsDivAmountPerShare} × ${1 - record.taxRate}',
+                          '${DevConfig.recordsFormulaLabel}: ${CurrencyHelper.formatRate(record.shares)}${DevConfig.stockSharesSuffix} × ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}/${DevConfig.recordsDivAmountPerShare} × ${1 - record.taxRate}',
                           style: TextStyle(
                             color: Colors.grey[500],
                             fontSize: 11,
@@ -788,7 +788,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${DevConfig.recordsDivAfterTax}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.afterTaxAmount)}',
+                        '${DevConfig.recordsFormulaLabel}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.afterTaxAmount)}',
                         style: const TextStyle(
                           color: Colors.amber,
                           fontWeight: FontWeight.w500,

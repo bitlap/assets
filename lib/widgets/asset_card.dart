@@ -12,6 +12,7 @@ class AssetCard extends StatefulWidget {
   final double totalRealizedPL;
   final double totalProfitPercent;
   final double totalAfterTaxDividends;
+  final double totalSellAmount;
   final double exchangeRate;
   final bool isExchangeRateExpanded;
   final VoidCallback onToggleExchangeRate;
@@ -28,6 +29,7 @@ class AssetCard extends StatefulWidget {
     required this.totalRealizedPL,
     required this.totalProfitPercent,
     required this.totalAfterTaxDividends,
+    required this.totalSellAmount,
     required this.exchangeRate,
     required this.isExchangeRateExpanded,
     required this.onToggleExchangeRate,
@@ -369,37 +371,37 @@ class _AssetCardState extends State<AssetCard> {
           ),
           const SizedBox(height: 2),
           _buildTotalMarketText(),
-          const Text(
-            ' ',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.white70,
-              fontWeight: FontWeight.w500,
-              height: 1.2,
-            ),
-          ),
+          _buildTotalMarketPercent(),
+        ],
+      ),
+    );
+  }
+
+  void _showTotalAssetsHelpDialog() {
+    final sellText = '${CurrencyHelper.formatCompact(widget.totalSellAmount)}';
+    showDialog(
+      context: context,
+      builder: (ctx) => _helpDialogFrame(
+        title: DevConfig.assetTotalAssets,
+        icon: Icons.account_balance_wallet,
+        children: [
+          _helpLine(DevConfig.assetTotalSellAmount, sellText, Colors.white),
         ],
       ),
     );
   }
 
   void _showTotalCostHelpDialog() {
-    final symbol = CurrencyHelper.getSymbol(widget.selectedCurrency);
-    final costText = '$symbol${CurrencyHelper.formatCompact(widget.totalCost)}';
+    final costText = '${CurrencyHelper.formatCompact(widget.totalCost)}';
     final floatPL = widget.totalMarketValue - widget.totalCost;
     final floatText =
-        '${floatPL >= 0 ? '+' : ''}$symbol${CurrencyHelper.formatCompact(floatPL)}';
+        '${floatPL >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(floatPL)}';
     showDialog(
       context: context,
       builder: (ctx) => _helpDialogFrame(
         title: DevConfig.assetTotalCost,
-        icon: Icons.shopping_cart,
+        icon: Icons.show_chart,
         children: [
-          _helpLine(
-            DevConfig.assetHelpExplanation,
-            DevConfig.assetTotalCostHelp,
-          ),
-          const SizedBox(height: 10),
           _helpLine(DevConfig.assetCostDetailLabel, costText, Colors.white),
           const SizedBox(height: 6),
           _helpLine(
@@ -454,30 +456,14 @@ class _AssetCardState extends State<AssetCard> {
   }
 
   void _showProfitHelpDialog() {
-    final symbol = CurrencyHelper.getSymbol(widget.selectedCurrency);
-    final totalText =
-        '${widget.totalProfit >= 0 ? '+' : ''}$symbol${CurrencyHelper.formatCompact(widget.totalProfit)}';
     final realizedText =
-        '${widget.totalRealizedPL >= 0 ? '+' : ''}$symbol${CurrencyHelper.formatCompact(widget.totalRealizedPL)}';
+        '${widget.totalRealizedPL >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(widget.totalRealizedPL)}';
     showDialog(
       context: context,
       builder: (ctx) => _helpDialogFrame(
         title: DevConfig.assetTotalProfit,
         icon: Icons.trending_up,
         children: [
-          _helpLine(
-            DevConfig.assetHelpExplanation,
-            DevConfig.assetTotalProfitHelp,
-          ),
-          const SizedBox(height: 10),
-          _helpLine(
-            DevConfig.assetTotalProfit,
-            totalText,
-            widget.totalProfit >= 0
-                ? const Color(0xFFFF5252)
-                : const Color(0xFF69F0AE),
-          ),
-          const SizedBox(height: 6),
           _helpLine(
             DevConfig.assetTotalRealizedPL,
             realizedText,
@@ -492,12 +478,27 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildTotalMarketText() {
     return Text(
-      '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatCompact(widget.totalMarketValue)}',
+      '${CurrencyHelper.formatCompact(widget.totalMarketValue)}',
       style: const TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.bold,
         color: Colors.white,
         height: 1.1,
+      ),
+    );
+  }
+
+  Widget _buildTotalMarketPercent() {
+    final percent = widget.totalAssets > 0
+        ? (widget.totalMarketValue / widget.totalAssets * 100)
+        : 0.0;
+    return Text(
+      '${percent.toStringAsFixed(2)}%',
+      style: const TextStyle(
+        fontSize: 11,
+        color: Colors.white70,
+        fontWeight: FontWeight.w500,
+        height: 1.2,
       ),
     );
   }
@@ -553,14 +554,6 @@ class _AssetCardState extends State<AssetCard> {
                 ),
               ),
               const SizedBox(width: 2),
-              GestureDetector(
-                onTap: _showDividendHelpDialog,
-                child: const Icon(
-                  Icons.help_outline,
-                  size: 12,
-                  color: Colors.amber,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 2),
@@ -641,64 +634,9 @@ class _AssetCardState extends State<AssetCard> {
     );
   }
 
-  void _showTotalAssetsHelpDialog() {
-    final symbol = CurrencyHelper.getSymbol(widget.selectedCurrency);
-    final valueText =
-        '$symbol${CurrencyHelper.formatCompact(widget.totalAssets)}';
-    showDialog(
-      context: context,
-      builder: (ctx) => _helpDialogFrame(
-        title: DevConfig.assetTotalAssets,
-        icon: Icons.account_balance_wallet,
-        children: [
-          _helpLine(
-            DevConfig.assetHelpExplanation,
-            DevConfig.assetTotalAssetsHelp,
-          ),
-          const SizedBox(height: 10),
-          _helpLine(DevConfig.assetTotalAssets, valueText, Colors.white),
-        ],
-      ),
-    );
-  }
-
-  void _showDividendHelpDialog() {
-    final symbol = CurrencyHelper.getSymbol(widget.selectedCurrency);
-    final valueText =
-        '$symbol${CurrencyHelper.formatCompact(widget.totalAfterTaxDividends)}';
-    final percent = widget.totalCost > 0
-        ? (widget.totalAfterTaxDividends / widget.totalCost * 100)
-        : 0.0;
-    showDialog(
-      context: context,
-      builder: (ctx) => _helpDialogFrame(
-        title: DevConfig.assetTotalDividends,
-        icon: Icons.monetization_on,
-        children: [
-          _helpLine(
-            DevConfig.assetHelpExplanation,
-            DevConfig.assetTotalDividendsHelp,
-          ),
-          const SizedBox(height: 10),
-          _helpLine(
-            DevConfig.assetAfterTaxDividendsLabel,
-            valueText,
-            Colors.white,
-          ),
-          const SizedBox(height: 6),
-          _helpLine(
-            DevConfig.assetDividendRateLabel,
-            '${percent.toStringAsFixed(2)}%',
-            Colors.white,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildDividendPercent() {
-    final percent = widget.totalCost > 0
-        ? (widget.totalAfterTaxDividends / widget.totalCost * 100)
+    final percent = widget.totalAssets > 0
+        ? (widget.totalAfterTaxDividends / widget.totalAssets * 100)
         : 0.0;
     return Text(
       '${percent.toStringAsFixed(2)}%',

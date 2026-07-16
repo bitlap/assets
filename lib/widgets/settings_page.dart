@@ -47,29 +47,54 @@ class _SettingsPageState extends State<SettingsPage> {
   ];
 
   static const List<_OpenSourceLib> _openSourceLibs = [
-    _OpenSourceLib('Flutter', 'Google', 'BSD 3-Clause', '跨平台 UI 框架'),
-    _OpenSourceLib('Dart', 'Google', 'BSD 3-Clause', '编程语言 / 运行时'),
-    _OpenSourceLib('cupertino_icons', 'Flutter Team', 'MIT', 'iOS 风格图标集'),
-    _OpenSourceLib('intl', 'Dart Team', 'BSD 3-Clause', '国际化与日期格式化'),
-    _OpenSourceLib('http', 'Dart Team', 'BSD 3-Clause', 'HTTP 网络请求库'),
+    _OpenSourceLib(
+      'Flutter',
+      'Google',
+      'BSD 3-Clause',
+      DevConfig.licenseDescFlutter,
+    ),
+    _OpenSourceLib('Dart', 'Google', 'BSD 3-Clause', DevConfig.licenseDescDart),
+    _OpenSourceLib(
+      'cupertino_icons',
+      'Flutter Team',
+      'MIT',
+      DevConfig.licenseDescCupertino,
+    ),
+    _OpenSourceLib(
+      'intl',
+      'Dart Team',
+      'BSD 3-Clause',
+      DevConfig.licenseDescIntl,
+    ),
+    _OpenSourceLib(
+      'http',
+      'Dart Team',
+      'BSD 3-Clause',
+      DevConfig.licenseDescHttp,
+    ),
     _OpenSourceLib(
       'shared_preferences',
       'Flutter Team',
       'BSD 3-Clause',
-      '本地键值存储',
+      DevConfig.licenseDescSharedPrefs,
     ),
     _OpenSourceLib(
       'url_launcher',
       'Flutter Team',
       'BSD 3-Clause',
-      'URL 启动 / 邮件调用',
+      DevConfig.licenseDescUrlLauncher,
     ),
   ];
 
   static const List<_OpenSourceLib> _dataSources = [
-    _OpenSourceLib('东方财富 API', '东方财富', '—', '股票搜索 / 代码查询'),
-    _OpenSourceLib('腾讯股票行情', '腾讯', '—', '实时股价 / 涨跌幅'),
-    _OpenSourceLib('ExchangeRate-API', 'exchangerate-api.com', '—', '实时汇率数据'),
+    _OpenSourceLib('东方财富 API', '东方财富', '—', DevConfig.dataSourceDescEastMoney),
+    _OpenSourceLib('腾讯股票行情', '腾讯', '—', DevConfig.dataSourceDescTencent),
+    _OpenSourceLib(
+      'ExchangeRate-API',
+      'exchangerate-api.com',
+      '—',
+      DevConfig.dataSourceDescExchangeRate,
+    ),
   ];
 
   @override
@@ -839,6 +864,114 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  static const List<_FormulaItem> _formulas = [
+    _FormulaItem(DevConfig.assetTotalAssets, DevConfig.assetTotalAssetsHelp),
+    _FormulaItem(DevConfig.assetTotalCost, DevConfig.assetTotalCostHelp),
+    _FormulaItem(DevConfig.assetTotalProfit, DevConfig.assetTotalProfitHelp),
+    _FormulaItem(
+      DevConfig.assetDividendRateLabel,
+      DevConfig.assetTotalDividendsHelp,
+    ),
+    _FormulaItem(
+      DevConfig.assetPositionRatioLabel,
+      DevConfig.assetPositionRatioHelp,
+    ),
+  ];
+
+  void _showFormulaDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF0C1117),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 420),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF303631)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                DevConfig.sectionFormula,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                DevConfig.formulaDialogSubtitle,
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: _formulas.map((f) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF161B22),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF303631)),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            f.label,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            f.formula,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: TextButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A56DB),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    DevConfig.btnClose,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildOtherGroup() {
     return Container(
       decoration: BoxDecoration(
@@ -857,6 +990,13 @@ class _SettingsPageState extends State<SettingsPage> {
               iconColor: Colors.amber,
               label: DevConfig.feedbackLabel,
               onTap: _showFeedbackDialog,
+            ),
+            _buildGroupDivider(),
+            _buildGroupItem(
+              icon: Icons.calculate_outlined,
+              iconColor: Colors.teal,
+              label: DevConfig.sectionFormula,
+              onTap: _showFormulaDialog,
             ),
             _buildGroupDivider(),
             _buildGroupItem(
@@ -1172,4 +1312,10 @@ class _OpenSourceLib {
   final String license;
   final String description;
   const _OpenSourceLib(this.name, this.author, this.license, this.description);
+}
+
+class _FormulaItem {
+  final String label;
+  final String formula;
+  const _FormulaItem(this.label, this.formula);
 }

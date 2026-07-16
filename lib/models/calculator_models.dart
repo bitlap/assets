@@ -29,6 +29,7 @@ class AssetSummary {
   final double totalProfit; // 总盈亏 = 持仓浮盈 + 已实现盈亏
   final double totalRealizedPL; // 已平仓已实现盈亏
   final double totalProfitPercent; // 总盈亏百分比 = 总盈亏 / 总买入金额
+  final double totalSellAmount; // 累计卖出金额（平仓总额）
   final double totalAfterTaxDividends; // 总税后股息
 
   const AssetSummary({
@@ -38,6 +39,7 @@ class AssetSummary {
     this.totalProfit = 0,
     this.totalRealizedPL = 0,
     this.totalProfitPercent = 0,
+    this.totalSellAmount = 0,
     this.totalAfterTaxDividends = 0,
   });
 }

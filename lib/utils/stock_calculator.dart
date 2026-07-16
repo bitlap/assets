@@ -162,6 +162,7 @@ class StockCalculator {
       totalProfit: totalProfit,
       totalRealizedPL: realizedPL,
       totalProfitPercent: totalProfitPercent,
+      totalSellAmount: totalSellAmount,
       totalAfterTaxDividends: totalAfterTaxDividends,
     );
   }

@@ -412,8 +412,14 @@ class StockCard extends StatelessWidget {
         DevConfig.stockDetailMinPrice,
         CurrencyHelper.formatRate(stats.minBuyPrice),
       ),
-      _DetailItem(DevConfig.stockDetailBuyCount, '${stats.buyCount} 次'),
-      _DetailItem(DevConfig.stockDetailSellCount, '${stats.sellCount} 次'),
+      _DetailItem(
+        DevConfig.stockDetailBuyCount,
+        '${stats.buyCount} ${DevConfig.suffixCount}',
+      ),
+      _DetailItem(
+        DevConfig.stockDetailSellCount,
+        '${stats.sellCount} ${DevConfig.suffixCount}',
+      ),
     ];
 
     final rows = <Widget>[];

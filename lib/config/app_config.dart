@@ -111,16 +111,19 @@ class DevConfig {
   static const String assetTotalDividends = '总股息';
   static const String assetExchangeRate = '汇率';
   static const String assetSelectCurrency = '选择货币';
-  static const String assetTotalCostHelp = '持仓总成本';
+  static const String assetTotalCostHelp = '每股现价 × 持仓股数';
   static const String assetTotalRealizedPL = '已实现盈亏';
   static const String assetTotalProfitHelp = '持仓总浮盈 + 已实现盈亏';
-  static const String assetTotalAssetsHelp = '持仓总市值 + 总卖出金额';
-  static const String assetTotalDividendsHelp = '税后总股息/持仓总成本';
-  static const String assetHelpExplanation = '说明';
+  static const String assetTotalAssetsHelp = '持仓总市值 + 已平仓总额（累计卖出金额）';
+  static const String assetTotalDividendsHelp = '税后总股息 / 总资产';
+  static const String sectionFormula = '计算公式';
+  static const String assetTotalSellAmount = '已平仓总额';
   static const String assetCostDetailLabel = '持仓总成本';
   static const String assetFloatProfitLabel = '持仓总浮盈';
   static const String assetAfterTaxDividendsLabel = '税后总股息';
   static const String assetDividendRateLabel = '股息率';
+  static const String assetPositionRatioLabel = '持仓比例';
+  static const String assetPositionRatioHelp = '持仓总市值 / 总资产';
 
   // StockCard 文案
   static const String stockTotalValue = '总市值';
@@ -211,11 +214,12 @@ class DevConfig {
   static const String recordsOperationTime = '更新时间';
   static const String recordsOpTotalValue = '总市值';
   static const String recordsOpTotalCost = '总成本';
-  static const String recordsDivAfterTax = '税后金额';
+  static const String recordsDivAfterTax = '税后股息';
   static const String recordsDeleteOpConfirm = '确定删除此条操作记录？';
   static const String recordsDeleteDivConfirm = '确定删除此条派息记录？';
   static const String recordsDeleteHint = '左滑可删除，删除后不可恢复，持仓数据将自动重算，请谨慎操作';
   static const String recordsDivDeleteHint = '左滑可删除，删除后不可恢复，资产数据将自动重算，请谨慎操作';
+  static const String recordsFormulaLabel = '计算公式';
   static const String recordsEditTitle = '编辑{desc}';
   static const String recordsEditPrice = '价格';
   static const String recordsEditShares = '股数';
@@ -227,4 +231,23 @@ class DevConfig {
   static const String resultReduceSuccess = '减仓成功';
   static const String resultDeleteSuccess = '删除成功';
   static const String resultAddStockSuccess = '添加成功';
+
+  // 开源软件 / 数据来源 文案
+  static const String licenseDescFlutter = '跨平台 UI 框架';
+  static const String licenseDescDart = '编程语言 / 运行时';
+  static const String licenseDescCupertino = 'iOS 风格图标集';
+  static const String licenseDescIntl = '国际化与日期格式化';
+  static const String licenseDescHttp = 'HTTP 网络请求库';
+  static const String licenseDescSharedPrefs = '本地键值存储';
+  static const String licenseDescUrlLauncher = 'URL 启动 / 邮件调用';
+  static const String dataSourceDescEastMoney = '股票搜索 / 代码查询';
+  static const String dataSourceDescTencent = '实时股价 / 涨跌幅';
+  static const String dataSourceDescExchangeRate = '实时汇率数据';
+
+  // 公式 文案
+  static const String formulaDialogSubtitle = '资产卡片中各数据的计算公式';
+
+  // 通用后缀
+  static const String suffixCount = '次';
+  static const String suffixWan = '万';
 }

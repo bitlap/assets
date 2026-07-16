@@ -400,6 +400,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   double get totalCost => _assetSummary.totalCost;
   double get totalProfit => _assetSummary.totalProfit;
   double get totalAfterTaxDividends => _assetSummary.totalAfterTaxDividends;
+  double get totalSellAmount => _assetSummary.totalSellAmount;
   double get totalRealizedPL => _assetSummary.totalRealizedPL;
   double get totalProfitPercent => _assetSummary.totalProfitPercent;
   double get exchangeRate => CurrencyHelper.getExchangeRate(selectedCurrency);
@@ -918,6 +919,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
                       totalRealizedPL: totalRealizedPL,
                       totalProfitPercent: totalProfitPercent,
                       totalAfterTaxDividends: totalAfterTaxDividends,
+                      totalSellAmount: totalSellAmount,
                       exchangeRate: exchangeRate,
                       isExchangeRateExpanded: _isExchangeRateExpanded,
                       onToggleExchangeRate: () {

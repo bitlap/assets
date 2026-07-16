@@ -127,7 +127,7 @@ class DividendRecord {
   /// 总派息金额（税前）
   double get totalAmount => amount * shares;
 
-  /// 税后金额
+  /// 税后股息
   double get afterTaxAmount => totalAmount * (1 - taxRate);
 
   /// 复制并修改
