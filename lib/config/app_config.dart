@@ -221,6 +221,8 @@ class DevConfig {
   static const String recordsDeleteHint = '左滑可删除，删除后不可恢复，持仓数据将自动重算，请谨慎操作';
   static const String recordsDivDeleteHint = '左滑可删除，删除后不可恢复，资产数据将自动重算，请谨慎操作';
   static const String recordsFormulaLabel = '计算公式';
+  static const String recordsOpLabel = '总金额';
+  static const String recordsDivLabel = '税后股息';
   static const String recordsEditTitle = '编辑{desc}';
   static const String recordsEditPrice = '价格';
   static const String recordsEditShares = '股数';
@@ -249,7 +251,7 @@ class DevConfig {
   static const String formulaDialogSubtitle = '资产卡片中各数据的计算公式';
 
   // 收益曲线 文案
-  static const String profitChartTitle = '收益曲线';
+  static const String profitChartTitle = '盈亏曲线';
   static const String profitRangeToday = '今天';
   static const String profitRange7d = '7天';
   static const String profitRange30d = '30天';

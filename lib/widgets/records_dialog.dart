@@ -432,7 +432,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${DevConfig.recordsFormulaLabel}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
+                        '${DevConfig.recordsOpLabel}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
                         style: TextStyle(
                           color: isBuy ? Colors.redAccent : Colors.greenAccent,
                           fontWeight: FontWeight.w500,
@@ -788,8 +788,8 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${DevConfig.recordsFormulaLabel}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.afterTaxAmount)}',
-                        style: const TextStyle(
+                        '${DevConfig.recordsDivLabel}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.afterTaxAmount)}',
+                        style: TextStyle(
                           color: Colors.amber,
                           fontWeight: FontWeight.w500,
                           fontSize: 12,
