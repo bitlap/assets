@@ -13,6 +13,7 @@ class IcloudStorage {
   static const _stocksFile = 'stocks.json';
   static const _recordsFile = 'records.json';
   static const _dividendRecordsFile = 'dividend_records.json';
+  static const _profitHistoryFile = 'profit_history.json';
   static const _settingsFile = 'settings.json';
 
   static String? _cloudPath;
@@ -55,19 +56,14 @@ class IcloudStorage {
     Map<String, List<DividendRecord>>? dividendRecords,
   ]) async {
     await ensureInit();
-    debugPrint(
-      '[iCloud] 开始保存: ${stocks.length} 只股票, ${records.length} 个股票记录 -> ${_cloudPath != null ? "iCloud" : "本地"}',
-    );
     await _writeJson(_stocksFile, _stocksToJson(stocks));
-    debugPrint('[iCloud] 股票保存完成: $_stocksFile');
     await _writeJson(_recordsFile, _recordsToJson(records));
-    debugPrint('[iCloud] 记录保存完成: $_recordsFile');
     if (dividendRecords != null) {
       await _writeJson(
         _dividendRecordsFile,
         _dividendRecordsToJson(dividendRecords),
       );
-      debugPrint('[iCloud] 派息记录保存完成: $_dividendRecordsFile');
+      debugPrint('[iCloud-股票] 派息记录保存完成: $_dividendRecordsFile');
     }
   }
 
@@ -81,36 +77,31 @@ class IcloudStorage {
   >
   pullStocksFromCloud() async {
     await ensureInit();
-    debugPrint(
-      '[iCloud] 📖 开始加载数据 from: ${_cloudPath != null ? "iCloud" : "本地"}',
-    );
-
     final stocks = _stocksFromJson(await _readJson(_stocksFile));
     final records = _recordsFromJson(await _readJson(_recordsFile));
     final dividendRecords = _dividendRecordsFromJson(
       await _readJson(_dividendRecordsFile),
     );
     debugPrint(
-      '[iCloud] 📖 加载完成: ${stocks.length} 只股票, ${records.length} 个股票记录, ${dividendRecords.length} 个派息记录',
+      '[iCloud-股票] 加载完成: ${stocks.length} 只股票, ${records.length} 个股票记录, ${dividendRecords.length} 个派息记录',
     );
 
     // 首次启动：若 iCloud 为空，尝试从本地迁移
     if (stocks.isEmpty && records.isEmpty && _cloudPath != null) {
-      debugPrint('[iCloud] iCloud 数据为空，尝试从本地迁移...');
+      debugPrint('[iCloud-股票] iCloud 数据为空，尝试从本地迁移...');
       final localStocks = _stocksFromJson(await _readLocalJson(_stocksFile));
       final localRecords = _recordsFromJson(await _readLocalJson(_recordsFile));
       final localDivRecords = _dividendRecordsFromJson(
         await _readLocalJson(_dividendRecordsFile),
       );
       debugPrint(
-        '[iCloud] 本地数据: ${localStocks.length} 只股票, ${localRecords.length} 个记录',
+        '[iCloud-股票] 本地数据: ${localStocks.length} 只股票, ${localRecords.length} 个股票记录, ${localDivRecords.length} 个派息记录',
       );
       if (localStocks.isNotEmpty || localRecords.isNotEmpty) {
         await pushStocksToCloud(localStocks, localRecords, localDivRecords);
-        debugPrint('[iCloud] 本地数据迁移到 iCloud 完成');
         return (localStocks, localRecords, localDivRecords);
       } else {
-        debugPrint('[iCloud] 本地也无数据，无需迁移');
+        debugPrint('[iCloud-股票] 本地也无数据，无需迁移');
       }
     }
 
@@ -120,32 +111,25 @@ class IcloudStorage {
   /// 保存设置到 iCloud
   static Future<void> pushSettingsToCloud(Map<String, dynamic> settings) async {
     await ensureInit();
-    debugPrint(
-      '[设置] 保存设置: $_settingsFile -> ${_cloudPath != null ? "iCloud" : "本地"}',
-    );
     final file = File(_filePath(_settingsFile));
     await file.writeAsString(jsonEncode(settings));
-    debugPrint('[设置] 设置保存完成: $_settingsFile');
   }
 
   /// 加载设置（优先 iCloud）
   static Future<Map<String, dynamic>> pullSettingsFromCloud() async {
     await ensureInit();
-    debugPrint(
-      '[设置] 加载设置: $_settingsFile from ${_cloudPath != null ? "iCloud" : "本地"}',
-    );
     final file = File(_filePath(_settingsFile));
     if (!await file.exists()) {
-      debugPrint('[设置] 设置文件不存在: $_settingsFile');
+      debugPrint('[iCloud-设置] 设置文件不存在: $_settingsFile');
       return {};
     }
     try {
       final data =
           jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-      debugPrint('[设置] 读取文件成功: $_settingsFile (${data.length} 项)');
+      debugPrint('[iCloud-设置] 读取文件成功: $_settingsFile (${data.length} 项)');
       return data;
     } catch (e) {
-      debugPrint('[设置] 读取文件失败: $_settingsFile - $e');
+      debugPrint('[iCloud-设置] 读取文件失败: $_settingsFile - $e');
       return {};
     }
   }
@@ -211,7 +195,6 @@ class IcloudStorage {
     final file = File(_filePath(name));
     try {
       await file.writeAsString(jsonEncode(data));
-      debugPrint('[iCloud] 写入文件成功: $name (${data.length} 条)');
     } catch (e) {
       debugPrint('[iCloud] 写入文件失败: $name - $e');
     }
@@ -225,7 +208,6 @@ class IcloudStorage {
     }
     try {
       final list = jsonDecode(await file.readAsString()) as List;
-      debugPrint('[iCloud] 读取文件成功: $name (${list.length} 条)');
       return list.cast<Map<String, dynamic>>();
     } catch (e) {
       debugPrint('[iCloud] 读取文件失败: $name - $e');
@@ -241,7 +223,6 @@ class IcloudStorage {
     }
     try {
       final list = jsonDecode(await file.readAsString()) as List;
-      debugPrint('[iCloud] 读取本地文件成功: $name (${list.length} 条)');
       return list.cast<Map<String, dynamic>>();
     } catch (e) {
       debugPrint('[iCloud] 读取本地文件失败: $name - $e');
@@ -395,5 +376,46 @@ class IcloudStorage {
           .toList();
     }
     return map;
+  }
+
+  // 收益快照
+  static Future<List<ProfitSnapshot>> loadProfitHistory() async {
+    await ensureInit();
+    final data = await _readJson(_profitHistoryFile);
+    debugPrint('[iCloud] 加载收益快照成功: ${data.length} 条');
+    return data.map((e) => ProfitSnapshot.fromJson(e)).toList();
+  }
+
+  static Future<void> saveProfitHistory(List<ProfitSnapshot> snapshots) async {
+    await ensureInit();
+    debugPrint('[iCloud-收益] 保存收益快照: ${snapshots.length} 条');
+    final data = snapshots.map((e) => e.toJson()).toList();
+    await _writeJson(_profitHistoryFile, data);
+  }
+
+  static Future<void> recordProfitIfNeeded(double totalProfit) async {
+    final now = DateTime.now();
+    final snapshots = await loadProfitHistory();
+    final todayDate = DateTime(now.year, now.month, now.day);
+
+    final existing = snapshots
+        .where(
+          (s) =>
+              s.time.year == todayDate.year &&
+              s.time.month == todayDate.month &&
+              s.time.day == todayDate.day,
+        )
+        .toList();
+
+    if (existing.isNotEmpty) {
+      if (existing.last.totalProfit != totalProfit) {
+        snapshots.add(ProfitSnapshot(time: now, totalProfit: totalProfit));
+      }
+    } else {
+      snapshots.add(ProfitSnapshot(time: now, totalProfit: totalProfit));
+    }
+
+    snapshots.sort((a, b) => a.time.compareTo(b.time));
+    await saveProfitHistory(snapshots);
   }
 }

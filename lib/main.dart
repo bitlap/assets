@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/services.dart';
 
 import 'models/stock_model.dart';
 import 'models/stock_search_models.dart';
@@ -25,7 +26,65 @@ import 'services/icloud_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LogoCacher.ensureInit();
+  _setupBackgroundTaskHandler();
   runApp(const MyApp());
+}
+
+void _setupBackgroundTaskHandler() {
+  const channel = MethodChannel('org.bitlap.assets/background_profit');
+  channel.setMethodCallHandler((call) async {
+    if (call.method == 'recordProfitSnapshot') {
+      await _executeProfitSnapshot();
+    }
+  });
+}
+
+Future<void> _executeProfitSnapshot() async {
+  debugPrint('[后台] 开始收益快照...');
+  try {
+    final data = await IcloudStorage.pullStocksFromCloud();
+    final stocks = data.$1;
+    final records = data.$2;
+    final divRecords = data.$3;
+    if (stocks.isEmpty) {
+      debugPrint('[后台] 无股票数据，跳过');
+      return;
+    }
+
+    final currency = await SettingsService.getDefaultCurrency() ?? 'CNY';
+    final searchResults = stocks
+        .map(
+          (stock) => StockSearchResult(
+            code: stock.symbol,
+            name: stock.companyName,
+            market: stock.marketType,
+            secid: stock.secid ??
+                '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}',
+          ),
+        )
+        .toList();
+    final quotes = await StockQuoteService().getStockQuotesBatch(searchResults);
+
+    for (int i = 0; i < stocks.length; i++) {
+      final secid = stocks[i].secid ??
+          '${stocks[i].marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stocks[i].symbol}';
+      final quote = quotes[secid];
+      if (quote != null) {
+        stocks[i] = stocks[i].copyWith(
+          currentPrice: quote.currentPrice,
+          changePercent: quote.changePercent,
+        );
+      }
+    }
+
+    final summary = StockCalculator.calculateAssetSummary(
+      stocks, records, divRecords, currency,
+    );
+    await IcloudStorage.recordProfitIfNeeded(summary.totalProfit);
+    debugPrint('[后台] 收益快照完成: ${summary.totalProfit}');
+  } catch (e) {
+    debugPrint('[后台] 收益快照失败: $e');
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -77,7 +136,6 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   // 状态
   List<StockModel> stocks = [];
   String selectedCurrency = 'CNY';
-  bool _isExchangeRateExpanded = false;
   String? _expandedStockSymbol;
   // 每只股票的操作记录
   final Map<String, List<OperationRecord>> _operationRecords = {};
@@ -233,9 +291,11 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
         state == AppLifecycleState.inactive) {
       _isForeground = false;
       if (_dataDirty) _flushToCloud();
+      unawaited(IcloudStorage.recordProfitIfNeeded(totalProfit));
     } else if (state == AppLifecycleState.resumed) {
       _isForeground = true;
       _syncStockData();
+      unawaited(IcloudStorage.recordProfitIfNeeded(totalProfit));
     }
   }
 
@@ -257,7 +317,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
 
   /// 拉取汇率但不触发 UI 重建
   Future<void> _fetchExchangeRatesWithoutRebuild() async {
-    debugPrint('[首页] 📡 刷新汇率...');
+    debugPrint('[首页] 刷新汇率...');
     final rates = await _exchangeRateService.fetchRates();
     if (rates != null) {
       CurrencyHelper.updateRates(rates);
@@ -273,6 +333,11 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     _collapseExpandedStock();
     debugPrint('[首页] 开始全量刷新...');
     await _syncSettingsFromCloud();
+
+    // 优先推送本地脏数据到云，再拉取（避免本地编辑被旧云数据覆盖）
+    if (_dataDirty) {
+      await _flushToCloud();
+    }
 
     // 依次拉取汇率、行情和 iCloud 数据（均不触发 setState）
     await _fetchExchangeRatesWithoutRebuild();
@@ -317,6 +382,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       _applyQuotes(stocks, quotes);
     });
     _markDirty();
+    unawaited(IcloudStorage.recordProfitIfNeeded(totalProfit));
     debugPrint('[首页] 全量刷新完成');
   }
 
@@ -920,15 +986,6 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
                       totalProfitPercent: totalProfitPercent,
                       totalAfterTaxDividends: totalAfterTaxDividends,
                       totalSellAmount: totalSellAmount,
-                      exchangeRate: exchangeRate,
-                      isExchangeRateExpanded: _isExchangeRateExpanded,
-                      onToggleExchangeRate: () {
-                        _collapseExpandedStock();
-                        setState(
-                          () => _isExchangeRateExpanded =
-                              !_isExchangeRateExpanded,
-                        );
-                      },
                       onCurrencyChanged: _onCurrencyChanged,
                       onCollapse: _collapseExpandedStock,
                     ),

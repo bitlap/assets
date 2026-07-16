@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/app_config.dart';
 import '../utils/currency_helper.dart';
+import 'common/profit_chart.dart';
 
 /// 资产总额卡片组件（纯UI展示）
 class AssetCard extends StatefulWidget {
@@ -13,9 +14,6 @@ class AssetCard extends StatefulWidget {
   final double totalProfitPercent;
   final double totalAfterTaxDividends;
   final double totalSellAmount;
-  final double exchangeRate;
-  final bool isExchangeRateExpanded;
-  final VoidCallback onToggleExchangeRate;
   final ValueChanged<String> onCurrencyChanged;
   final VoidCallback? onCollapse;
 
@@ -30,9 +28,6 @@ class AssetCard extends StatefulWidget {
     required this.totalProfitPercent,
     required this.totalAfterTaxDividends,
     required this.totalSellAmount,
-    required this.exchangeRate,
-    required this.isExchangeRateExpanded,
-    required this.onToggleExchangeRate,
     required this.onCurrencyChanged,
     this.onCollapse,
   });
@@ -291,8 +286,7 @@ class _AssetCardState extends State<AssetCard> {
             ),
           ),
           const SizedBox(height: 6),
-          // 汇率展开区域
-          _buildExchangeRateSection(),
+          ProfitChartWidget(totalProfit: widget.totalProfit),
         ],
       ),
     );
@@ -348,7 +342,7 @@ class _AssetCardState extends State<AssetCard> {
         children: [
           Row(
             children: [
-              Icon(Icons.show_chart, size: 12, color: Colors.amber),
+              Icon(Icons.account_balance, size: 12, color: Colors.amber),
               const SizedBox(width: 4),
               Text(
                 DevConfig.assetTotalCost,
@@ -400,7 +394,7 @@ class _AssetCardState extends State<AssetCard> {
       context: context,
       builder: (ctx) => _helpDialogFrame(
         title: DevConfig.assetTotalCost,
-        icon: Icons.show_chart,
+        icon: Icons.account_balance,
         children: [
           _helpLine(DevConfig.assetCostDetailLabel, costText, Colors.white),
           const SizedBox(height: 6),
@@ -657,131 +651,6 @@ class _AssetCardState extends State<AssetCard> {
         fontWeight: FontWeight.bold,
         color: Colors.white,
         height: 1.1,
-      ),
-    );
-  }
-
-  Widget _buildExchangeRateSection() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onToggleExchangeRate,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              const Text(
-                DevConfig.assetExchangeRate,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.white70,
-                  height: 1.2,
-                ),
-              ),
-              const Spacer(),
-              Icon(
-                widget.isExchangeRateExpanded
-                    ? Icons.expand_less
-                    : Icons.expand_more,
-                size: 16,
-                color: Colors.white70,
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          if (widget.isExchangeRateExpanded)
-            ..._buildExpandedRateRows()
-          else
-            _buildCollapsedRateRow(),
-        ],
-      ),
-    );
-  }
-
-  /// 收起时：一行显示所有币种，可滑动
-  Widget _buildCollapsedRateRow() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        children: CurrencyHelper.exchangeRates.keys.map((currency) {
-          final rate = CurrencyHelper.exchangeRates[currency]!;
-          return Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: _buildExchangeRateChip(
-              currency,
-              CurrencyHelper.formatRate(rate),
-              isSelected: widget.selectedCurrency == currency,
-              onTap: () => widget.onCurrencyChanged(currency),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  /// 展开后的汇率行，每行5个，每行可滑动
-  List<Widget> _buildExpandedRateRows() {
-    final keys = CurrencyHelper.exchangeRates.keys.toList();
-    final rows = <Widget>[];
-    for (int i = 0; i < keys.length; i += 5) {
-      final rowKeys = keys.skip(i).take(5);
-      rows.add(
-        Padding(
-          padding: EdgeInsets.only(top: i > 0 ? 6 : 0),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: rowKeys.map((currency) {
-                final rate = CurrencyHelper.exchangeRates[currency]!;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: _buildExchangeRateChip(
-                    currency,
-                    CurrencyHelper.formatRate(rate),
-                    isSelected: widget.selectedCurrency == currency,
-                    onTap: () => widget.onCurrencyChanged(currency),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      );
-    }
-    return rows;
-  }
-
-  Widget _buildExchangeRateChip(
-    String currency,
-    String rate, {
-    bool isSelected = false,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.blue.withOpacity(0.3)
-              : Colors.white.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(8),
-          border: isSelected
-              ? Border.all(color: Colors.blue, width: 1.5)
-              : null,
-        ),
-        child: Text(
-          '$currency $rate',
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-            height: 1.2,
-          ),
-        ),
       ),
     );
   }

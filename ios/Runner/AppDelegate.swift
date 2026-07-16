@@ -1,5 +1,8 @@
+import BackgroundTasks
 import Flutter
 import UIKit
+
+let profitBackgroundTaskIdentifier = "org.bitlap.assets.profitSnapshotTask"
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -13,6 +16,14 @@ import UIKit
     flutterEngine = FlutterEngine(name: "assets engine")
     flutterEngine.run()
     GeneratedPluginRegistrant.register(with: flutterEngine)
+
+    // 注册后台任务
+    BGTaskScheduler.shared.register(
+      forTaskWithIdentifier: profitBackgroundTaskIdentifier,
+      using: nil
+    ) { task in
+      self.handleProfitSnapshotTask(task: task as! BGAppRefreshTask)
+    }
 
     // 设置 iCloud MethodChannel
     let channel = FlutterMethodChannel(
@@ -35,5 +46,35 @@ import UIKit
     self.window = window
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  override func applicationDidEnterBackground(_ application: UIApplication) {
+    scheduleProfitSnapshotTask()
+  }
+
+  private func scheduleProfitSnapshotTask() {
+    let request = BGAppRefreshTaskRequest(identifier: profitBackgroundTaskIdentifier)
+    request.earliestBeginDate = Date(timeIntervalSinceNow: 3600)
+    do {
+      try BGTaskScheduler.shared.submit(request)
+    } catch {
+      print("[BGTask] 提交后台任务失败: \(error)")
+    }
+  }
+
+  private func handleProfitSnapshotTask(task: BGAppRefreshTask) {
+    scheduleProfitSnapshotTask()
+
+    task.expirationHandler = {
+      task.setTaskCompleted(success: false)
+    }
+
+    // 通知 Dart 端执行收益快照
+    let channel = FlutterMethodChannel(
+      name: "org.bitlap.assets/background_profit",
+      binaryMessenger: flutterEngine.binaryMessenger)
+    channel.invokeMethod("recordProfitSnapshot", arguments: nil) { result in
+      task.setTaskCompleted(success: result != nil)
+    }
   }
 }

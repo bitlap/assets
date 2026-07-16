@@ -36,7 +36,7 @@ class DevConfig {
   static const String keepStockOnDesc =
       '平仓时保留股票在列表中，持仓数量和市值变为 0，已实现盈亏保留，历史记录依旧保留';
   static const String keepStockOffLabel = '关闭后';
-  static const String keepStockOffDesc = '平仓时删除股票及所有数据，效果等同直接删除股票和操作记录';
+  static const String keepStockOffDesc = '平仓时删除股票及所有数据（收益曲线不会删），效果等同直接删除股票和操作记录';
   static const String sortLabel = '默认排序';
   static const String sortByProfit = '按盈亏';
   static const String sortByHoldings = '按持仓';
@@ -208,6 +208,7 @@ class DevConfig {
   static const String recordsEmptyOpHint = '点击"记录"按钮添加第一次操作';
   static const String recordsEmptyDiv = '暂无派息记录';
   static const String recordsEmptyDivHint = '点击更多菜单中的“派息”添加记录';
+  static const String profitNoData = '暂无数据';
   static const String recordsDivAmountPerShare = '每股';
   static const String recordsDivShares = '持仓股数';
   static const String recordsDivTotal = '总派息';
@@ -246,6 +247,14 @@ class DevConfig {
 
   // 公式 文案
   static const String formulaDialogSubtitle = '资产卡片中各数据的计算公式';
+
+  // 收益曲线 文案
+  static const String profitChartTitle = '收益曲线';
+  static const String profitRangeToday = '今天';
+  static const String profitRange7d = '7天';
+  static const String profitRange30d = '30天';
+  static const String profitRange180d = '180天';
+  static const String profitRange360d = '360天';
 
   // 通用后缀
   static const String suffixCount = '次';

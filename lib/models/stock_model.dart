@@ -149,3 +149,21 @@ class DividendRecord {
     );
   }
 }
+
+/// 收益快照（用于收益曲线）
+class ProfitSnapshot {
+  final DateTime time;
+  final double totalProfit;
+
+  ProfitSnapshot({required this.time, required this.totalProfit});
+
+  Map<String, dynamic> toJson() => {
+    'time': time.toIso8601String(),
+    'totalProfit': totalProfit,
+  };
+
+  factory ProfitSnapshot.fromJson(Map<String, dynamic> json) => ProfitSnapshot(
+    time: DateTime.parse(json['time'] as String),
+    totalProfit: (json['totalProfit'] as num).toDouble(),
+  );
+}
