@@ -261,7 +261,8 @@ class _ProfitChartPainter extends CustomPainter {
 
     double scaleY(double val) {
       if (minVal == maxVal) return paintHeight / 2;
-      return paintHeight - ((val - minVal) / (maxVal - minVal)) * (paintHeight - 8);
+      return paintHeight -
+          ((val - minVal) / (maxVal - minVal)) * (paintHeight - 8);
     }
 
     double scaleX(int index) {

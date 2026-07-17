@@ -71,10 +71,10 @@ class EastMoneyQuoteService {
 
   StockQuote? _parseItem(Map<String, dynamic> item, StockSearchResult? stock) {
     if (stock == null) return null;
-    final rawPrice = _parseInt(item['f58']) / 1000 / 1000;
+    final rawPrice = _parseInt(item['f2']) / 1000;
     if (rawPrice == 0) return null;
 
-    final changePercent = _parseDouble(item['f57']);
+    final changePercent = _parseDouble(item['f3']) / 100;
 
     final market = stock.market;
 

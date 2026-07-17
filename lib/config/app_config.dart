@@ -36,7 +36,8 @@ class DevConfig {
   static const String keepStockOnDesc =
       '平仓时保留股票在列表中，持仓数量和市值变为 0，已实现盈亏保留，历史记录依旧保留';
   static const String keepStockOffLabel = '关闭后';
-  static const String keepStockOffDesc = '平仓时删除股票及所有数据（收益曲线不会删），效果等同直接删除股票和操作记录';
+  static const String keepStockOffDesc =
+      '平仓时删除股票及所有数据（收益曲线不会删），效果等同直接删除股票和操作记录';
   static const String sortLabel = '默认排序';
   static const String sortByProfit = '按盈亏';
   static const String sortByHoldings = '按持仓';

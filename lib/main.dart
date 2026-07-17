@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/services.dart';
 
 import 'models/stock_model.dart';
 import 'models/stock_search_models.dart';
@@ -26,65 +25,7 @@ import 'services/icloud_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LogoCacher.ensureInit();
-  _setupBackgroundTaskHandler();
   runApp(const MyApp());
-}
-
-void _setupBackgroundTaskHandler() {
-  const channel = MethodChannel('org.bitlap.assets/background_profit');
-  channel.setMethodCallHandler((call) async {
-    if (call.method == 'recordProfitSnapshot') {
-      await _executeProfitSnapshot();
-    }
-  });
-}
-
-Future<void> _executeProfitSnapshot() async {
-  debugPrint('[后台] 开始收益快照...');
-  try {
-    final data = await IcloudStorage.pullStocksFromCloud();
-    final stocks = data.$1;
-    final records = data.$2;
-    final divRecords = data.$3;
-    if (stocks.isEmpty) {
-      debugPrint('[后台] 无股票数据，跳过');
-      return;
-    }
-
-    final currency = await SettingsService.getDefaultCurrency() ?? 'CNY';
-    final searchResults = stocks
-        .map(
-          (stock) => StockSearchResult(
-            code: stock.symbol,
-            name: stock.companyName,
-            market: stock.marketType,
-            secid: stock.secid ??
-                '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}',
-          ),
-        )
-        .toList();
-    final quotes = await StockQuoteService().getStockQuotesBatch(searchResults);
-
-    for (int i = 0; i < stocks.length; i++) {
-      final secid = stocks[i].secid ??
-          '${stocks[i].marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stocks[i].symbol}';
-      final quote = quotes[secid];
-      if (quote != null) {
-        stocks[i] = stocks[i].copyWith(
-          currentPrice: quote.currentPrice,
-          changePercent: quote.changePercent,
-        );
-      }
-    }
-
-    final summary = StockCalculator.calculateAssetSummary(
-      stocks, records, divRecords, currency,
-    );
-    await IcloudStorage.recordProfitIfNeeded(summary.totalProfit);
-    debugPrint('[后台] 收益快照完成: ${summary.totalProfit}');
-  } catch (e) {
-    debugPrint('[后台] 收益快照失败: $e');
-  }
 }
 
 class MyApp extends StatelessWidget {

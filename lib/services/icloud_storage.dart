@@ -26,7 +26,6 @@ class IcloudStorage {
     // 本地路径
     final localDir = await getApplicationDocumentsDirectory();
     _localPath = localDir.path;
-    debugPrint('[iCloud] 本地路径: $_localPath');
 
     // 尝试获取 iCloud 路径
     try {
@@ -35,10 +34,7 @@ class IcloudStorage {
         final dir = Directory(cloudPath);
         if (!await dir.exists()) await dir.create(recursive: true);
         _cloudPath = cloudPath;
-        debugPrint('[iCloud] iCloud 路径获取成功: $_cloudPath');
-      } else {
-        debugPrint('[iCloud] iCloud 路径为空，使用本地 fallback');
-      }
+      } else {}
     } catch (e) {
       debugPrint('[iCloud] 获取 iCloud 路径失败: $e，使用本地 fallback');
     }
@@ -63,8 +59,10 @@ class IcloudStorage {
         _dividendRecordsFile,
         _dividendRecordsToJson(dividendRecords),
       );
-      debugPrint('[iCloud-股票] 派息记录保存完成: $_dividendRecordsFile');
     }
+    debugPrint(
+      '[iCloud-股票] 股票记录保存完成: ${stocks.length} 只股票, ${records.length} 个股票记录, ${dividendRecords?.length} 个派息记录',
+    );
   }
 
   /// 加载股票和记录（优先 iCloud）
@@ -126,7 +124,6 @@ class IcloudStorage {
     try {
       final data =
           jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-      debugPrint('[iCloud-设置] 读取文件成功: $_settingsFile (${data.length} 项)');
       return data;
     } catch (e) {
       debugPrint('[iCloud-设置] 读取文件失败: $_settingsFile - $e');
@@ -169,7 +166,6 @@ class IcloudStorage {
         cloud[SettingsService.keySortAscending],
       );
     }
-    debugPrint('[设置] 从 iCloud 拉取完成: ${cloud.length}项设置');
   }
 
   /// 把 SharedPreferences 上传到 iCloud
@@ -396,26 +392,18 @@ class IcloudStorage {
   static Future<void> recordProfitIfNeeded(double totalProfit) async {
     final now = DateTime.now();
     final snapshots = await loadProfitHistory();
-    final todayDate = DateTime(now.year, now.month, now.day);
 
-    final existing = snapshots
-        .where(
-          (s) =>
-              s.time.year == todayDate.year &&
-              s.time.month == todayDate.month &&
-              s.time.day == todayDate.day,
-        )
-        .toList();
-
-    if (existing.isNotEmpty) {
-      if (existing.last.totalProfit != totalProfit) {
-        snapshots.add(ProfitSnapshot(time: now, totalProfit: totalProfit));
+    if (snapshots.isNotEmpty) {
+      final last = snapshots.last;
+      if (last.totalProfit == totalProfit &&
+          now.difference(last.time).inMinutes < 10) {
+        return;
       }
-    } else {
-      snapshots.add(ProfitSnapshot(time: now, totalProfit: totalProfit));
     }
 
+    snapshots.add(ProfitSnapshot(time: now, totalProfit: totalProfit));
     snapshots.sort((a, b) => a.time.compareTo(b.time));
+    snapshots.removeWhere((s) => now.difference(s.time).inDays > 365);
     await saveProfitHistory(snapshots);
   }
 }
