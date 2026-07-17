@@ -109,6 +109,8 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   /// 防抖定时器：修改后延迟自动异步同步到 iCloud
   Timer? _syncTimer;
 
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -324,6 +326,11 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     });
     _markDirty();
     unawaited(IcloudStorage.recordProfitIfNeeded(totalProfit));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+    });
     debugPrint('[首页] 全量刷新完成');
   }
 
@@ -905,6 +912,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       child: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
+            controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: constraints.maxHeight),

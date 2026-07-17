@@ -35,6 +35,12 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
     _loadSnapshots();
   }
 
+  @override
+  void didUpdateWidget(covariant ProfitChartWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_isExpanded) _loadSnapshots();
+  }
+
   Future<void> _loadSnapshots() async {
     final snapshots = await IcloudStorage.loadProfitHistory();
     if (mounted) setState(() => _snapshots = snapshots);
