@@ -75,7 +75,7 @@ class DevConfig {
   static const String btnConfirmSell = '确认减仓';
 
   // 定时器 / 缓存 / 超时
-  static const int refreshInitialDelaySec = 30;
+  static const int refreshInitialDelaySec = 10;
   static const int refreshIntervalSec = 60;
   static const int quoteCacheTTLMin = 15;
   static const int searchCacheTTLMin = 5;
@@ -244,6 +244,9 @@ class DevConfig {
   static const String licenseDescHttp = 'HTTP 网络请求库';
   static const String licenseDescSharedPrefs = '本地键值存储';
   static const String licenseDescUrlLauncher = 'URL 启动 / 邮件调用';
+  static const String licenseDescPathProvider = '文件系统路径访问';
+  static const String licenseDescPackageInfo = '应用版本信息读取';
+  static const String licenseDescWorkmanager = '后台定时任务调度';
   static const String dataSourceDescEastMoney = '股票搜索 / 代码查询';
   static const String dataSourceDescTencent = '实时股价 / 涨跌幅';
   static const String dataSourceDescExchangeRate = '实时汇率数据';

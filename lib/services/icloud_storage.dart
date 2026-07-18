@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -7,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/stock_model.dart';
 import 'settings_service.dart';
 
-/// iCloud 数据同步服务（带本地 fallback）
+/// 本地持久化 + 配置 iCloud 同步服务
 class IcloudStorage {
   static const _channel = MethodChannel('org.bitlap.assets/icloud');
   static const _stocksFile = 'stocks.json';
@@ -19,53 +20,62 @@ class IcloudStorage {
   static String? _cloudPath;
   static String? _localPath;
 
-  /// 初始化（获取 iCloud / 本地路径）
+  /// 初始化（获取本地 / iCloud 路径）
   static Future<void> ensureInit() async {
-    if (_cloudPath != null) return;
+    if (_localPath != null) return;
 
     // 本地路径
     final localDir = await getApplicationDocumentsDirectory();
     _localPath = localDir.path;
 
-    // 尝试获取 iCloud 路径
+    // 尝试获取 iCloud 路径（后台 isolate 无 MethodChannel，静默跳过）
     try {
       final cloudPath = await _channel.invokeMethod<String>('getContainerUrl');
       if (cloudPath != null && cloudPath.isNotEmpty) {
         final dir = Directory(cloudPath);
         if (!await dir.exists()) await dir.create(recursive: true);
         _cloudPath = cloudPath;
-      } else {}
+      }
     } catch (e) {
-      debugPrint('[iCloud] 获取 iCloud 路径失败: $e，使用本地 fallback');
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][iCloud] 获取 iCloud 路径失败: $e，使用本地 fallback',
+      );
     }
   }
 
-  /// 当前使用的存储路径（iCloud → 本地 fallback）
-  static String get _storagePath => _cloudPath ?? _localPath!;
+  /// 当前使用的存储路径
+  static String _localFilePath(String name) => '$_localPath/$name';
 
-  static String _filePath(String name) => '$_storagePath/$name';
-
-  /// 保存股票和记录到 iCloud（本地兜底）
+  /// 保存股票和记录到本地
   static Future<void> pushStocksToCloud(
     List<StockModel> stocks,
-    Map<String, List<OperationRecord>> records, [
+    Map<String, List<OperationRecord>>? records,
     Map<String, List<DividendRecord>>? dividendRecords,
-  ]) async {
+  ) async {
     await ensureInit();
     await _writeJson(_stocksFile, _stocksToJson(stocks));
-    await _writeJson(_recordsFile, _recordsToJson(records));
+    if (records != null) {
+      await _writeJson(_recordsFile, _recordsToJson(records));
+    }
     if (dividendRecords != null) {
       await _writeJson(
         _dividendRecordsFile,
         _dividendRecordsToJson(dividendRecords),
       );
     }
+    unawaited(_syncToCloud(_stocksFile));
+    if (records != null) {
+      unawaited(_syncToCloud(_recordsFile));
+    }
+    if (dividendRecords != null) {
+      unawaited(_syncToCloud(_dividendRecordsFile));
+    }
     debugPrint(
-      '[iCloud-股票] 股票记录保存完成: ${stocks.length} 只股票, ${records.length} 个股票记录, ${dividendRecords?.length} 个派息记录',
+      '[${DateTime.now().toString().substring(11, 19)}][本地] 股票记录保存完成: ${stocks.length} 只股票, ${records?.length} 个股票记录, ${dividendRecords?.length} 个派息记录',
     );
   }
 
-  /// 加载股票和记录（优先 iCloud）
+  /// 从本地加载股票和记录
   static Future<
     (
       List<StockModel> stocks,
@@ -75,63 +85,53 @@ class IcloudStorage {
   >
   pullStocksFromCloud() async {
     await ensureInit();
+    // 先尝试从 iCloud 拉取更新
+    await _syncFromCloud(_stocksFile);
+    await _syncFromCloud(_recordsFile);
+    await _syncFromCloud(_dividendRecordsFile);
+    // 再读本地（此时已包含 iCloud 最新数据）
     final stocks = _stocksFromJson(await _readJson(_stocksFile));
     final records = _recordsFromJson(await _readJson(_recordsFile));
     final dividendRecords = _dividendRecordsFromJson(
       await _readJson(_dividendRecordsFile),
     );
     debugPrint(
-      '[iCloud-股票] 加载完成: ${stocks.length} 只股票, ${records.length} 个股票记录, ${dividendRecords.length} 个派息记录',
+      '[${DateTime.now().toString().substring(11, 19)}][本地] 加载完成: ${stocks.length} 只股票, ${records.length} 个股票记录, ${dividendRecords.length} 个派息记录',
     );
-
-    // 首次启动：若 iCloud 为空，尝试从本地迁移
-    if (stocks.isEmpty && records.isEmpty && _cloudPath != null) {
-      debugPrint('[iCloud-股票] iCloud 数据为空，尝试从本地迁移...');
-      final localStocks = _stocksFromJson(await _readLocalJson(_stocksFile));
-      final localRecords = _recordsFromJson(await _readLocalJson(_recordsFile));
-      final localDivRecords = _dividendRecordsFromJson(
-        await _readLocalJson(_dividendRecordsFile),
-      );
-      debugPrint(
-        '[iCloud-股票] 本地数据: ${localStocks.length} 只股票, ${localRecords.length} 个股票记录, ${localDivRecords.length} 个派息记录',
-      );
-      if (localStocks.isNotEmpty || localRecords.isNotEmpty) {
-        await pushStocksToCloud(localStocks, localRecords, localDivRecords);
-        return (localStocks, localRecords, localDivRecords);
-      } else {
-        debugPrint('[iCloud-股票] 本地也无数据，无需迁移');
-      }
-    }
 
     return (stocks, records, dividendRecords);
   }
 
-  /// 保存设置到 iCloud
+  /// 保存设置到本地 + 同步 iCloud
   static Future<void> pushSettingsToCloud(Map<String, dynamic> settings) async {
     await ensureInit();
-    final file = File(_filePath(_settingsFile));
-    await file.writeAsString(jsonEncode(settings));
+    final localFile = File(_localFilePath(_settingsFile));
+    await localFile.writeAsString(jsonEncode(settings));
+    unawaited(_syncToCloud(_settingsFile));
   }
 
-  /// 加载设置（优先 iCloud）
+  /// 加载设置（拉取 iCloud 更新后读本地）
   static Future<Map<String, dynamic>> pullSettingsFromCloud() async {
     await ensureInit();
-    final file = File(_filePath(_settingsFile));
-    if (!await file.exists()) {
-      debugPrint('[iCloud-设置] 设置文件不存在: $_settingsFile');
+    await _syncFromCloud(_settingsFile);
+    final local = File(_localFilePath(_settingsFile));
+    if (!await local.exists()) {
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][本地] 设置文件不存在: $_settingsFile',
+      );
       return {};
     }
     try {
-      final data =
-          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-      return data;
+      return jsonDecode(await local.readAsString()) as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('[iCloud-设置] 读取文件失败: $_settingsFile - $e');
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][本地] 设置读取失败: $e',
+      );
       return {};
     }
   }
 
-  /// 从 iCloud 下载设置覆盖 SharedPreferences
+  /// 从本地 + iCloud 加载设置覆盖 SharedPreferences
   static Future<void> loadSettings() async {
     final enabled = await SettingsService.getSyncSettings();
     if (!enabled) {
@@ -168,7 +168,7 @@ class IcloudStorage {
     }
   }
 
-  /// 把 SharedPreferences 上传到 iCloud
+  /// 把 SharedPreferences 上传到本地 + iCloud
   static Future<void> saveSettings() async {
     final enabled = await SettingsService.getSyncSettings();
     if (!enabled) {
@@ -188,41 +188,75 @@ class IcloudStorage {
   }
 
   static Future<void> _writeJson(String name, List<Map> data) async {
-    final file = File(_filePath(name));
+    final file = File(_localFilePath(name));
     try {
       await file.writeAsString(jsonEncode(data));
     } catch (e) {
-      debugPrint('[iCloud] 写入文件失败: $name - $e');
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][iCloud] 写入文件失败: $name - $e',
+      );
     }
   }
 
   static Future<List<Map<String, dynamic>>> _readJson(String name) async {
-    final file = File(_filePath(name));
+    final file = File(_localFilePath(name));
     if (!await file.exists()) {
-      debugPrint('[iCloud] 文件不存在: $name');
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][本地] 文件不存在: $name',
+      );
       return [];
     }
     try {
       final list = jsonDecode(await file.readAsString()) as List;
       return list.cast<Map<String, dynamic>>();
     } catch (e) {
-      debugPrint('[iCloud] 读取文件失败: $name - $e');
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][本地] 读取文件失败: $name - $e',
+      );
       return [];
     }
   }
 
-  static Future<List<Map<String, dynamic>>> _readLocalJson(String name) async {
-    final file = File('$_localPath/$name');
-    if (!await file.exists()) {
-      debugPrint('[iCloud] 本地文件不存在: $name');
-      return [];
-    }
+  /// 将本地文件同步到 iCloud（若开启了同步且有 iCloud 路径）
+  static Future<void> _syncToCloud(String name) async {
+    if (_cloudPath == null) return;
+    final enabled = await SettingsService.getSyncSettings();
+    if (!enabled) return;
+    final local = File(_localFilePath(name));
+    if (!await local.exists()) return;
+    final cloud = File('$_cloudPath/$name');
     try {
-      final list = jsonDecode(await file.readAsString()) as List;
-      return list.cast<Map<String, dynamic>>();
+      await cloud.writeAsString(await local.readAsString());
     } catch (e) {
-      debugPrint('[iCloud] 读取本地文件失败: $name - $e');
-      return [];
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][iCloud] 同步到 iCloud 失败: $name - $e',
+      );
+    }
+  }
+
+  /// 从 iCloud 拉取更新到本地（若 iCloud 文件更新）
+  static Future<void> _syncFromCloud(String name) async {
+    if (_cloudPath == null) return;
+    final enabled = await SettingsService.getSyncSettings();
+    if (!enabled) return;
+    final cloud = File('$_cloudPath/$name');
+    if (!await cloud.exists()) return;
+    try {
+      final cloudTime = await cloud.lastModified();
+      final local = File(_localFilePath(name));
+      final localTime = await local.exists()
+          ? await local.lastModified()
+          : DateTime(0);
+      if (cloudTime.isAfter(localTime)) {
+        await local.writeAsString(await cloud.readAsString());
+        debugPrint(
+          '[${DateTime.now().toString().substring(11, 19)}][iCloud] 从 iCloud 同步到本地: $name',
+        );
+      }
+    } catch (e) {
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][iCloud] 从 iCloud 拉取失败: $name - $e',
+      );
     }
   }
 
@@ -377,16 +411,28 @@ class IcloudStorage {
   // 收益快照
   static Future<List<ProfitSnapshot>> loadProfitHistory() async {
     await ensureInit();
+    await _syncFromCloud(_profitHistoryFile);
     final data = await _readJson(_profitHistoryFile);
-    debugPrint('[iCloud] 加载收益快照成功: ${data.length} 条');
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][本地] 加载收益快照成功: ${data.length} 条',
+    );
     return data.map((e) => ProfitSnapshot.fromJson(e)).toList();
   }
 
   static Future<void> saveProfitHistory(List<ProfitSnapshot> snapshots) async {
     await ensureInit();
-    debugPrint('[iCloud-收益] 保存收益快照: ${snapshots.length} 条');
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][本地] 保存收益快照: ${snapshots.length} 条',
+    );
     final data = snapshots.map((e) => e.toJson()).toList();
     await _writeJson(_profitHistoryFile, data);
+    unawaited(_syncToCloud(_profitHistoryFile));
+  }
+
+  /// 强制将本地收益快照同步到 iCloud（后台任务写入后，切回前台时调用）
+  static Future<void> syncProfitToCloud() async {
+    await ensureInit();
+    unawaited(_syncToCloud(_profitHistoryFile));
   }
 
   static Future<void> recordProfitIfNeeded(double totalProfit) async {

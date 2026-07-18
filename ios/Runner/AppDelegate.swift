@@ -1,5 +1,7 @@
+import BackgroundTasks
 import Flutter
 import UIKit
+import workmanager_apple
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -9,6 +11,25 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    if #available(iOS 14.0, *) {
+      WorkmanagerDebug.setCurrent(LoggingDebugHandler())
+    }
+
+    if #available(iOS 13.0, *) {
+      BGTaskScheduler.shared.register(
+        forTaskWithIdentifier: "profit-snapshot",
+        using: nil
+      ) { task in
+        if let task = task as? BGAppRefreshTask {
+          WorkmanagerPlugin.handlePeriodicTask(
+            identifier: "profit-snapshot",
+            task: task,
+            earliestBeginInSeconds: 30 * 60
+          )
+        }
+      }
+    }
+
     flutterEngine = FlutterEngine(name: "assets engine")
     flutterEngine.run()
     GeneratedPluginRegistrant.register(with: flutterEngine)

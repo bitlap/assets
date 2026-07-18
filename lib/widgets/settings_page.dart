@@ -84,6 +84,24 @@ class _SettingsPageState extends State<SettingsPage> {
       'BSD 3-Clause',
       DevConfig.licenseDescUrlLauncher,
     ),
+    _OpenSourceLib(
+      'path_provider',
+      'Flutter Team',
+      'BSD 3-Clause',
+      DevConfig.licenseDescPathProvider,
+    ),
+    _OpenSourceLib(
+      'package_info_plus',
+      'Flutter Team',
+      'BSD 3-Clause',
+      DevConfig.licenseDescPackageInfo,
+    ),
+    _OpenSourceLib(
+      'workmanager',
+      'Flutter Team',
+      'MIT',
+      DevConfig.licenseDescWorkmanager,
+    ),
   ];
 
   static const List<_OpenSourceLib> _dataSources = [

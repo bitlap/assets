@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:workmanager/workmanager.dart';
 
 import 'models/stock_model.dart';
 import 'models/stock_search_models.dart';
@@ -22,12 +23,29 @@ import 'services/stock_quote_service.dart';
 import 'services/exchange_rate_service.dart';
 import 'services/settings_service.dart';
 import 'services/icloud_storage.dart';
+import 'task/profit_task.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LogoCacher.ensureInit();
   final info = await PackageInfo.fromPlatform();
   DevConfig.appVersion = info.version;
+
+  await Workmanager().initialize(callbackDispatcher);
+  await Workmanager().registerPeriodicTask(
+    'profit-snapshot',
+    'profitSnapshot',
+    frequency: const Duration(minutes: 30),
+    constraints: Constraints(
+      networkType: NetworkType.connected,
+      requiresBatteryNotLow: false, // Don't run when battery is low
+      requiresCharging: false, // Can run when not charging
+      requiresDeviceIdle: false, // Can run when device is active
+      requiresStorageNotLow: false, // Don't run when storage is low
+    ),
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+  );
+
   runApp(const MyApp());
 }
 
@@ -157,33 +175,18 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     }
   }
 
-  /// 从 iCloud 加载股票和操作记录（本地兜底）
+  /// 从本地加载股票和记录，并尝试从 iCloud 拉取最新
   Future<void> _syncStockData() async {
-    final enabled = await SettingsService.getSyncSettings();
-    if (!enabled) return;
     final data = await IcloudStorage.pullStocksFromCloud();
     if (!mounted) return;
-
-    final cloudStocks = data.$1;
-    final cloudRecords = data.$2;
-    final cloudDivRecords = data.$3;
-
-    // 保护本地数据：iCloud 为空但本地有数据时，说明还未同步过，不覆盖
-    if (cloudStocks.isEmpty &&
-        cloudRecords.isEmpty &&
-        (stocks.isNotEmpty || _operationRecords.isNotEmpty)) {
-      debugPrint('[首页] iCloud 数据为空，本地有数据，跳过覆盖（可能尚未同步）');
-      return;
-    }
-
     setState(() {
-      stocks = cloudStocks;
+      stocks = data.$1;
       _operationRecords
         ..clear()
-        ..addAll(cloudRecords);
+        ..addAll(data.$2);
       _dividendRecords
         ..clear()
-        ..addAll(cloudDivRecords);
+        ..addAll(data.$3);
     });
   }
 
@@ -199,22 +202,19 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     });
   }
 
-  /// 真正写入 iCloud（进入后台、手动触发、防抖定时器调用）
+  /// 真正写入本地（同步到 iCloud 由内部按配置处理）
   Future<void> _flushToCloud() async {
     _syncTimer?.cancel();
     if (!_dataDirty) return;
-    final enabled = await SettingsService.getSyncSettings();
-    if (enabled) {
-      await Future.wait([
-        IcloudStorage.pushStocksToCloud(
-          stocks,
-          _operationRecords,
-          _dividendRecords,
-        ),
-        IcloudStorage.saveSettings(),
-      ]);
-      _dataDirty = false;
-    }
+    await Future.wait([
+      IcloudStorage.pushStocksToCloud(
+        stocks,
+        _operationRecords,
+        _dividendRecords,
+      ),
+      IcloudStorage.saveSettings(),
+    ]);
+    _dataDirty = false;
   }
 
   /// 从 iCloud 下载设置覆盖本地
@@ -240,9 +240,14 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       unawaited(IcloudStorage.recordProfitIfNeeded(totalProfit));
     } else if (state == AppLifecycleState.resumed) {
       _isForeground = true;
-      _syncStockData();
-      unawaited(IcloudStorage.recordProfitIfNeeded(totalProfit));
+      unawaited(_onResumed());
     }
+  }
+
+  Future<void> _onResumed() async {
+    await IcloudStorage.recordProfitIfNeeded(totalProfit);
+    unawaited(IcloudStorage.syncProfitToCloud());
+    if (mounted) await _syncStockData();
   }
 
   /// 启动定时刷新（价格 + 汇率）
@@ -263,13 +268,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
 
   /// 拉取汇率但不触发 UI 重建
   Future<void> _fetchExchangeRatesWithoutRebuild() async {
-    debugPrint('[首页] 刷新汇率...');
+    debugPrint('[${DateTime.now().toString().substring(11, 19)}][首页] 刷新汇率...');
     final rates = await _exchangeRateService.fetchRates();
     if (rates != null) {
       CurrencyHelper.updateRates(rates);
-      debugPrint('[首页] 汇率拉取完成');
+      debugPrint('[${DateTime.now().toString().substring(11, 19)}][首页] 汇率拉取完成');
     } else {
-      debugPrint('[首页] 汇率刷新无更新');
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][首页] 汇率刷新无更新',
+      );
     }
   }
 
@@ -277,7 +284,9 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   Future<void> _refreshAll() async {
     if (!_isForeground) return;
     _collapseExpandedStock();
-    debugPrint('[首页] 开始全量刷新...');
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][首页] 开始全量刷新...',
+    );
     await _syncSettingsFromCloud();
 
     // 优先推送本地脏数据到云，再拉取（避免本地编辑被旧云数据覆盖）
@@ -285,61 +294,44 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
       await _flushToCloud();
     }
 
-    // 依次拉取汇率、行情和 iCloud 数据（均不触发 setState）
+    // 依次拉取汇率、行情，并同步 iCloud 数据到本地
     await _fetchExchangeRatesWithoutRebuild();
     final quotes = stocks.isEmpty
         ? <String, StockQuote?>{}
         : await _fetchQuotesWithoutRebuild();
-    final syncEnabled = await SettingsService.getSyncSettings();
-    Map<String, List<OperationRecord>>? cloudRecords;
-    Map<String, List<DividendRecord>>? cloudDivRecords;
-    List<StockModel>? cloudStocks;
-    if (syncEnabled) {
-      final data = await IcloudStorage.pullStocksFromCloud();
-      if (!mounted) return;
-      cloudStocks = data.$1;
-      cloudRecords = data.$2;
-      cloudDivRecords = data.$3;
-      // iCloud 为空但本地有数据时不覆盖
-      if (cloudStocks.isEmpty &&
-          cloudRecords.isEmpty &&
-          (stocks.isNotEmpty || _operationRecords.isNotEmpty)) {
-        cloudStocks = null;
-        cloudRecords = null;
-        cloudDivRecords = null;
-      }
-    }
+    final data = await IcloudStorage.pullStocksFromCloud();
+    if (!mounted) return;
+
+    // 先记录收益快照，再 setState 让 chart 能读到最新数据
+    await IcloudStorage.recordProfitIfNeeded(totalProfit);
 
     if (!mounted) return;
 
     // 合并为一次 setState，避免列表多次重建导致 LOGO 缓存日志重复打印
     setState(() {
-      if (cloudStocks != null && cloudRecords != null) {
-        stocks = cloudStocks;
-        _operationRecords
-          ..clear()
-          ..addAll(cloudRecords);
-      }
-      if (cloudDivRecords != null) {
-        _dividendRecords
-          ..clear()
-          ..addAll(cloudDivRecords);
-      }
+      stocks = data.$1;
+      _operationRecords
+        ..clear()
+        ..addAll(data.$2);
+      _dividendRecords
+        ..clear()
+        ..addAll(data.$3);
       _applyQuotes(stocks, quotes);
     });
     _markDirty();
-    unawaited(IcloudStorage.recordProfitIfNeeded(totalProfit));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(0);
       }
     });
-    debugPrint('[首页] 全量刷新完成');
+    debugPrint('[${DateTime.now().toString().substring(11, 19)}][首页] 全量刷新完成');
   }
 
   /// 拉取行情但不触发 UI 重建
   Future<Map<String, StockQuote?>> _fetchQuotesWithoutRebuild() async {
-    debugPrint('[首页] 开始刷新行情: ${stocks.length}只股票');
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][首页] 开始刷新行情: ${stocks.length}只股票',
+    );
     final searchResults = stocks
         .map(
           (stock) => StockSearchResult(
@@ -353,7 +345,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
         )
         .toList();
     final quotes = await _quoteService.getStockQuotesBatch(searchResults);
-    debugPrint('[首页] 行情拉取完成');
+    debugPrint('[${DateTime.now().toString().substring(11, 19)}][首页] 行情拉取完成');
     return quotes;
   }
 

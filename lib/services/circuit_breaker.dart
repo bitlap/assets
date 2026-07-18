@@ -39,10 +39,12 @@ class CircuitBreaker {
     if (_consecutiveFailures >= _failureThreshold) {
       _cooldownUntil = DateTime.now().add(_cooldownDuration);
       debugPrint(
-        '[网络] 连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inMinutes}分钟',
+        '[${DateTime.now().toString().substring(11, 19)}][网络] 连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inMinutes}分钟',
       );
     } else {
-      debugPrint('[网络] 请求失败 ($_consecutiveFailures/$_failureThreshold)');
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][网络] 请求失败 ($_consecutiveFailures/$_failureThreshold)',
+      );
     }
   }
 }

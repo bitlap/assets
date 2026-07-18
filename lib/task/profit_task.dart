@@ -1,0 +1,88 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:workmanager/workmanager.dart';
+import '../config/app_config.dart';
+import '../models/stock_search_models.dart';
+import '../services/icloud_storage.dart';
+import '../services/settings_service.dart';
+import '../services/stock_quote_service.dart';
+import '../utils/stock_calculator.dart';
+
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      final data = await IcloudStorage.pullStocksFromCloud();
+      final stocks = data.$1;
+      final records = data.$2;
+      final dividendRecords = data.$3;
+
+      // 获取最新行情，再计算盈亏
+      if (stocks.isNotEmpty) {
+        final searchResults = stocks
+            .map(
+              (s) => StockSearchResult(
+                code: s.symbol,
+                name: s.companyName,
+                market: s.marketType,
+                secid:
+                    s.secid ??
+                    '${s.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${s.symbol}',
+              ),
+            )
+            .toList();
+        final quotes = await StockQuoteService().getStockQuotesBatch(
+          searchResults,
+        );
+        for (final stock in stocks) {
+          final secid =
+              stock.secid ??
+              '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}';
+          final quote = quotes[secid];
+          if (quote != null) {
+            final idx = stocks.indexWhere((s) => s.symbol == stock.symbol);
+            if (idx != -1) {
+              stocks[idx] = stock.copyWith(
+                currentPrice: quote.currentPrice,
+                changePercent: quote.changePercent,
+              );
+            }
+          }
+        }
+      }
+
+      final currency = await _readCurrency();
+      final summary = StockCalculator.calculateAssetSummary(
+        stocks,
+        records,
+        dividendRecords,
+        currency,
+      );
+      // 保存更新后的股价到本地
+      await IcloudStorage.pushStocksToCloud(stocks, records, dividendRecords);
+      await IcloudStorage.recordProfitIfNeeded(summary.totalProfit);
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][WorkManager] 后台任务执行成功 totalProfit: ${summary.totalProfit}',
+      );
+    } catch (e) {
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][WorkManager] 后台任务失败: $e',
+      );
+    }
+    return Future.value(true);
+  });
+}
+
+Future<String> _readCurrency() async {
+  try {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/settings.json');
+    if (await file.exists()) {
+      final json = jsonDecode(await file.readAsString());
+      return json[SettingsService.keyDefaultCurrency] as String? ?? 'CNY';
+    }
+  } catch (_) {}
+  return 'CNY';
+}

@@ -43,12 +43,12 @@ class StockQuoteService {
     }
 
     debugPrint(
-      '[行情] 批量获取: ${stocks.length}只, 缓存命中${stocks.length - needFetch.length}只, 需请求${needFetch.length}只',
+      '[${DateTime.now().toString().substring(11, 19)}][行情] 批量获取: ${stocks.length}只, 缓存命中${stocks.length - needFetch.length}只, 需请求${needFetch.length}只',
     );
 
     if (needFetch.isEmpty) return result;
     if (CircuitBreaker().isInCooldown) {
-      debugPrint('[行情] 冷却中，跳过');
+      debugPrint('[${DateTime.now().toString().substring(11, 19)}][行情] 冷却中，跳过');
       return result;
     }
 
