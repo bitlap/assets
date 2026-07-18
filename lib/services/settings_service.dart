@@ -56,6 +56,37 @@ class SettingsService {
     await prefs.setBool(keySortAscending, ascending);
   }
 
+  // 手续费设置
+  static const String keyDefaultFeeType = 'default_fee_type';
+  static const String keyDefaultFeeValue = 'default_fee_value';
+
+  static const String feeTypePercentage = 'percentage';
+  static const String feeTypeFixed = 'fixed';
+
+  /// 读取默认手续费类型（percentage 或 fixed）
+  static Future<String> getDefaultFeeType() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(keyDefaultFeeType) ?? feeTypeFixed;
+  }
+
+  /// 保存默认手续费类型
+  static Future<void> setDefaultFeeType(String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(keyDefaultFeeType, type);
+  }
+
+  /// 读取默认手续费值（费率百分比值或固定金额）
+  static Future<double> getDefaultFeeValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(keyDefaultFeeValue) ?? 0.0;
+  }
+
+  /// 保存默认手续费值
+  static Future<void> setDefaultFeeValue(double value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(keyDefaultFeeValue, value);
+  }
+
   /// 总同步开关：开启后持仓和操作记录一起同步，关闭则不同步
   static Future<bool> getSyncSettings() async {
     final prefs = await SharedPreferences.getInstance();

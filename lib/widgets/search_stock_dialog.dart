@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../models/stock_model.dart';
 import '../models/stock_search_models.dart';
+import '../services/settings_service.dart';
 import '../services/stock_search_service.dart';
 import '../services/stock_quote_service.dart';
 import '../utils/center_toast.dart';
@@ -199,6 +200,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
 
     final price = result['price']!;
     final shares = result['shares']!;
+    final fee = result['fee'] ?? 0.0;
     final totalValue = price * shares;
 
     final stockModel = StockModel(
@@ -209,9 +211,9 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       totalValue: defaultPrice > 0
           ? defaultPrice * shares
           : totalValue, // 使用真实价格计算总金额
-      profitLossPercent: quote?.changePercent ?? 0.0,
-      profitLossAmount: 0.0, // 刚建仓，盈亏为0
-      isPositive: (quote?.changePercent ?? 0.0) >= 0,
+      profitLossPercent: 0.0, // 刚建仓，盈亏为0
+      profitLossAmount: 0.0,
+      isPositive: true,
       logoUrl: StockQuoteService.getLogoUrl(stock.code, stock.market),
       marketType: stock.market,
       changePercent: quote?.changePercent ?? 0.0,
@@ -226,6 +228,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       description: DevConfig.opOpenPosition + ' ${stock.code}',
       amount: price,
       shares: shares,
+      fee: fee,
     );
 
     widget.onStockAdded(stockModel, buyRecord);
@@ -800,6 +803,9 @@ class _AddStockConfirmDialog extends StatefulWidget {
 class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
   late final TextEditingController _priceController;
   late final TextEditingController _sharesController;
+  late final TextEditingController _feeController;
+  String _feeType = SettingsService.feeTypePercentage;
+  double _feeSettingValue = 0.0;
 
   @override
   void initState() {
@@ -810,12 +816,46 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
           : '',
     );
     _sharesController = TextEditingController();
+    _feeController = TextEditingController();
+    _loadFeeSettings();
+    _priceController.addListener(_updateFeeFromInput);
+    _sharesController.addListener(_updateFeeFromInput);
+  }
+
+  void _updateFeeFromInput() {
+    if (_feeType != SettingsService.feeTypePercentage ||
+        _feeSettingValue <= 0) {
+      return;
+    }
+    final price = double.tryParse(_priceController.text);
+    final shares = double.tryParse(_sharesController.text);
+    if (price == null || shares == null || price <= 0 || shares <= 0) return;
+    final fee = price * shares * _feeSettingValue / 100;
+    _feeController.text = CurrencyHelper.formatRate(fee);
+    setState(() {});
+  }
+
+  Future<void> _loadFeeSettings() async {
+    final feeType = await SettingsService.getDefaultFeeType();
+    final feeValue = await SettingsService.getDefaultFeeValue();
+    if (!mounted) return;
+    _feeType = feeType;
+    _feeSettingValue = feeValue;
+    if (feeValue <= 0) return;
+    if (feeType == SettingsService.feeTypeFixed) {
+      _feeController.text = CurrencyHelper.formatRate(feeValue);
+      return;
+    }
+    _updateFeeFromInput();
   }
 
   @override
   void dispose() {
+    _priceController.removeListener(_updateFeeFromInput);
+    _sharesController.removeListener(_updateFeeFromInput);
     _priceController.dispose();
     _sharesController.dispose();
+    _feeController.dispose();
     super.dispose();
   }
 
@@ -895,6 +935,13 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
                 label: DevConfig.searchShares,
                 hintText: DevConfig.searchSharesHint,
               ),
+              const SizedBox(height: 12),
+              // 手续费
+              AppNumberField(
+                controller: _feeController,
+                label: DevConfig.editFeeLabel,
+                hintText: DevConfig.editFeePlaceholder,
+              ),
               const SizedBox(height: 20),
               // 按钮
               Row(
@@ -958,6 +1005,7 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
   void _onConfirm() {
     final price = double.tryParse(_priceController.text);
     final shares = double.tryParse(_sharesController.text);
+    final fee = double.tryParse(_feeController.text) ?? 0.0;
 
     if (price == null || price <= 0) {
       CenterToast.error(context, DevConfig.searchInvalidPrice);
@@ -968,6 +1016,6 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
       return;
     }
 
-    Navigator.pop(context, {'price': price, 'shares': shares});
+    Navigator.pop(context, {'price': price, 'shares': shares, 'fee': fee});
   }
 }

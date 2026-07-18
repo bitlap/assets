@@ -76,6 +76,7 @@ class OperationRecord {
   final String description;
   final double amount;
   final double shares;
+  final double fee; // 交易手续费（可选，默认0）
 
   OperationRecord({
     required this.date,
@@ -84,6 +85,7 @@ class OperationRecord {
     required this.description,
     required this.amount,
     required this.shares,
+    this.fee = 0.0,
   }) : operationTime = operationTime ?? DateTime.now();
 
   /// 复制并修改
@@ -94,6 +96,7 @@ class OperationRecord {
     String? description,
     double? amount,
     double? shares,
+    double? fee,
   }) {
     return OperationRecord(
       date: date ?? this.date,
@@ -102,6 +105,7 @@ class OperationRecord {
       description: description ?? this.description,
       amount: amount ?? this.amount,
       shares: shares ?? this.shares,
+      fee: fee ?? this.fee,
     );
   }
 }

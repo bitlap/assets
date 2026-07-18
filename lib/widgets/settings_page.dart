@@ -4,8 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../utils/currency_helper.dart';
 import '../utils/center_toast.dart';
 import '../services/settings_service.dart';
-import '../services/icloud_storage.dart';
 import '../config/app_config.dart';
+import 'common/app_number_field.dart';
 import 'common/settings_expansion_card.dart';
 
 /// 全屏设置页面
@@ -16,6 +16,7 @@ class SettingsPage extends StatefulWidget {
   final ValueChanged<bool> onSortDirectionChanged;
   final VoidCallback? onSyncToggled;
   final ValueChanged<bool>? onKeepStockChanged;
+  final VoidCallback? onSettingsChanged;
 
   const SettingsPage({
     super.key,
@@ -25,6 +26,7 @@ class SettingsPage extends StatefulWidget {
     required this.onSortDirectionChanged,
     this.onSyncToggled,
     this.onKeepStockChanged,
+    this.onSettingsChanged,
   });
 
   @override
@@ -39,6 +41,9 @@ class _SettingsPageState extends State<SettingsPage> {
   String _selectedSortColumn = 'profit';
   bool _isSortAscending = false;
   bool _syncSettings = false;
+  bool _isFeeExpanded = false;
+  String _selectedFeeType = SettingsService.feeTypePercentage;
+  late TextEditingController _feeValueController;
 
   static const List<Map<String, String>> sortOptions = [
     {'key': 'profit', 'label': DevConfig.sortByProfit},
@@ -129,7 +134,30 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     _selectedCurrency = widget.currentCurrency;
+    _feeValueController = TextEditingController();
+    _feeValueController.addListener(_onFeeValueChanged);
     _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    _saveFeeValue();
+    _feeValueController.removeListener(_onFeeValueChanged);
+    _feeValueController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onFeeValueChanged() async {
+    await _saveFeeValue();
+  }
+
+  Future<void> _saveFeeValue() async {
+    final text = _feeValueController.text;
+    if (text.isEmpty) return;
+    final value = double.tryParse(text);
+    if (value == null) return;
+    await SettingsService.setDefaultFeeValue(value);
+    widget.onSettingsChanged?.call();
   }
 
   void _loadSettings() async {
@@ -137,12 +165,18 @@ class _SettingsPageState extends State<SettingsPage> {
     final sortColumn = await SettingsService.getSortColumn();
     final sortAscending = await SettingsService.getSortAscending();
     final syncSettings = await SettingsService.getSyncSettings();
+    final feeType = await SettingsService.getDefaultFeeType();
+    final feeValue = await SettingsService.getDefaultFeeValue();
     if (mounted) {
       setState(() {
         _keepStockAfterClose = keepStock;
         _selectedSortColumn = sortColumn;
         _isSortAscending = sortAscending;
         _syncSettings = syncSettings;
+        _selectedFeeType = feeType;
+        _feeValueController.text = feeValue > 0
+            ? CurrencyHelper.formatRate(feeValue)
+            : '';
       });
     }
   }
@@ -151,12 +185,14 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() => _selectedSortColumn = column);
     widget.onSortChanged(column);
     widget.onSortDirectionChanged(_isSortAscending);
+    widget.onSettingsChanged?.call();
   }
 
   void _toggleSortDirection() {
     final newAscending = !_isSortAscending;
     setState(() => _isSortAscending = newAscending);
     widget.onSortDirectionChanged(newAscending);
+    widget.onSettingsChanged?.call();
   }
 
   void _onKeepStockChanged(bool value) {
@@ -201,6 +237,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Navigator.pop(ctx);
               setState(() => _keepStockAfterClose = value);
               widget.onKeepStockChanged?.call(value);
+              widget.onSettingsChanged?.call();
             },
             child: const Text(
               DevConfig.btnClose,
@@ -215,71 +252,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void _onCurrencySelected(String currency) {
     setState(() => _selectedCurrency = currency);
     widget.onCurrencyChanged(currency);
-    SettingsService.setDefaultCurrency(currency);
-  }
-
-  void _showSyncHelp() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
-            SizedBox(width: 8),
-            Text(
-              DevConfig.syncSettingsLabel,
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHintRow(
-              Icons.tune,
-              Colors.blueAccent,
-              DevConfig.syncItemSettings,
-              DevConfig.syncHelpSettingsDesc,
-            ),
-            const SizedBox(height: 12),
-            _buildHintRow(
-              Icons.show_chart,
-              const Color(0xFF4CAF50),
-              DevConfig.syncItemStocks,
-              DevConfig.syncHelpStocksDesc,
-            ),
-            const SizedBox(height: 12),
-            _buildHintRow(
-              Icons.list_alt,
-              Colors.orangeAccent,
-              DevConfig.syncItemRecords,
-              DevConfig.syncHelpRecordsDesc,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              DevConfig.syncPrivacyNote,
-              style: TextStyle(
-                color: Colors.grey[500],
-                fontSize: 12,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              DevConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
-            ),
-          ),
-        ],
-      ),
-    );
+    widget.onSettingsChanged?.call();
   }
 
   @override
@@ -440,9 +413,234 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             _buildKeepStockTile(),
             _buildGroupDivider(),
+            _buildFeeTile(),
+            _buildGroupDivider(),
             _buildSortTile(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFeeTile() {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        initiallyExpanded: _isFeeExpanded,
+        onExpansionChanged: (expanded) =>
+            setState(() => _isFeeExpanded = expanded),
+        tilePadding: const EdgeInsets.fromLTRB(14, 0, 12, 0),
+        childrenPadding: EdgeInsets.zero,
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.teal.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.receipt_long,
+                size: 18,
+                color: Colors.teal,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Row(
+                children: [
+                  const Text(
+                    DevConfig.sectionFee,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: _showFeeHelp,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Icon(
+                        Icons.help_outline,
+                        size: 16,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        trailing: Icon(
+          _isFeeExpanded ? Icons.expand_less : Icons.expand_more,
+          size: 22,
+          color: Colors.grey[500],
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 类型选择
+                Row(
+                  children: [
+                    _buildFeeTypeChip(
+                      DevConfig.feeTypePercentage,
+                      SettingsService.feeTypePercentage,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildFeeTypeChip(
+                      DevConfig.feeTypeFixed,
+                      SettingsService.feeTypeFixed,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // 值输入（费率或固定金额）
+                AppNumberField(
+                  controller: _feeValueController,
+                  label: _selectedFeeType == SettingsService.feeTypePercentage
+                      ? DevConfig.feeValueLabel
+                      : DevConfig.feeAmountLabel,
+                  hintText:
+                      _selectedFeeType == SettingsService.feeTypePercentage
+                      ? DevConfig.feeValueHint
+                      : DevConfig.feeAmountHint,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeeTypeChip(String label, String type) {
+    final isSelected = _selectedFeeType == type;
+    return GestureDetector(
+      onTap: () async {
+        setState(() => _selectedFeeType = type);
+        await SettingsService.setDefaultFeeType(type);
+        widget.onSettingsChanged?.call();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Colors.teal.withValues(alpha: 0.2)
+              : const Color(0xFF0C1117),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected
+                ? Colors.teal.withValues(alpha: 0.5)
+                : const Color(0xFF303631),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: isSelected ? Colors.teal : Colors.grey[300],
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFeeHelp() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
+            SizedBox(width: 8),
+            Text(
+              DevConfig.feeHelpTitle,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHintRow(
+              Colors.greenAccent,
+              DevConfig.feeTypePercentage,
+              DevConfig.feeHelpRate,
+            ),
+            const SizedBox(height: 12),
+            _buildHintRow(
+              Colors.orangeAccent,
+              DevConfig.feeTypeFixed,
+              DevConfig.feeHelpFixed,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showKeepStockHint() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
+            SizedBox(width: 8),
+            Text(
+              DevConfig.keepStockLabel,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHintRow(
+              Colors.greenAccent,
+              DevConfig.keepStockOnLabel,
+              DevConfig.keepStockOnDesc,
+            ),
+            const SizedBox(height: 12),
+            _buildHintRow(
+              Colors.redAccent,
+              DevConfig.keepStockOffLabel,
+              DevConfig.keepStockOffDesc,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -505,60 +703,10 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showKeepStockHint() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
-            SizedBox(width: 8),
-            Text(
-              DevConfig.keepStockLabel,
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHintRow(
-              Icons.check_circle_outline,
-              Colors.greenAccent,
-              DevConfig.keepStockOnLabel,
-              DevConfig.keepStockOnDesc,
-            ),
-            const SizedBox(height: 12),
-            _buildHintRow(
-              Icons.cancel_outlined,
-              Colors.redAccent,
-              DevConfig.keepStockOffLabel,
-              DevConfig.keepStockOffDesc,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              DevConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHintRow(IconData icon, Color color, String label, String desc) {
+  Widget _buildHintRow(Color color, String label, String desc) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 8),
         Expanded(
           child: RichText(
             text: TextSpan(
@@ -820,12 +968,71 @@ class _SettingsPageState extends State<SettingsPage> {
               _syncSettings = v;
               SettingsService.setSyncSettings(v);
               if (v) {
-                // 开启同步：立即拉取云端数据
-                IcloudStorage.saveSettings();
                 widget.onSyncToggled?.call();
               }
             }),
             onHelp: _showSyncHelp,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSyncHelp() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
+            SizedBox(width: 8),
+            Text(
+              DevConfig.syncSettingsLabel,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHintRow(
+              Colors.blueAccent,
+              DevConfig.syncItemSettings,
+              DevConfig.syncHelpSettingsDesc,
+            ),
+            const SizedBox(height: 12),
+            _buildHintRow(
+              const Color(0xFF4CAF50),
+              DevConfig.syncItemStocks,
+              DevConfig.syncHelpStocksDesc,
+            ),
+            const SizedBox(height: 12),
+            _buildHintRow(
+              Colors.orangeAccent,
+              DevConfig.syncItemRecords,
+              DevConfig.syncHelpRecordsDesc,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              DevConfig.syncPrivacyNote,
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              DevConfig.btnClose,
+              style: TextStyle(color: Color(0xFF5B9CF6)),
+            ),
           ),
         ],
       ),

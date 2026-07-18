@@ -20,13 +20,13 @@ class StockCalculator {
     for (final record in records) {
       if (record.type == DevConfig.opBuy) {
         currentShares += record.shares;
-        totalBuyAmount += record.amount * record.shares;
+        totalBuyAmount += record.amount * record.shares + record.fee;
         buyCount++;
         if (record.amount > maxBuyPrice) maxBuyPrice = record.amount;
         if (record.amount < minBuyPrice) minBuyPrice = record.amount;
       } else if (record.type == DevConfig.opSell) {
         currentShares -= record.shares;
-        totalSellAmount += record.amount * record.shares;
+        totalSellAmount += record.amount * record.shares - record.fee;
         sellCount++;
       }
     }
@@ -59,10 +59,10 @@ class StockCalculator {
     double currentShares = 0.0;
     for (final r in records) {
       if (r.type == DevConfig.opBuy) {
-        totalBuyAmount += r.amount * r.shares;
+        totalBuyAmount += r.amount * r.shares + r.fee;
         currentShares += r.shares;
       } else if (r.type == DevConfig.opSell) {
-        totalSellAmount += r.amount * r.shares;
+        totalSellAmount += r.amount * r.shares - r.fee;
         currentShares -= r.shares;
       }
     }

@@ -3,6 +3,7 @@ import '../models/stock_model.dart';
 import '../models/stock_search_models.dart';
 import '../utils/currency_helper.dart';
 import '../utils/stock_calculator.dart';
+import '../services/settings_service.dart';
 import '../services/stock_quote_service.dart';
 import '../utils/center_toast.dart';
 import '../config/app_config.dart';
@@ -37,12 +38,17 @@ class EditStockDialog extends StatefulWidget {
 class _EditStockDialogState extends State<EditStockDialog> {
   late TextEditingController _sharesController;
   late TextEditingController _priceController;
+  late TextEditingController _feeController;
   final StockQuoteService _quoteService = StockQuoteService();
   bool _isLoadingPrice = false;
+  String _feeType = SettingsService.feeTypePercentage;
+  double _feeSettingValue = 0.0;
 
   /// 从操作记录计算买入均价
   double get _avgBuyPrice =>
       StockCalculator.calculateAvgBuyPrice(widget.operationRecords);
+
+  double? get _feeValue => double.tryParse(_feeController.text);
 
   @override
   void initState() {
@@ -50,20 +56,48 @@ class _EditStockDialogState extends State<EditStockDialog> {
     _sharesController = TextEditingController(
       text: widget.isAdd ? '' : CurrencyHelper.formatRate(widget.stock.shares),
     );
-    // 先用当前存储的价格初始化
     _priceController = TextEditingController(
       text: widget.stock.currentPrice > 0
           ? CurrencyHelper.formatRate(widget.stock.currentPrice)
           : '',
     );
-    // 尝试获取实时价格作为默认值
+    _feeController = TextEditingController();
+    _loadFeeSettings();
+    _priceController.addListener(_updateFeeFromInput);
+    _sharesController.addListener(_updateFeeFromInput);
     _fetchRealtimePrice();
+  }
+
+  void _updateFeeFromInput() {
+    if (_feeType != SettingsService.feeTypePercentage ||
+        _feeSettingValue <= 0) {
+      return;
+    }
+    final price = double.tryParse(_priceController.text);
+    final shares = double.tryParse(_sharesController.text);
+    if (price == null || shares == null || price <= 0 || shares <= 0) return;
+    final fee = price * shares * _feeSettingValue / 100;
+    _feeController.text = CurrencyHelper.formatRate(fee);
+    setState(() {});
+  }
+
+  Future<void> _loadFeeSettings() async {
+    final feeType = await SettingsService.getDefaultFeeType();
+    final feeValue = await SettingsService.getDefaultFeeValue();
+    if (!mounted) return;
+    _feeType = feeType;
+    _feeSettingValue = feeValue;
+    if (feeValue <= 0) return;
+    if (feeType == SettingsService.feeTypeFixed) {
+      _feeController.text = CurrencyHelper.formatRate(feeValue);
+      return;
+    }
+    _updateFeeFromInput();
   }
 
   Future<void> _fetchRealtimePrice() async {
     final secid = widget.stock.secid;
     if (secid == null || secid.isEmpty) return;
-    // 检查冷却期
     if (_quoteService.cooldownRemainingSeconds > 0) return;
     setState(() => _isLoadingPrice = true);
     try {
@@ -87,8 +121,11 @@ class _EditStockDialogState extends State<EditStockDialog> {
 
   @override
   void dispose() {
+    _priceController.removeListener(_updateFeeFromInput);
+    _sharesController.removeListener(_updateFeeFromInput);
     _sharesController.dispose();
     _priceController.dispose();
+    _feeController.dispose();
     super.dispose();
   }
 
@@ -204,6 +241,12 @@ class _EditStockDialogState extends State<EditStockDialog> {
                     ? DevConfig.editAddSharesHint
                     : DevConfig.editReduceSharesHint,
               ),
+              const SizedBox(height: 12),
+              AppNumberField(
+                controller: _feeController,
+                label: DevConfig.editFeeLabel,
+                hintText: DevConfig.editFeePlaceholder,
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -305,6 +348,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
                           description: description,
                           amount: newPrice,
                           shares: diffShares,
+                          fee: _feeValue ?? 0.0,
                         );
 
                         widget.onSave(updatedStock, record, isClosePosition);

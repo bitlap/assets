@@ -167,6 +167,18 @@ class IcloudStorage {
         cloud[SettingsService.keySortAscending],
       );
     }
+    if (cloud.containsKey(SettingsService.keyDefaultFeeType)) {
+      await prefs.setString(
+        SettingsService.keyDefaultFeeType,
+        cloud[SettingsService.keyDefaultFeeType],
+      );
+    }
+    if (cloud.containsKey(SettingsService.keyDefaultFeeValue)) {
+      await prefs.setDouble(
+        SettingsService.keyDefaultFeeValue,
+        (cloud[SettingsService.keyDefaultFeeValue] as num).toDouble(),
+      );
+    }
   }
 
   /// 把 SharedPreferences 上传到本地 + iCloud
@@ -186,6 +198,11 @@ class IcloudStorage {
           prefs.getString(SettingsService.keySortColumn) ?? 'profit',
       SettingsService.keySortAscending:
           prefs.getBool(SettingsService.keySortAscending) ?? false,
+      SettingsService.keyDefaultFeeType:
+          prefs.getString(SettingsService.keyDefaultFeeType) ??
+          SettingsService.feeTypeFixed,
+      SettingsService.keyDefaultFeeValue:
+          prefs.getDouble(SettingsService.keyDefaultFeeValue) ?? 0.0,
     });
   }
 
@@ -324,6 +341,7 @@ class IcloudStorage {
                     'description': r.description,
                     'amount': r.amount,
                     'shares': r.shares,
+                    'fee': r.fee,
                   },
                 )
                 .toList(),
@@ -350,6 +368,7 @@ class IcloudStorage {
               description: r['description'] as String,
               amount: (r['amount'] as num).toDouble(),
               shares: (r['shares'] as num).toDouble(),
+              fee: (r['fee'] as num?)?.toDouble() ?? 0.0,
             ),
           )
           .toList();

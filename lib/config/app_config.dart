@@ -32,7 +32,7 @@ class DevConfig {
   static const String syncItemSettings = '设置';
   static const String syncItemStocks = '持仓';
   static const String syncItemRecords = '操作';
-  static const String syncHelpSettingsDesc = '本地货币、排序方式等应用设置';
+  static const String syncHelpSettingsDesc = '本地货币、排序、手续费等设置';
   static const String syncHelpStocksDesc = '持仓股票的买入价格、持有股数等数据';
   static const String syncHelpRecordsDesc = '建仓、加仓、派息等数据';
   static const String syncPrivacyNote =
@@ -156,8 +156,10 @@ class DevConfig {
   static const String opConfirmDelete = '确认删除';
 
   // 编辑对话框 文案
-  static const String editPriceHint = '价格（由于开仓有手续费，请输入成本价）';
+  static const String editPriceHint = '成交价';
   static const String editPricePlaceholder = '请输入价格';
+  static const String editFeeLabel = '手续费（可选）';
+  static const String editFeePlaceholder = '请输入手续费';
   static const String editAddSharesLabel = '加仓股数';
   static const String editReduceSharesLabel = '减仓股数';
   static const String editAddSharesHint = '请输入加仓股数';
@@ -165,6 +167,19 @@ class DevConfig {
   static const String editInvalidInput = '请输入有效的股数和价格';
   static const String editOverflow = '减仓股数不能超过持股数';
   static const String deleteConfirmContent = '确定要删除 {symbol} ({name}) 吗?';
+  // 手续费设置 文案
+  static const String sectionFee = '交易手续费';
+  static const String feeTypeLabel = '默认手续费';
+  static const String feeTypePercentage = '按费率';
+  static const String feeTypeFixed = '固定金额';
+  static const String feeValueLabel = '费率';
+  static const String feeValueHint = '如 0.03 表示 0.03%';
+  static const String feeAmountLabel = '金额';
+  static const String feeAmountHint = '每笔固定手续费';
+  static const String feeHelpTitle = '手续费说明';
+  static const String feeHelpDesc = '设置在加仓/减仓时自动填入的手续费默认值，可手动修改';
+  static const String feeHelpRate = '成交金额 × 费率';
+  static const String feeHelpFixed = '每笔交易固定的手续费';
 
   // 派息对话框 文案
   static const String dividendTitle = '派息';

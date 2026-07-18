@@ -785,6 +785,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
           onSortDirectionChanged: _onSortDirectionChanged,
           onSyncToggled: _flushToCloud,
           onKeepStockChanged: _onKeepStockChanged,
+          onSettingsChanged: () => IcloudStorage.saveSettings(),
         ),
       ),
     ).then((_) {
