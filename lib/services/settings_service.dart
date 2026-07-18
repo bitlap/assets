@@ -56,8 +56,6 @@ class SettingsService {
     await prefs.setBool(keySortAscending, ascending);
   }
 
-  // iCloud 同步开关
-
   /// 总同步开关：开启后持仓和操作记录一起同步，关闭则不同步
   static Future<bool> getSyncSettings() async {
     final prefs = await SharedPreferences.getInstance();
