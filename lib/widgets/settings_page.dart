@@ -87,8 +87,18 @@ class _SettingsPageState extends State<SettingsPage> {
   ];
 
   static const List<_OpenSourceLib> _dataSources = [
-    _OpenSourceLib('东方财富 API', '东方财富', '—', DevConfig.dataSourceDescEastMoney),
-    _OpenSourceLib('腾讯股票行情', '腾讯', '—', DevConfig.dataSourceDescTencent),
+    _OpenSourceLib(
+      DevConfig.dataSourceNameEastMoney,
+      DevConfig.dataSourceAuthorEastMoney,
+      '—',
+      DevConfig.dataSourceDescEastMoney,
+    ),
+    _OpenSourceLib(
+      DevConfig.dataSourceNameTencent,
+      DevConfig.dataSourceAuthorTencent,
+      '—',
+      DevConfig.dataSourceDescTencent,
+    ),
     _OpenSourceLib(
       'ExchangeRate-API',
       'exchangerate-api.com',

@@ -107,15 +107,16 @@ class StockSearchService {
           secid = '$marketId.$rawCode';
           break;
         default:
-          if (exchange.contains('纳斯达克') ||
-              exchange.contains('纽约') ||
-              exchange.contains('美国') ||
+          if (exchange.contains(DevConfig.exchangeNasdaq) ||
+              exchange.contains(DevConfig.exchangeNewYork) ||
+              exchange.contains(DevConfig.exchangeAmerica) ||
               exchange.contains('NYSE') ||
               exchange.contains('NASDAQ') ||
               exchange.contains('ARCA')) {
             market = DevConfig.searchMarketUS;
             secid = '105.$rawCode';
-          } else if (exchange.contains('港股') || exchange.contains('香港')) {
+          } else if (exchange.contains(DevConfig.exchangeHK) ||
+              exchange.contains(DevConfig.exchangeHongKong)) {
             market = DevConfig.searchMarketHK;
             secid = '116.$rawCode';
           }

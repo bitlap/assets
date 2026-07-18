@@ -248,6 +248,19 @@ class DevConfig {
   static const String dataSourceDescTencent = '实时股价 / 涨跌幅';
   static const String dataSourceDescExchangeRate = '实时汇率数据';
 
+  // 数据来源显示名称
+  static const String dataSourceNameEastMoney = '东方财富 API';
+  static const String dataSourceAuthorEastMoney = '东方财富';
+  static const String dataSourceNameTencent = '腾讯股票行情';
+  static const String dataSourceAuthorTencent = '腾讯';
+
+  // 交易所中文关键词（用于接口返回的 exchange 字段匹配）
+  static const String exchangeNasdaq = '纳斯达克';
+  static const String exchangeNewYork = '纽约';
+  static const String exchangeAmerica = '美国';
+  static const String exchangeHK = '港股';
+  static const String exchangeHongKong = '香港';
+
   // 公式 文案
   static const String formulaDialogSubtitle = '资产卡片中各数据的计算公式';
 
