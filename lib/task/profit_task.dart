@@ -81,8 +81,9 @@ Future<String> _readCurrency() async {
     final file = File('${dir.path}/settings.json');
     if (await file.exists()) {
       final json = jsonDecode(await file.readAsString());
-      return json[SettingsService.keyDefaultCurrency] as String? ?? 'CNY';
+      return json[SettingsService.keyDefaultCurrency] as String? ??
+          DevConfig.defaultCurrency;
     }
   } catch (_) {}
-  return 'CNY';
+  return DevConfig.defaultCurrency;
 }

@@ -6,6 +6,11 @@ class DevConfig {
   static const String appName = '股票持仓';
   static String appVersion = '1.0.0';
 
+  // 默认币种和语言
+  static const String defaultCurrency = 'CNY';
+  static const String defaultLocaleLanguage = 'zh';
+  static const String defaultLocaleCountry = 'CN';
+
   // UI 布局
   static const double dialogWidthRatio = 0.75;
 

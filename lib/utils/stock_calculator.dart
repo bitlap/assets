@@ -75,7 +75,7 @@ class StockCalculator {
     List<StockModel> stocks,
     Map<String, List<OperationRecord>> operationRecords, [
     Map<String, List<DividendRecord>>? dividendRecords,
-    String targetCurrency = 'CNY',
+    String targetCurrency = DevConfig.defaultCurrency,
   ]) {
     double totalMarketValue = 0.0;
     double unrealizedPL = 0.0;

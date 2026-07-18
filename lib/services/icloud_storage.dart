@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/app_config.dart';
 import '../models/stock_model.dart';
 import 'settings_service.dart';
 
@@ -177,7 +178,8 @@ class IcloudStorage {
     final prefs = await SharedPreferences.getInstance();
     await pushSettingsToCloud({
       SettingsService.keyDefaultCurrency:
-          prefs.getString(SettingsService.keyDefaultCurrency) ?? 'CNY',
+          prefs.getString(SettingsService.keyDefaultCurrency) ??
+          DevConfig.defaultCurrency,
       SettingsService.keyKeepStockAfterClose:
           prefs.getBool(SettingsService.keyKeepStockAfterClose) ?? false,
       SettingsService.keySortColumn:

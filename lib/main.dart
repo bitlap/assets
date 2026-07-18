@@ -57,7 +57,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: DevConfig.appName,
       debugShowCheckedModeBanner: false,
-      locale: const Locale('zh', 'CN'),
+      locale: const Locale(
+        DevConfig.defaultLocaleLanguage,
+        DevConfig.defaultLocaleCountry,
+      ),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -97,7 +100,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     with WidgetsBindingObserver {
   // 状态
   List<StockModel> stocks = [];
-  String selectedCurrency = 'CNY';
+  String selectedCurrency = DevConfig.defaultCurrency;
   String? _expandedStockSymbol;
   // 每只股票的操作记录
   final Map<String, List<OperationRecord>> _operationRecords = {};
