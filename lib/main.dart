@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'models/stock_model.dart';
 import 'models/stock_search_models.dart';
@@ -25,6 +26,8 @@ import 'services/icloud_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LogoCacher.ensureInit();
+  final info = await PackageInfo.fromPlatform();
+  DevConfig.appVersion = info.version;
   runApp(const MyApp());
 }
 

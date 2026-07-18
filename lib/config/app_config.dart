@@ -4,7 +4,7 @@ class DevConfig {
 
   // 应用信息
   static const String appName = '股票持仓';
-  static const String appVersion = '1.0.1';
+  static String appVersion = '1.0.0';
 
   // UI 布局
   static const double dialogWidthRatio = 0.75;
@@ -25,11 +25,11 @@ class DevConfig {
   static const String keepStockLabel = '平仓后保留持仓';
   static const String syncSettingsLabel = 'iCloud 同步';
   static const String syncItemSettings = '设置';
-  static const String syncItemStocks = '股票持仓';
-  static const String syncItemRecords = '操作记录';
-  static const String syncHelpSettingsDesc = '默认货币、排序方式等应用设置';
-  static const String syncHelpStocksDesc = '持仓股票、买入价格、股数等数据';
-  static const String syncHelpRecordsDesc = '加仓、减仓、平仓等操作记录';
+  static const String syncItemStocks = '持仓';
+  static const String syncItemRecords = '操作';
+  static const String syncHelpSettingsDesc = '本地货币、排序方式等应用设置';
+  static const String syncHelpStocksDesc = '持仓股票的买入价格、持有股数等数据';
+  static const String syncHelpRecordsDesc = '建仓、加仓、派息等数据';
   static const String syncPrivacyNote =
       '如果不开启同步，数据仅存在本地，无法跨 Apple 设备使用（为保证用户隐私，本 APP 不会存储任何用户数据）';
   static const String keepStockOnLabel = '开启后';
