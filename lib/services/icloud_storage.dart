@@ -433,9 +433,13 @@ class IcloudStorage {
 
   // 收益快照 - 天粒度（历史）
   static Future<List<ProfitSnapshot>> loadDailyProfitHistory() async {
+    await _migrateOldProfitData();
     await ensureInit();
     await _syncFromCloud(_dailyProfitFile);
     final data = await _readJson(_dailyProfitFile);
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][快照] 加载天级: ${data.length} 条',
+    );
     return data.map((e) => ProfitSnapshot.fromJson(e)).toList();
   }
 
@@ -443,6 +447,9 @@ class IcloudStorage {
     List<ProfitSnapshot> snapshots,
   ) async {
     await ensureInit();
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][快照] 保存天级: ${snapshots.length} 条',
+    );
     final data = snapshots.map((e) => e.toJson()).toList();
     await _writeJson(_dailyProfitFile, data);
     unawaited(_syncToCloud(_dailyProfitFile));
@@ -450,9 +457,13 @@ class IcloudStorage {
 
   // 收益快照 - 10分钟粒度（仅当天）
   static Future<List<ProfitSnapshot>> loadIntradayProfitHistory() async {
+    await _migrateOldProfitData();
     await ensureInit();
     await _syncFromCloud(_intradayProfitFile);
     final data = await _readJson(_intradayProfitFile);
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][快照] 加载10分钟: ${data.length} 条',
+    );
     return data.map((e) => ProfitSnapshot.fromJson(e)).toList();
   }
 
@@ -465,16 +476,6 @@ class IcloudStorage {
     unawaited(_syncToCloud(_intradayProfitFile));
   }
 
-  /// 向后兼容：合并天 + 10分钟数据
-  static Future<List<ProfitSnapshot>> loadProfitHistory() async {
-    await _migrateOldProfitData();
-    final daily = await loadDailyProfitHistory();
-    final intraday = await loadIntradayProfitHistory();
-    final combined = [...daily, ...intraday];
-    combined.sort((a, b) => a.time.compareTo(b.time));
-    return combined;
-  }
-
   /// 迁移旧的 profit_history.json 到双文件
   static Future<void> _migrateOldProfitData() async {
     final file = File(_localFilePath(_profitHistoryFile));
@@ -482,6 +483,11 @@ class IcloudStorage {
 
     await ensureInit();
     final data = await _readJson(_profitHistoryFile);
+
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][迁移] 发现旧文件，共 ${data.length} 条记录',
+    );
+
     if (data.isEmpty) {
       await file.delete();
       return;
@@ -516,6 +522,10 @@ class IcloudStorage {
     await saveIntradayProfitHistory(intraday);
 
     await file.delete();
+
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][迁移] 完成: 天级 ${daily.length} 条, 当日 ${intraday.length} 条',
+    );
   }
 
   /// 强制同步收益快照到 iCloud
@@ -533,14 +543,18 @@ class IcloudStorage {
     var daily = await loadDailyProfitHistory();
     var intraday = await loadIntradayProfitHistory();
 
+    debugPrint(
+      '[${now.toString().substring(11, 19)}][快照] 记录 profit=$totalProfit, 天级=${daily.length}, 10分钟=${intraday.length}',
+    );
+
     // 检查是否跨天：将昨天最后一条转存为天级
     if (intraday.isNotEmpty) {
       final last = intraday.last;
-      if (DateTime(
-        last.time.year,
-        last.time.month,
-        last.time.day,
-      ).isBefore(today)) {
+      final lastDay = DateTime(last.time.year, last.time.month, last.time.day);
+      if (lastDay.isBefore(today)) {
+        debugPrint(
+          '[${now.toString().substring(11, 19)}][快照] 跨天: 最后一条 ${last.time.toString().substring(0, 19)} → 转存为天级',
+        );
         daily.add(
           ProfitSnapshot(time: last.time, totalProfit: last.totalProfit),
         );
@@ -556,11 +570,18 @@ class IcloudStorage {
       final last = intraday.last;
       if (last.totalProfit == totalProfit &&
           now.difference(last.time).inMinutes < 10) {
+        debugPrint(
+          '[${now.toString().substring(11, 19)}][快照] 跳过: 相同值 $totalProfit，距上次 ${now.difference(last.time).inMinutes} 分钟',
+        );
         return;
       }
     }
 
     intraday.add(ProfitSnapshot(time: now, totalProfit: totalProfit));
     await saveIntradayProfitHistory(intraday);
+
+    debugPrint(
+      '[${now.toString().substring(11, 19)}][快照] 已保存: 10分钟=${intraday.length} 条',
+    );
   }
 }
