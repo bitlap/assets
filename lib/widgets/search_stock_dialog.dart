@@ -873,7 +873,8 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: const Color(0xFF303631)),
           ),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -996,6 +997,7 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
                 ],
               ),
             ],
+            ),
           ),
         ),
       ),

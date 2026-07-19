@@ -50,7 +50,7 @@ class IcloudStorage {
   static String _localFilePath(String name) => '$_localPath/$name';
 
   /// 保存股票和记录到本地
-  static Future<void> pushStocksToCloud(
+  static Future<void> saveStocks(
     List<StockModel> stocks,
     Map<String, List<OperationRecord>>? records,
     Map<String, List<DividendRecord>>? dividendRecords,
@@ -86,7 +86,7 @@ class IcloudStorage {
       Map<String, List<DividendRecord>> dividendRecords,
     )
   >
-  pullStocksFromCloud() async {
+  loadStocks() async {
     await ensureInit();
     // 先尝试从 iCloud 拉取更新
     await _syncFromCloud(_stocksFile);
@@ -476,17 +476,38 @@ class IcloudStorage {
     unawaited(_syncToCloud(_intradayProfitFile));
   }
 
-  /// 迁移旧的 profit_history.json 到双文件
+  /// 迁移旧的 profit_history.json 到双文件（只执行一次）
   static Future<void> _migrateOldProfitData() async {
+    // 新文件已存在，跳过迁移
+    if (await File(_localFilePath(_dailyProfitFile)).exists() &&
+        await File(_localFilePath(_intradayProfitFile)).exists()) {
+      return;
+    }
+
     final file = File(_localFilePath(_profitHistoryFile));
-    if (!await file.exists()) return;
+    if (!await file.exists()) {
+      // 本地没有旧文件时尝试从云端拉取
+      await ensureInit();
+      if (_cloudPath != null) {
+        final cloudFile = File('$_cloudPath/$_profitHistoryFile');
+        try {
+          if (await cloudFile.exists()) {
+            await cloudFile.copy(file.path);
+            debugPrint(
+              '[${DateTime.now().toString().substring(11, 19)}][迁移] 从云端拉取旧文件',
+            );
+          }
+        } catch (e) {
+          debugPrint(
+            '[${DateTime.now().toString().substring(11, 19)}][迁移] 拉取失败: $e',
+          );
+        }
+      }
+      if (!await file.exists()) return;
+    }
 
     await ensureInit();
     final data = await _readJson(_profitHistoryFile);
-
-    debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][迁移] 发现旧文件，共 ${data.length} 条记录',
-    );
 
     if (data.isEmpty) {
       await file.delete();
@@ -521,8 +542,19 @@ class IcloudStorage {
     intraday.sort((a, b) => a.time.compareTo(b.time));
     await saveIntradayProfitHistory(intraday);
 
-    await file.delete();
-
+    // 删除本地旧文件，避免重复迁移
+    try {
+      if (await file.exists()) {
+        await file.delete();
+      }
+      // 同步删除云端旧文件
+      if (_cloudPath != null) {
+        final cloudFile = File('$_cloudPath/$_profitHistoryFile');
+        if (await cloudFile.exists()) {
+          await cloudFile.delete();
+        }
+      }
+    } catch (_) {}
     debugPrint(
       '[${DateTime.now().toString().substring(11, 19)}][迁移] 完成: 天级 ${daily.length} 条, 当日 ${intraday.length} 条',
     );

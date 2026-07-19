@@ -14,7 +14,7 @@ import '../utils/stock_calculator.dart';
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
-      final data = await IcloudStorage.pullStocksFromCloud();
+      final data = await IcloudStorage.loadStocks();
       final stocks = data.$1;
       final records = data.$2;
       final dividendRecords = data.$3;
@@ -60,8 +60,6 @@ void callbackDispatcher() {
         dividendRecords,
         currency,
       );
-      // 保存更新后的股价到本地
-      await IcloudStorage.pushStocksToCloud(stocks, records, dividendRecords);
       await IcloudStorage.recordProfitIfNeeded(summary.totalProfit);
       debugPrint(
         '[${DateTime.now().toString().substring(11, 19)}][WorkManager] 后台任务执行成功 totalProfit: ${summary.totalProfit}',

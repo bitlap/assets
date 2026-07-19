@@ -54,7 +54,7 @@ class LogoCacher {
     if (!_downloading.contains(key)) {
       _downloading.add(key);
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][Logo] 📥 开始下载: $code -> $logoUrl',
+        '[${DateTime.now().toString().substring(11, 19)}][Logo] 开始下载: $code -> $logoUrl',
       );
       await _downloadToCache(key, logoUrl);
     } else {

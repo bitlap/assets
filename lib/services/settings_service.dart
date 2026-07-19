@@ -20,10 +20,10 @@ class SettingsService {
     await prefs.setString(keyDefaultCurrency, currency);
   }
 
-  /// 读取平仓后是否保留持仓股票，默认 false（删除）
+  /// 读取平仓后是否保留持仓股票，默认 true（保留）
   static Future<bool> getKeepStockAfterClose() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(keyKeepStockAfterClose) ?? false;
+    return prefs.getBool(keyKeepStockAfterClose) ?? true;
   }
 
   /// 保存平仓后是否保留持仓股票
@@ -90,7 +90,7 @@ class SettingsService {
   /// 总同步开关：开启后持仓和操作记录一起同步，关闭则不同步
   static Future<bool> getSyncSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(keySyncSettings) ?? false;
+    return prefs.getBool(keySyncSettings) ?? true;
   }
 
   static Future<void> setSyncSettings(bool value) async {

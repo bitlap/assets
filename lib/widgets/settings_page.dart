@@ -40,7 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _keepStockAfterClose = true;
   String _selectedSortColumn = 'profit';
   bool _isSortAscending = false;
-  bool _syncSettings = false;
+  bool _syncSettings = true;
   bool _isFeeExpanded = false;
   String _selectedFeeType = SettingsService.feeTypePercentage;
   late TextEditingController _feeValueController;

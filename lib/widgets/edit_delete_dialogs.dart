@@ -143,7 +143,8 @@ class _EditStockDialogState extends State<EditStockDialog> {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: const Color(0xFF303631)),
           ),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -387,6 +388,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
                 ],
               ),
             ],
+            ),
           ),
         ),
       ),
@@ -518,14 +520,15 @@ class MoreOptionsDialog extends StatelessWidget {
                     onDelete();
                   },
                 ),
-              ],
-            ),
+            ],
           ),
+        ),
         ),
       ),
     );
   }
 }
+
 
 /// 派息对话框
 class DividendDialog extends StatefulWidget {

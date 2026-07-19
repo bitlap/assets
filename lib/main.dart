@@ -180,7 +180,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
 
   /// 从本地加载股票和记录，并尝试从 iCloud 拉取最新
   Future<void> _syncStockData() async {
-    final data = await IcloudStorage.pullStocksFromCloud();
+    final data = await IcloudStorage.loadStocks();
     if (!mounted) return;
     setState(() {
       stocks = data.$1;
@@ -210,7 +210,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     _syncTimer?.cancel();
     if (!_dataDirty) return;
     await Future.wait([
-      IcloudStorage.pushStocksToCloud(
+      IcloudStorage.saveStocks(
         stocks,
         _operationRecords,
         _dividendRecords,
@@ -302,7 +302,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     final quotes = stocks.isEmpty
         ? <String, StockQuote?>{}
         : await _fetchQuotesWithoutRebuild();
-    final data = await IcloudStorage.pullStocksFromCloud();
+    final data = await IcloudStorage.loadStocks();
     if (!mounted) return;
 
     // 先记录收益快照，再 setState 让 chart 能读到最新数据
@@ -772,6 +772,15 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     _markDirty();
   }
 
+  /// 同步开关被切换
+  Future<void> _onSyncToggled() async {
+    if (stocks.isNotEmpty) {
+      if (_dataDirty) await _flushToCloud();
+    } else {
+      await _syncStockData();
+    }
+  }
+
   /// 打开全屏设置页面
   void _showSettingsPage() {
     _collapseExpandedStock();
@@ -783,7 +792,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
           onCurrencyChanged: _onCurrencyChanged,
           onSortChanged: _onSortChanged,
           onSortDirectionChanged: _onSortDirectionChanged,
-          onSyncToggled: _flushToCloud,
+          onSyncToggled: _onSyncToggled,
           onKeepStockChanged: _onKeepStockChanged,
           onSettingsChanged: () => IcloudStorage.saveSettings(),
         ),
@@ -801,6 +810,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFF0C1117),
       body: SafeArea(
         child: Stack(
