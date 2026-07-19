@@ -249,7 +249,6 @@ class IcloudStorage {
   static Future<List<ProfitSnapshot>> loadDailyProfitHistory({
     String targetCurrency = DevConfig.defaultCurrency,
   }) async {
-    await _migrateOldProfitData();
     await ensureInit();
     await _syncFromCloud(dailyProfitFile);
     final data = await readJson(_localPath!, dailyProfitFile);
@@ -290,7 +289,6 @@ class IcloudStorage {
   static Future<List<ProfitSnapshot>> loadIntradayProfitHistory({
     String targetCurrency = DevConfig.defaultCurrency,
   }) async {
-    await _migrateOldProfitData();
     await ensureInit();
     await _syncFromCloud(intradayProfitFile);
     final data = await readJson(_localPath!, intradayProfitFile);
@@ -324,90 +322,6 @@ class IcloudStorage {
     unawaited(_syncToCloud(intradayProfitFile));
   }
 
-  /// 迁移旧的 profit_history.json 到双文件（只执行一次）
-  static Future<void> _migrateOldProfitData() async {
-    // 新文件已存在，跳过迁移
-    if (await File(localFilePath(_localPath!, dailyProfitFile)).exists() &&
-        await File(localFilePath(_localPath!, intradayProfitFile)).exists()) {
-      return;
-    }
-
-    final file = File(localFilePath(_localPath!, profitHistoryFile));
-    if (!await file.exists()) {
-      // 本地没有旧文件时尝试从云端拉取
-      await ensureInit();
-      if (_cloudPath != null) {
-        final cloudFile = File('$_cloudPath/$profitHistoryFile');
-        try {
-          if (await cloudFile.exists()) {
-            await cloudFile.copy(file.path);
-            debugPrint(
-              '[${DateTime.now().toString().substring(11, 19)}][迁移] 从云端拉取旧文件',
-            );
-          }
-        } catch (e) {
-          debugPrint(
-            '[${DateTime.now().toString().substring(11, 19)}][迁移] 拉取失败: $e',
-          );
-        }
-      }
-      if (!await file.exists()) return;
-    }
-
-    await ensureInit();
-    final data = await readJson(_localPath!, profitHistoryFile);
-
-    if (data.isEmpty) {
-      await file.delete();
-      return;
-    }
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final all = data.map((e) => ProfitSnapshot.fromJson(e)).toList();
-    final daily = <ProfitSnapshot>[];
-    final intraday = <ProfitSnapshot>[];
-
-    // 按天分组，取每天最后一条
-    final Map<String, ProfitSnapshot> lastPerDay = {};
-    for (final s in all) {
-      final day = DateTime(s.time.year, s.time.month, s.time.day);
-      if (day == today) {
-        intraday.add(s);
-        continue;
-      }
-      final key = day.toIso8601String();
-      final existing = lastPerDay[key];
-      if (existing == null || s.time.isAfter(existing.time)) {
-        lastPerDay[key] = s;
-      }
-    }
-    daily.addAll(lastPerDay.values);
-    daily.sort((a, b) => a.time.compareTo(b.time));
-    daily.removeWhere((s) => now.difference(s.time).inDays > 365);
-
-    await saveDailyProfitHistory(daily);
-    intraday.sort((a, b) => a.time.compareTo(b.time));
-    await saveIntradayProfitHistory(intraday);
-
-    // 删除本地旧文件，避免重复迁移
-    try {
-      if (await file.exists()) {
-        await file.delete();
-      }
-      // 同步删除云端旧文件
-      if (_cloudPath != null) {
-        final cloudFile = File('$_cloudPath/$profitHistoryFile');
-        if (await cloudFile.exists()) {
-          await cloudFile.delete();
-        }
-      }
-    } catch (_) {}
-    debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][迁移] 完成: 天级 ${daily.length} 条, 当日 ${intraday.length} 条',
-    );
-  }
-
   // 资产持久化
   static Future<List<AssetBase>> loadAssets() async {
     await ensureInit();
@@ -433,7 +347,6 @@ class IcloudStorage {
     double totalProfit,
     String sourceCurrency,
   ) async {
-    await _migrateOldProfitData();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
