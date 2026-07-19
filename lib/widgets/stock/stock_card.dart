@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/stock_model.dart';
-import '../config/app_config.dart';
-import '../utils/currency_helper.dart';
-import '../utils/stock_calculator.dart';
-import '../utils/logo_cacher.dart';
+import '../../models/stock_model.dart';
+import '../../config/app_config.dart';
+import '../../utils/currency_helper.dart';
+import '../../utils/stock_calculator.dart';
+import '../../utils/logo_cacher.dart';
 
 /// 股票卡片组件（纯UI展示）
 class StockCard extends StatelessWidget {
@@ -31,7 +31,7 @@ class StockCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF0C1117),
+        color: const Color(0xFF1A1F26),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isExpanded ? Colors.blue : const Color(0xFF303631),
@@ -243,50 +243,57 @@ class StockCard extends StatelessWidget {
     final changeColor = stock.changePercent >= 0
         ? const Color(0xFFFF5252)
         : const Color(0xFF4CAF50);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            '${CurrencyHelper.formatRate(stock.shares)}${DevConfig.stockSharesSuffix}',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              height: 1.2,
+    return Align(
+      alignment: Alignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${CurrencyHelper.formatRate(stock.shares)}${DevConfig.stockSharesSuffix}',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                height: 1.2,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 4),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${CurrencyHelper.formatRate(stock.currentPrice)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  height: 1.2,
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${CurrencyHelper.formatRate(stock.currentPrice)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    height: 1.2,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${stock.changePercent >= 0 ? '+' : '-'}${stock.changePercent.abs().toStringAsFixed(2)}%',
-                style: TextStyle(fontSize: 10, color: changeColor, height: 1.2),
-              ),
-              const SizedBox(width: 14), // 与表头排序指示器对齐
-            ],
+                const SizedBox(width: 4),
+                Text(
+                  '${stock.changePercent >= 0 ? '+' : '-'}${stock.changePercent.abs().toStringAsFixed(2)}%',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: changeColor,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(width: 14),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -368,20 +375,20 @@ class StockCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: const Color(0xFF1A1F26),
-          border: Border.all(color: const Color(0xFF303631)),
+          color: const Color(0xFF252B33),
+          border: Border.all(color: const Color(0xFF404540)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.more_horiz, size: 14, color: Colors.grey[400]),
+            Icon(Icons.more_horiz, size: 14, color: Colors.white),
             const SizedBox(width: 4),
             Text(
               DevConfig.stockMore,
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: Colors.white70,
+                color: Colors.white,
               ),
             ),
           ],

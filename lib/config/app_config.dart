@@ -3,7 +3,7 @@ class DevConfig {
   DevConfig._();
 
   // 应用信息
-  static const String appName = '股票持仓';
+  static const String appName = '股票';
   static String appVersion = '1.0.0';
 
   // 默认币种和语言
@@ -96,7 +96,7 @@ class DevConfig {
   static const String toastClipboardSuffix = '已复制到剪贴板';
 
   // 首页 文案
-  static const String homeTitle = '股票持仓';
+  static const String homeTitle = '股票';
   static const String homeSubtitle = '共 {count} 只 · 实时更新';
   static const String homeEmptyTitle = '暂无股票持仓';
   static const String homeEmptySubtitle = '点击右上角 + 添加股票开始投资';
@@ -110,7 +110,7 @@ class DevConfig {
   static const String assetComingSoon = '资产页面正在开发中';
   static const String assetComingSoonDesc = '敬请期待';
 
-  // AssetCard 文案
+  // StockSummaryCard 文案
   static const String assetTotalAssets = '总资产';
   static const String assetTotalCost = '持仓总市值';
   static const String assetTotalProfit = '总盈亏';

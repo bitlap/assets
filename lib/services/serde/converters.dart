@@ -1,4 +1,5 @@
 import '../../models/stock_model.dart';
+import '../../models/asset_account.dart';
 
 List<Map<String, dynamic>> stocksToJson(List<StockModel> stocks) {
   return stocks
@@ -119,6 +120,14 @@ List<Map<String, dynamic>> dividendRecordsToJson(
         },
       )
       .toList();
+}
+
+List<Map<String, dynamic>> assetsToJson(List<AssetBase> assets) {
+  return assets.map((a) => a.toJson()).toList();
+}
+
+List<AssetBase> assetsFromJson(List<Map<String, dynamic>> json) {
+  return json.map((j) => AssetBase.fromJson(j)).toList();
 }
 
 Map<String, List<DividendRecord>> dividendRecordsFromJson(

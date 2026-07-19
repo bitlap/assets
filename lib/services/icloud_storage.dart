@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../models/stock_model.dart';
+import '../models/asset_account.dart';
 import 'serde/serde.dart';
 import 'settings_service.dart';
 
@@ -370,6 +371,20 @@ class IcloudStorage {
     debugPrint(
       '[${DateTime.now().toString().substring(11, 19)}][迁移] 完成: 天级 ${daily.length} 条, 当日 ${intraday.length} 条',
     );
+  }
+
+  // 资产持久化
+  static Future<List<AssetBase>> loadAssets() async {
+    await ensureInit();
+    await _syncFromCloud(assetsFile);
+    final data = await readJson(_localPath!, assetsFile);
+    return assetsFromJson(data);
+  }
+
+  static Future<void> saveAssets(List<AssetBase> assets) async {
+    await ensureInit();
+    await writeJson(_localPath!, assetsFile, assetsToJson(assets));
+    unawaited(_syncToCloud(assetsFile));
   }
 
   /// 强制同步收益快照到 iCloud

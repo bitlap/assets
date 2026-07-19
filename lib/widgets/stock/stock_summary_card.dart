@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../config/app_config.dart';
-import '../utils/currency_helper.dart';
-import 'common/profit_chart.dart';
-import 'common/dialog_utils.dart';
+import '../../config/app_config.dart';
+import '../../utils/currency_helper.dart';
+import '../common/profit_chart.dart';
+import '../common/dialog_utils.dart';
+import '../common/currency_selector.dart';
 
-/// 资产总额卡片组件（纯UI展示）
-class AssetCard extends StatefulWidget {
+/// 股票持仓汇总卡片组件（纯UI展示）
+class StockSummaryCard extends StatefulWidget {
   final String selectedCurrency;
   final double totalAssets;
   final double totalMarketValue;
@@ -18,7 +19,7 @@ class AssetCard extends StatefulWidget {
   final ValueChanged<String> onCurrencyChanged;
   final VoidCallback? onCollapse;
 
-  const AssetCard({
+  const StockSummaryCard({
     super.key,
     required this.selectedCurrency,
     required this.totalAssets,
@@ -34,179 +35,17 @@ class AssetCard extends StatefulWidget {
   });
 
   @override
-  State<AssetCard> createState() => _AssetCardState();
+  State<StockSummaryCard> createState() => _StockSummaryCardState();
 }
 
-class _AssetCardState extends State<AssetCard> {
-  final GlobalKey _dropdownKey = GlobalKey();
-  bool _isDropdownOpen = false;
-  OverlayEntry? _overlayEntry;
-
+class _StockSummaryCardState extends State<StockSummaryCard> {
   void _toggleDropdown() {
-    widget.onCollapse?.call();
-    if (_isDropdownOpen) {
-      _closeDropdown();
-    } else {
-      _openDropdown();
-    }
-  }
-
-  void _openDropdown() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final dropdownWidth = screenWidth * 2 / 3;
-
-    setState(() => _isDropdownOpen = true);
-
-    _overlayEntry = OverlayEntry(
-      builder: (context) => Stack(
-        children: [
-          // 半透明遮罩，点击关闭
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: _closeDropdown,
-              child: Container(color: Colors.black.withOpacity(0.4)),
-            ),
-          ),
-          // 居中浮动窗口
-          Center(
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                width: dropdownWidth,
-                constraints: BoxConstraints(maxHeight: screenHeight * 0.6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1F26),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF303631)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.6),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 标题栏
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-                      child: Row(
-                        children: [
-                          const Text(
-                            DevConfig.assetSelectCurrency,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: _closeDropdown,
-                            child: Icon(
-                              Icons.close,
-                              size: 18,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Divider(height: 1, color: Colors.grey[800]),
-                    // 货币列表
-                    Flexible(
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        shrinkWrap: true,
-                        children: CurrencyHelper.exchangeRates.keys.map((
-                          currency,
-                        ) {
-                          final isSelected =
-                              currency == widget.selectedCurrency;
-                          final rate = CurrencyHelper.exchangeRates[currency]!;
-                          final symbol = CurrencyHelper.getSymbol(currency);
-                          return InkWell(
-                            onTap: () {
-                              widget.onCurrencyChanged(currency);
-                              _closeDropdown();
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 12,
-                              ),
-                              color: isSelected
-                                  ? Colors.blue.withOpacity(0.15)
-                                  : Colors.transparent,
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 16,
-                                    child: isSelected
-                                        ? const Icon(
-                                            Icons.check,
-                                            size: 16,
-                                            color: Color(0xFF5B9CF6),
-                                          )
-                                        : null,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      currency,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: isSelected
-                                            ? const Color(0xFF5B9CF6)
-                                            : Colors.white,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w600
-                                            : FontWeight.normal,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '$symbol ${CurrencyHelper.formatRate(rate)}',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: isSelected
-                                          ? const Color(0xFF5B9CF6)
-                                          : Colors.grey[500],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+    CurrencySelector.show(
+      context: context,
+      selectedCurrency: widget.selectedCurrency,
+      onCurrencyChanged: widget.onCurrencyChanged,
+      onOpen: widget.onCollapse,
     );
-
-    Overlay.of(context).insert(_overlayEntry!);
-  }
-
-  void _closeDropdown() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-    if (mounted) setState(() => _isDropdownOpen = false);
-  }
-
-  @override
-  void dispose() {
-    _overlayEntry?.remove();
-    super.dispose();
   }
 
   @override
@@ -295,7 +134,6 @@ class _AssetCardState extends State<AssetCard> {
 
   Widget _buildCurrencyButton() {
     return GestureDetector(
-      key: _dropdownKey,
       onTap: _toggleDropdown,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -316,14 +154,10 @@ class _AssetCardState extends State<AssetCard> {
               ),
             ),
             const SizedBox(width: 2),
-            AnimatedRotation(
-              turns: _isDropdownOpen ? 0.5 : 0,
-              duration: const Duration(milliseconds: 150),
-              child: const Icon(
-                Icons.keyboard_arrow_down,
-                size: 16,
-                color: Colors.white,
-              ),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              size: 16,
+              color: Colors.white,
             ),
           ],
         ),

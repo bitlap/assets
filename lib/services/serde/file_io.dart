@@ -9,6 +9,7 @@ const String profitHistoryFile = 'profit_history.json';
 const String dailyProfitFile = 'profit_history_daily.json';
 const String intradayProfitFile = 'profit_history_intraday.json';
 const String settingsFile = 'settings.json';
+const String assetsFile = 'assets.json';
 
 String localFilePath(String localPath, String name) => '$localPath/$name';
 

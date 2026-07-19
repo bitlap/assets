@@ -1,18 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-import '../models/stock_model.dart';
-import '../models/stock_search_models.dart';
-import '../services/settings_service.dart';
-import '../services/stock_search_service.dart';
-import '../services/stock_quote_service.dart';
-import '../utils/center_toast.dart';
-import '../utils/currency_helper.dart';
-import '../utils/logo_cacher.dart';
-import '../config/app_config.dart';
-import 'common/app_number_field.dart';
-import 'common/info_row_widget.dart';
-import 'common/dialog_utils.dart';
+import '../../models/stock_model.dart';
+import '../../models/stock_search_models.dart';
+import '../../services/settings_service.dart';
+import '../../services/stock_search_service.dart';
+import '../../services/stock_quote_service.dart';
+import '../../utils/center_toast.dart';
+import '../../utils/currency_helper.dart';
+import '../../utils/logo_cacher.dart';
+import '../../config/app_config.dart';
+import '../common/app_number_field.dart';
+import '../common/info_row_widget.dart';
+import '../common/dialog_utils.dart';
 
 /// 股票搜索弹窗 - 支持按名称/代码搜索港股、美股
 class SearchStockDialog extends StatefulWidget {

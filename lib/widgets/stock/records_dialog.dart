@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/stock_model.dart';
-import '../utils/currency_helper.dart';
-import '../config/app_config.dart';
-import 'common/empty_state_widget.dart';
-import 'common/confirm_delete_dialog.dart';
-import 'common/app_number_field.dart';
-import 'common/dialog_utils.dart';
+import '../../models/stock_model.dart';
+import '../../utils/currency_helper.dart';
+import '../../config/app_config.dart';
+import '../common/empty_state_widget.dart';
+import '../common/confirm_delete_dialog.dart';
+import '../common/app_number_field.dart';
+import '../common/dialog_utils.dart';
 
 /// 记录弹窗（底部弹出，支持下拉关闭）
 class RecordsDialog extends StatefulWidget {
