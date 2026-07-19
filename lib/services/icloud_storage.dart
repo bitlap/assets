@@ -16,6 +16,8 @@ class IcloudStorage {
   static const _recordsFile = 'records.json';
   static const _dividendRecordsFile = 'dividend_records.json';
   static const _profitHistoryFile = 'profit_history.json';
+  static const _dailyProfitFile = 'profit_history_daily.json';
+  static const _intradayProfitFile = 'profit_history_intraday.json';
   static const _settingsFile = 'settings.json';
 
   static String? _cloudPath;
@@ -429,48 +431,136 @@ class IcloudStorage {
     return map;
   }
 
-  // 收益快照
-  static Future<List<ProfitSnapshot>> loadProfitHistory() async {
+  // 收益快照 - 天粒度（历史）
+  static Future<List<ProfitSnapshot>> loadDailyProfitHistory() async {
     await ensureInit();
-    await _syncFromCloud(_profitHistoryFile);
-    final data = await _readJson(_profitHistoryFile);
-    debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][本地] 加载收益快照成功: ${data.length} 条',
-    );
+    await _syncFromCloud(_dailyProfitFile);
+    final data = await _readJson(_dailyProfitFile);
     return data.map((e) => ProfitSnapshot.fromJson(e)).toList();
   }
 
-  static Future<void> saveProfitHistory(List<ProfitSnapshot> snapshots) async {
+  static Future<void> saveDailyProfitHistory(
+    List<ProfitSnapshot> snapshots,
+  ) async {
     await ensureInit();
-    debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][本地] 保存收益快照: ${snapshots.length} 条',
-    );
     final data = snapshots.map((e) => e.toJson()).toList();
-    await _writeJson(_profitHistoryFile, data);
-    unawaited(_syncToCloud(_profitHistoryFile));
+    await _writeJson(_dailyProfitFile, data);
+    unawaited(_syncToCloud(_dailyProfitFile));
   }
 
-  /// 强制将本地收益快照同步到 iCloud（后台任务写入后，切回前台时调用）
+  // 收益快照 - 10分钟粒度（仅当天）
+  static Future<List<ProfitSnapshot>> loadIntradayProfitHistory() async {
+    await ensureInit();
+    await _syncFromCloud(_intradayProfitFile);
+    final data = await _readJson(_intradayProfitFile);
+    return data.map((e) => ProfitSnapshot.fromJson(e)).toList();
+  }
+
+  static Future<void> saveIntradayProfitHistory(
+    List<ProfitSnapshot> snapshots,
+  ) async {
+    await ensureInit();
+    final data = snapshots.map((e) => e.toJson()).toList();
+    await _writeJson(_intradayProfitFile, data);
+    unawaited(_syncToCloud(_intradayProfitFile));
+  }
+
+  /// 向后兼容：合并天 + 10分钟数据
+  static Future<List<ProfitSnapshot>> loadProfitHistory() async {
+    await _migrateOldProfitData();
+    final daily = await loadDailyProfitHistory();
+    final intraday = await loadIntradayProfitHistory();
+    final combined = [...daily, ...intraday];
+    combined.sort((a, b) => a.time.compareTo(b.time));
+    return combined;
+  }
+
+  /// 迁移旧的 profit_history.json 到双文件
+  static Future<void> _migrateOldProfitData() async {
+    final file = File(_localFilePath(_profitHistoryFile));
+    if (!await file.exists()) return;
+
+    await ensureInit();
+    final data = await _readJson(_profitHistoryFile);
+    if (data.isEmpty) {
+      await file.delete();
+      return;
+    }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final all = data.map((e) => ProfitSnapshot.fromJson(e)).toList();
+    final daily = <ProfitSnapshot>[];
+    final intraday = <ProfitSnapshot>[];
+
+    // 按天分组，取每天最后一条
+    final Map<String, ProfitSnapshot> lastPerDay = {};
+    for (final s in all) {
+      final day = DateTime(s.time.year, s.time.month, s.time.day);
+      if (day == today) {
+        intraday.add(s);
+        continue;
+      }
+      final key = day.toIso8601String();
+      final existing = lastPerDay[key];
+      if (existing == null || s.time.isAfter(existing.time)) {
+        lastPerDay[key] = s;
+      }
+    }
+    daily.addAll(lastPerDay.values);
+    daily.sort((a, b) => a.time.compareTo(b.time));
+    daily.removeWhere((s) => now.difference(s.time).inDays > 365);
+
+    await saveDailyProfitHistory(daily);
+    intraday.sort((a, b) => a.time.compareTo(b.time));
+    await saveIntradayProfitHistory(intraday);
+
+    await file.delete();
+  }
+
+  /// 强制同步收益快照到 iCloud
   static Future<void> syncProfitToCloud() async {
     await ensureInit();
-    unawaited(_syncToCloud(_profitHistoryFile));
+    unawaited(_syncToCloud(_dailyProfitFile));
+    unawaited(_syncToCloud(_intradayProfitFile));
   }
 
   static Future<void> recordProfitIfNeeded(double totalProfit) async {
+    await _migrateOldProfitData();
     final now = DateTime.now();
-    final snapshots = await loadProfitHistory();
+    final today = DateTime(now.year, now.month, now.day);
 
-    if (snapshots.isNotEmpty) {
-      final last = snapshots.last;
+    var daily = await loadDailyProfitHistory();
+    var intraday = await loadIntradayProfitHistory();
+
+    // 检查是否跨天：将昨天最后一条转存为天级
+    if (intraday.isNotEmpty) {
+      final last = intraday.last;
+      if (DateTime(
+        last.time.year,
+        last.time.month,
+        last.time.day,
+      ).isBefore(today)) {
+        daily.add(
+          ProfitSnapshot(time: last.time, totalProfit: last.totalProfit),
+        );
+        daily.sort((a, b) => a.time.compareTo(b.time));
+        daily.removeWhere((s) => now.difference(s.time).inDays > 365);
+        await saveDailyProfitHistory(daily);
+        intraday.clear();
+      }
+    }
+
+    // 去重：相同值且10分钟内不重复记录
+    if (intraday.isNotEmpty) {
+      final last = intraday.last;
       if (last.totalProfit == totalProfit &&
           now.difference(last.time).inMinutes < 10) {
         return;
       }
     }
 
-    snapshots.add(ProfitSnapshot(time: now, totalProfit: totalProfit));
-    snapshots.sort((a, b) => a.time.compareTo(b.time));
-    snapshots.removeWhere((s) => now.difference(s.time).inDays > 365);
-    await saveProfitHistory(snapshots);
+    intraday.add(ProfitSnapshot(time: now, totalProfit: totalProfit));
+    await saveIntradayProfitHistory(intraday);
   }
 }

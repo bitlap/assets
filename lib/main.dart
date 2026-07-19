@@ -35,7 +35,7 @@ void main() async {
   await Workmanager().registerPeriodicTask(
     'profit-snapshot',
     'profitSnapshot',
-    frequency: const Duration(minutes: 30),
+    frequency: const Duration(minutes: 10),
     constraints: Constraints(
       networkType: NetworkType.connected,
       requiresBatteryNotLow: false, // Don't run when battery is low

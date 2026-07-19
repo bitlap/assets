@@ -20,6 +20,8 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
   int _selectedRange = 0;
   int? _selectedIndex;
   List<ProfitSnapshot> _snapshots = [];
+  List<ProfitSnapshot> _dailySnapshots = [];
+  List<ProfitSnapshot> _intradaySnapshots = [];
 
   static const List<_RangeOption> _rangeOptions = [
     _RangeOption(DevConfig.profitRangeToday, 0),
@@ -42,8 +44,31 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
   }
 
   Future<void> _loadSnapshots() async {
-    final snapshots = await IcloudStorage.loadProfitHistory();
-    if (mounted) setState(() => _snapshots = snapshots);
+    final daily = await IcloudStorage.loadDailyProfitHistory();
+    final intraday = await IcloudStorage.loadIntradayProfitHistory();
+    if (!mounted) return;
+    _dailySnapshots = daily;
+    _intradaySnapshots = intraday;
+    _applyRange();
+  }
+
+  void _applyRange() {
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+
+    if (_selectedRange == 0) {
+      _snapshots = _intradaySnapshots
+          .where((s) => !s.time.isBefore(todayDate))
+          .toList();
+    } else {
+      final cutoff = todayDate.subtract(
+        Duration(days: [0, 7, 30, 180, 360][_selectedRange]),
+      );
+      _snapshots = _dailySnapshots
+          .where((s) => s.time.isAfter(cutoff))
+          .toList();
+    }
+    _snapshots.sort((a, b) => a.time.compareTo(b.time));
   }
 
   @override
@@ -99,6 +124,7 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
             onTap: () => setState(() {
               _selectedRange = option.index;
               _selectedIndex = null;
+              _applyRange();
             }),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -127,46 +153,8 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
     );
   }
 
-  List<ProfitSnapshot> _filteredSnapshots() {
-    final today = DateTime.now();
-    final todayDate = DateTime(today.year, today.month, today.day);
-    DateTime cutoff;
-
-    switch (_selectedRange) {
-      case 0:
-        cutoff = todayDate;
-      case 1:
-        cutoff = todayDate.subtract(const Duration(days: 7));
-      case 2:
-        cutoff = todayDate.subtract(const Duration(days: 30));
-      case 3:
-        cutoff = todayDate.subtract(const Duration(days: 180));
-      case 4:
-        cutoff = todayDate.subtract(const Duration(days: 360));
-      default:
-        cutoff = todayDate.subtract(const Duration(days: 7));
-    }
-
-    var filtered = _snapshots.where((s) => s.time.isAfter(cutoff)).toList();
-
-    final Map<String, ProfitSnapshot> best = {};
-    for (final s in filtered) {
-      final key = _selectedRange == 0
-          ? '${s.time.year}-${s.time.month}-${s.time.day}-${s.time.hour}-${(s.time.minute / 10).floor()}'
-          : '${s.time.year}-${s.time.month}-${s.time.day}';
-      final existing = best[key];
-      if (existing == null || s.time.isAfter(existing.time)) {
-        best[key] = s;
-      }
-    }
-    filtered = best.values.toList();
-
-    filtered.sort((a, b) => a.time.compareTo(b.time));
-    return filtered;
-  }
-
   Widget _buildChart() {
-    final data = _filteredSnapshots();
+    final data = _snapshots;
     if (data.isEmpty) {
       return Container(
         height: 200,

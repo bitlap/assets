@@ -24,7 +24,7 @@ import workmanager_apple
           WorkmanagerPlugin.handlePeriodicTask(
             identifier: "profit-snapshot",
             task: task,
-            earliestBeginInSeconds: 30 * 60
+            earliestBeginInSeconds: 10 * 60
           )
         }
       }
