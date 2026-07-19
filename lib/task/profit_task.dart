@@ -60,9 +60,9 @@ void callbackDispatcher() {
         dividendRecords,
         currency,
       );
-      await IcloudStorage.recordProfitIfNeeded(summary.totalProfit);
+      await IcloudStorage.recordProfitIfNeeded(summary.totalProfit, currency);
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][WorkManager] 后台任务执行成功 totalProfit: ${summary.totalProfit}',
+        '[${DateTime.now().toString().substring(11, 19)}][WorkManager] 后台任务执行成功 totalProfit: ${summary.totalProfit} ($currency)',
       );
     } catch (e) {
       debugPrint(

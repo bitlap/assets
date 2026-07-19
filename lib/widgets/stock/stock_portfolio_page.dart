@@ -165,7 +165,9 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
         state == AppLifecycleState.inactive) {
       _isForeground = false;
       if (_dataDirty) _flushToCloud();
-      unawaited(IcloudStorage.recordProfitIfNeeded(totalProfit));
+      unawaited(
+        IcloudStorage.recordProfitIfNeeded(totalProfit, selectedCurrency),
+      );
     } else if (state == AppLifecycleState.resumed) {
       _isForeground = true;
       unawaited(_onResumed());
@@ -173,7 +175,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   }
 
   Future<void> _onResumed() async {
-    await IcloudStorage.recordProfitIfNeeded(totalProfit);
+    await IcloudStorage.recordProfitIfNeeded(totalProfit, selectedCurrency);
     unawaited(IcloudStorage.syncProfitToCloud());
     if (mounted) await _syncStockData();
   }
@@ -231,7 +233,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
     if (!mounted) return;
 
     // 先记录收益快照，再 setState 让 chart 能读到最新数据
-    await IcloudStorage.recordProfitIfNeeded(totalProfit);
+    await IcloudStorage.recordProfitIfNeeded(totalProfit, selectedCurrency);
 
     if (!mounted) return;
 

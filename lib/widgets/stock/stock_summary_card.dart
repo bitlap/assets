@@ -126,7 +126,10 @@ class _StockSummaryCardState extends State<StockSummaryCard> {
             ),
           ),
           const SizedBox(height: 6),
-          ProfitChartWidget(totalProfit: widget.totalProfit),
+          ProfitChartWidget(
+            totalProfit: widget.totalProfit,
+            targetCurrency: widget.selectedCurrency,
+          ),
         ],
       ),
     );

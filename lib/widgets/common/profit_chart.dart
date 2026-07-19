@@ -8,8 +8,13 @@ import '../../utils/currency_helper.dart';
 
 class ProfitChartWidget extends StatefulWidget {
   final double totalProfit;
+  final String targetCurrency;
 
-  const ProfitChartWidget({super.key, required this.totalProfit});
+  const ProfitChartWidget({
+    super.key,
+    required this.totalProfit,
+    required this.targetCurrency,
+  });
 
   @override
   State<ProfitChartWidget> createState() => _ProfitChartWidgetState();
@@ -44,14 +49,18 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
   }
 
   Future<void> _loadSnapshots() async {
-    final daily = await IcloudStorage.loadDailyProfitHistory();
-    final intraday = await IcloudStorage.loadIntradayProfitHistory();
+    final daily = await IcloudStorage.loadDailyProfitHistory(
+      targetCurrency: widget.targetCurrency,
+    );
+    final intraday = await IcloudStorage.loadIntradayProfitHistory(
+      targetCurrency: widget.targetCurrency,
+    );
     if (!mounted) return;
     _dailySnapshots = daily;
     _intradaySnapshots = intraday;
     _applyRange();
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][图表] 加载: 天级=${daily.length}, 10分钟=${intraday.length}, 展示=${_snapshots.length}',
+      '[${DateTime.now().toString().substring(11, 19)}][图表] 加载: 天级=${daily.length}, 10分钟=${intraday.length}, 展示=${_snapshots.length}, 货币=${widget.targetCurrency}',
     );
   }
 

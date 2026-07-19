@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../models/stock_model.dart';
 import '../models/asset_account.dart';
+import '../utils/currency_helper.dart';
 import 'serde/serde.dart';
 import 'settings_service.dart';
 
@@ -245,15 +246,32 @@ class IcloudStorage {
   }
 
   // 收益快照 - 天粒度（历史）
-  static Future<List<ProfitSnapshot>> loadDailyProfitHistory() async {
+  static Future<List<ProfitSnapshot>> loadDailyProfitHistory({
+    String targetCurrency = DevConfig.defaultCurrency,
+  }) async {
     await _migrateOldProfitData();
     await ensureInit();
     await _syncFromCloud(dailyProfitFile);
     final data = await readJson(_localPath!, dailyProfitFile);
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][快照] 加载天级: ${data.length} 条',
+      '[${DateTime.now().toString().substring(11, 19)}][快照] 加载天级: ${data.length} 条, 目标货币: $targetCurrency',
     );
-    return data.map((e) => ProfitSnapshot.fromJson(e)).toList();
+    final snapshots = data.map((e) => ProfitSnapshot.fromJson(e)).toList();
+    if (targetCurrency != DevConfig.defaultCurrency) {
+      return snapshots
+          .map(
+            (s) => ProfitSnapshot(
+              time: s.time,
+              totalProfit: CurrencyHelper.convertCurrency(
+                s.totalProfit,
+                DevConfig.defaultCurrency,
+                targetCurrency,
+              ),
+            ),
+          )
+          .toList();
+    }
+    return snapshots;
   }
 
   static Future<void> saveDailyProfitHistory(
@@ -269,15 +287,32 @@ class IcloudStorage {
   }
 
   // 收益快照 - 10分钟粒度（仅当天）
-  static Future<List<ProfitSnapshot>> loadIntradayProfitHistory() async {
+  static Future<List<ProfitSnapshot>> loadIntradayProfitHistory({
+    String targetCurrency = DevConfig.defaultCurrency,
+  }) async {
     await _migrateOldProfitData();
     await ensureInit();
     await _syncFromCloud(intradayProfitFile);
     final data = await readJson(_localPath!, intradayProfitFile);
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][快照] 加载10分钟: ${data.length} 条',
+      '[${DateTime.now().toString().substring(11, 19)}][快照] 加载10分钟: ${data.length} 条, 目标货币: $targetCurrency',
     );
-    return data.map((e) => ProfitSnapshot.fromJson(e)).toList();
+    final snapshots = data.map((e) => ProfitSnapshot.fromJson(e)).toList();
+    if (targetCurrency != DevConfig.defaultCurrency) {
+      return snapshots
+          .map(
+            (s) => ProfitSnapshot(
+              time: s.time,
+              totalProfit: CurrencyHelper.convertCurrency(
+                s.totalProfit,
+                DevConfig.defaultCurrency,
+                targetCurrency,
+              ),
+            ),
+          )
+          .toList();
+    }
+    return snapshots;
   }
 
   static Future<void> saveIntradayProfitHistory(
@@ -394,16 +429,30 @@ class IcloudStorage {
     unawaited(_syncToCloud(intradayProfitFile));
   }
 
-  static Future<void> recordProfitIfNeeded(double totalProfit) async {
+  static Future<void> recordProfitIfNeeded(
+    double totalProfit,
+    String sourceCurrency,
+  ) async {
     await _migrateOldProfitData();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    var daily = await loadDailyProfitHistory();
-    var intraday = await loadIntradayProfitHistory();
+    // 转换为 defaultCurrency 存储
+    final profitInDefaultCurrency = CurrencyHelper.convertCurrency(
+      totalProfit,
+      sourceCurrency,
+      DevConfig.defaultCurrency,
+    );
+
+    var daily = await loadDailyProfitHistory(
+      targetCurrency: DevConfig.defaultCurrency,
+    );
+    var intraday = await loadIntradayProfitHistory(
+      targetCurrency: DevConfig.defaultCurrency,
+    );
 
     debugPrint(
-      '[${now.toString().substring(11, 19)}][快照] 记录 profit=$totalProfit, 天级=${daily.length}, 10分钟=${intraday.length}',
+      '[${now.toString().substring(11, 19)}][快照] 记录 profit=$totalProfit ($sourceCurrency) → ${profitInDefaultCurrency.toStringAsFixed(2)} (${DevConfig.defaultCurrency}), 天级=${daily.length}, 10分钟=${intraday.length}',
     );
 
     // 检查是否跨天：将昨天最后一条转存为天级
@@ -427,16 +476,18 @@ class IcloudStorage {
     // 去重：相同值且10分钟内不重复记录
     if (intraday.isNotEmpty) {
       final last = intraday.last;
-      if (last.totalProfit == totalProfit &&
+      if (last.totalProfit == profitInDefaultCurrency &&
           now.difference(last.time).inMinutes < 10) {
         debugPrint(
-          '[${now.toString().substring(11, 19)}][快照] 跳过: 相同值 $totalProfit，距上次 ${now.difference(last.time).inMinutes} 分钟',
+          '[${now.toString().substring(11, 19)}][快照] 跳过: 相同值 $profitInDefaultCurrency，距上次 ${now.difference(last.time).inMinutes} 分钟',
         );
         return;
       }
     }
 
-    intraday.add(ProfitSnapshot(time: now, totalProfit: totalProfit));
+    intraday.add(
+      ProfitSnapshot(time: now, totalProfit: profitInDefaultCurrency),
+    );
     await saveIntradayProfitHistory(intraday);
 
     debugPrint(
