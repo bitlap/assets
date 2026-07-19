@@ -210,11 +210,7 @@ class _StockPortfolioPageState extends State<StockPortfolioPage>
     _syncTimer?.cancel();
     if (!_dataDirty) return;
     await Future.wait([
-      IcloudStorage.saveStocks(
-        stocks,
-        _operationRecords,
-        _dividendRecords,
-      ),
+      IcloudStorage.saveStocks(stocks, _operationRecords, _dividendRecords),
       IcloudStorage.saveSettings(),
     ]);
     _dataDirty = false;

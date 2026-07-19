@@ -189,9 +189,9 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
               builder: (context, constraints) {
                 return GestureDetector(
                   onTapDown: (details) =>
-                      _onTapDown(details, constraints, data),
+                      _onTapDownAt(details.localPosition.dx, constraints, data),
                   onHorizontalDragUpdate: (details) =>
-                      _onTapDown(details, constraints, data),
+                      _onTapDownAt(details.localPosition.dx, constraints, data),
                   child: CustomPaint(
                     size: Size(constraints.maxWidth, constraints.maxHeight),
                     painter: _ProfitChartPainter(
@@ -210,13 +210,12 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
     );
   }
 
-  void _onTapDown(
-    dynamic details,
+  void _onTapDownAt(
+    double localX,
     BoxConstraints constraints,
     List<ProfitSnapshot> data,
   ) {
     if (data.isEmpty) return;
-    final localX = details.localPosition.dx;
     final count = data.length;
     final index = (localX / constraints.maxWidth * (count - 1)).round().clamp(
       0,
@@ -254,7 +253,7 @@ class _ProfitChartPainter extends CustomPainter {
     final paintHeight = size.height;
     final minVal = data.reduce((a, b) => a < b ? a : b);
     final maxVal = data.reduce((a, b) => a > b ? a : b);
-    final color = isPositive ? Colors.red : Colors.green;
+    final color = Colors.amber;
 
     double scaleY(double val) {
       if (minVal == maxVal) return paintHeight / 2;
@@ -359,16 +358,21 @@ class _ProfitChartPainter extends CustomPainter {
       final selY = scaleY(data[selectedIndex!]);
       final selSnapshot = snapshots[selectedIndex!];
 
-      // dashed vertical line
+      // dashed vertical line from top to bottom of chart container
       final dashPaint = Paint()
-        ..color = Colors.white.withOpacity(0.35)
-        ..strokeWidth = 1
+        ..color = Colors.white.withOpacity(0.5)
+        ..strokeWidth = 1.5
         ..style = PaintingStyle.stroke;
-      const dashLen = 4.0;
+      const dashLen = 5.0;
       const gapLen = 3.0;
-      double dashY = 0;
-      while (dashY < paintHeight) {
-        final endY = (dashY + dashLen).clamp(0.0, paintHeight);
+      const topInset = 16.0;
+      const bottomInset = 20.0;
+      double dashY = -topInset;
+      while (dashY < paintHeight + bottomInset) {
+        final endY = (dashY + dashLen).clamp(
+          -topInset,
+          paintHeight + bottomInset,
+        );
         canvas.drawLine(Offset(selX, dashY), Offset(selX, endY), dashPaint);
         dashY += dashLen + gapLen;
       }
@@ -438,16 +442,6 @@ class _ProfitChartPainter extends CustomPainter {
           ..strokeWidth = 0.5,
       );
       dateTp.paint(canvas, Offset(dateLabelX + 5, dateLabelY + 3));
-
-      // value line from top of chart to the dot
-      canvas.drawLine(
-        Offset(selX, 0),
-        Offset(selX, selY),
-        Paint()
-          ..color = color.withOpacity(0.3)
-          ..strokeWidth = 1
-          ..style = PaintingStyle.stroke,
-      );
     }
   }
 

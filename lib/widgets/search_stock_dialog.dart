@@ -12,6 +12,7 @@ import '../utils/logo_cacher.dart';
 import '../config/app_config.dart';
 import 'common/app_number_field.dart';
 import 'common/info_row_widget.dart';
+import 'common/dialog_utils.dart';
 
 /// 股票搜索弹窗 - 支持按名称/代码搜索港股、美股
 class SearchStockDialog extends StatefulWidget {
@@ -861,145 +862,83 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: const Color(0xFF0C1117),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * DevConfig.dialogWidthRatio,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF303631)),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Text(
-                  DevConfig.searchAddTitle.replaceAll(
-                    '{code}',
-                    widget.stockCode,
-                  ),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+    return dialogFrame(
+      context: context,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                DevConfig.searchAddTitle.replaceAll('{code}', widget.stockCode),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 16),
-              // 股票信息
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF161B22),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF303631)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InfoRowWidget(
-                      label: DevConfig.searchStockName,
-                      value: widget.stockName,
-                    ),
-                    const SizedBox(height: 8),
-                    InfoRowWidget(
-                      label: DevConfig.searchMarket,
-                      value: widget.market,
-                    ),
-                    if (widget.defaultPrice > 0) ...[
-                      const SizedBox(height: 8),
-                      InfoRowWidget(
-                        label: DevConfig.searchRealtimePrice,
-                        value: CurrencyHelper.formatRate(widget.defaultPrice),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // 买入价格
-              AppNumberField(
-                controller: _priceController,
-                label: DevConfig.searchBuyPrice,
-                hintText: DevConfig.searchBuyPriceHint,
-              ),
-              const SizedBox(height: 12),
-              // 持股数量
-              AppNumberField(
-                controller: _sharesController,
-                label: DevConfig.searchShares,
-                hintText: DevConfig.searchSharesHint,
-              ),
-              const SizedBox(height: 12),
-              // 手续费
-              AppNumberField(
-                controller: _feeController,
-                label: DevConfig.editFeeLabel,
-                hintText: DevConfig.editFeePlaceholder,
-              ),
-              const SizedBox(height: 20),
-              // 按钮
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFF303631)),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            DevConfig.btnCancel,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: _onConfirm,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
-                          ),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            DevConfig.btnConfirmAdd,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
             ),
-          ),
+            const SizedBox(height: 16),
+            _buildInfoSection(),
+            const SizedBox(height: 16),
+            AppNumberField(
+              controller: _priceController,
+              label: DevConfig.searchBuyPrice,
+              hintText: DevConfig.searchBuyPriceHint,
+            ),
+            const SizedBox(height: 12),
+            AppNumberField(
+              controller: _sharesController,
+              label: DevConfig.searchShares,
+              hintText: DevConfig.searchSharesHint,
+            ),
+            const SizedBox(height: 12),
+            AppNumberField(
+              controller: _feeController,
+              label: DevConfig.editFeeLabel,
+              hintText: DevConfig.editFeePlaceholder,
+            ),
+            const SizedBox(height: 20),
+            actionButtonRow(
+              onCancel: () => Navigator.pop(context),
+              onConfirm: _onConfirm,
+              confirmText: DevConfig.btnConfirmAdd,
+              confirmGradient: const LinearGradient(
+                colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoSection() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161B22),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF303631)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRowWidget(
+            label: DevConfig.searchStockName,
+            value: widget.stockName,
+          ),
+          const SizedBox(height: 8),
+          InfoRowWidget(label: DevConfig.searchMarket, value: widget.market),
+          if (widget.defaultPrice > 0) ...[
+            const SizedBox(height: 8),
+            InfoRowWidget(
+              label: DevConfig.searchRealtimePrice,
+              value: CurrencyHelper.formatRate(widget.defaultPrice),
+            ),
+          ],
+        ],
       ),
     );
   }

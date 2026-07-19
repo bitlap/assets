@@ -7,6 +7,7 @@ import '../services/settings_service.dart';
 import '../config/app_config.dart';
 import 'common/app_number_field.dart';
 import 'common/settings_expansion_card.dart';
+import 'common/dialog_utils.dart';
 
 /// 全屏设置页面
 class SettingsPage extends StatefulWidget {
@@ -554,45 +555,26 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showFeeHelp() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
-            SizedBox(width: 8),
-            Text(
-              DevConfig.feeHelpTitle,
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHintRow(
-              Colors.greenAccent,
-              DevConfig.feeTypePercentage,
-              DevConfig.feeHelpRate,
-            ),
-            const SizedBox(height: 12),
-            _buildHintRow(
-              Colors.orangeAccent,
-              DevConfig.feeTypeFixed,
-              DevConfig.feeHelpFixed,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              DevConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
-            ),
+    InfoDialog.show(
+      context,
+      title: const DialogInfoTitle(
+        icon: Icons.info_outline,
+        title: DevConfig.feeHelpTitle,
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const HintRow(
+            color: Colors.greenAccent,
+            label: DevConfig.feeTypePercentage,
+            desc: DevConfig.feeHelpRate,
+          ),
+          const SizedBox(height: 12),
+          const HintRow(
+            color: Colors.orangeAccent,
+            label: DevConfig.feeTypeFixed,
+            desc: DevConfig.feeHelpFixed,
           ),
         ],
       ),
@@ -600,45 +582,26 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showKeepStockHint() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
-            SizedBox(width: 8),
-            Text(
-              DevConfig.keepStockLabel,
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHintRow(
-              Colors.greenAccent,
-              DevConfig.keepStockOnLabel,
-              DevConfig.keepStockOnDesc,
-            ),
-            const SizedBox(height: 12),
-            _buildHintRow(
-              Colors.redAccent,
-              DevConfig.keepStockOffLabel,
-              DevConfig.keepStockOffDesc,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              DevConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
-            ),
+    InfoDialog.show(
+      context,
+      title: const DialogInfoTitle(
+        icon: Icons.info_outline,
+        title: DevConfig.keepStockLabel,
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const HintRow(
+            color: Colors.greenAccent,
+            label: DevConfig.keepStockOnLabel,
+            desc: DevConfig.keepStockOnDesc,
+          ),
+          const SizedBox(height: 12),
+          const HintRow(
+            color: Colors.redAccent,
+            label: DevConfig.keepStockOffLabel,
+            desc: DevConfig.keepStockOffDesc,
           ),
         ],
       ),
@@ -700,38 +663,6 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildHintRow(Color color, String label, String desc) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: '$label：',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                TextSpan(
-                  text: desc,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[400],
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -979,59 +910,40 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showSyncHelp() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
-            SizedBox(width: 8),
-            Text(
-              DevConfig.syncSettingsLabel,
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHintRow(
-              Colors.blueAccent,
-              DevConfig.syncItemSettings,
-              DevConfig.syncHelpSettingsDesc,
-            ),
-            const SizedBox(height: 12),
-            _buildHintRow(
-              const Color(0xFF4CAF50),
-              DevConfig.syncItemStocks,
-              DevConfig.syncHelpStocksDesc,
-            ),
-            const SizedBox(height: 12),
-            _buildHintRow(
-              Colors.orangeAccent,
-              DevConfig.syncItemRecords,
-              DevConfig.syncHelpRecordsDesc,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              DevConfig.syncPrivacyNote,
-              style: TextStyle(
-                color: Colors.grey[500],
-                fontSize: 12,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              DevConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
+    InfoDialog.show(
+      context,
+      title: const DialogInfoTitle(
+        icon: Icons.info_outline,
+        title: DevConfig.syncSettingsLabel,
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const HintRow(
+            color: Colors.blueAccent,
+            label: DevConfig.syncItemSettings,
+            desc: DevConfig.syncHelpSettingsDesc,
+          ),
+          const SizedBox(height: 12),
+          const HintRow(
+            color: Color(0xFF4CAF50),
+            label: DevConfig.syncItemStocks,
+            desc: DevConfig.syncHelpStocksDesc,
+          ),
+          const SizedBox(height: 12),
+          const HintRow(
+            color: Colors.orangeAccent,
+            label: DevConfig.syncItemRecords,
+            desc: DevConfig.syncHelpRecordsDesc,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            DevConfig.syncPrivacyNote,
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 12,
+              height: 1.5,
             ),
           ),
         ],

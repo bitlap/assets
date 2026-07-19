@@ -10,6 +10,7 @@ import '../config/app_config.dart';
 import 'common/app_number_field.dart';
 import 'common/info_row_widget.dart';
 import 'common/confirm_delete_dialog.dart';
+import 'common/dialog_utils.dart';
 
 /// 加仓/减仓对话框
 class EditStockDialog extends StatefulWidget {
@@ -131,266 +132,189 @@ class _EditStockDialogState extends State<EditStockDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: const Color(0xFF0C1117),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * DevConfig.dialogWidthRatio,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF303631)),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Text(
-                  widget.isAdd
-                      ? DevConfig.opAddPosition
-                      : DevConfig.opReducePosition,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+    return dialogFrame(
+      context: context,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                widget.isAdd
+                    ? DevConfig.opAddPosition
+                    : DevConfig.opReducePosition,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF161B22),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF303631)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InfoRowWidget(
-                      label: DevConfig.searchStockCode,
-                      value: widget.stock.symbol,
-                    ),
-                    const SizedBox(height: 8),
-                    InfoRowWidget(
-                      label: DevConfig.searchStockName,
-                      value: widget.stock.companyName,
-                    ),
-                    const SizedBox(height: 8),
-                    InfoRowWidget(
-                      label: DevConfig.searchRealtimePrice,
-                      value:
-                          '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(widget.stock.currentPrice)}',
-                    ),
-                    const SizedBox(height: 8),
-                    InfoRowWidget(
-                      label: DevConfig.searchShares,
-                      value:
-                          '${CurrencyHelper.formatRate(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
-                    ),
-                    if (_avgBuyPrice > 0) ...[
-                      const SizedBox(height: 8),
-                      InfoRowWidget(
-                        label: DevConfig.stockDetailAvgPrice,
-                        value:
-                            '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(_avgBuyPrice)}',
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // 价格输入
-              Row(
-                children: [
-                  const Text(
-                    DevConfig.editPriceHint,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                      height: 1.2,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (_isLoadingPrice)
-                    const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.blue,
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              AppNumberField(
-                controller: _priceController,
-                hintText: DevConfig.editPricePlaceholder,
-              ),
-              const SizedBox(height: 12),
-              AppNumberField(
-                controller: _sharesController,
-                label: widget.isAdd
-                    ? DevConfig.editAddSharesLabel
-                    : DevConfig.editReduceSharesLabel,
-                hintText: widget.isAdd
-                    ? DevConfig.editAddSharesHint
-                    : DevConfig.editReduceSharesHint,
-              ),
-              const SizedBox(height: 12),
-              AppNumberField(
-                controller: _feeController,
-                label: DevConfig.editFeeLabel,
-                hintText: DevConfig.editFeePlaceholder,
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFF303631)),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            DevConfig.btnCancel,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        final diffShares = double.tryParse(
-                          _sharesController.text,
-                        );
-                        final newPrice = double.tryParse(_priceController.text);
-                        if (diffShares == null ||
-                            diffShares <= 0 ||
-                            newPrice == null ||
-                            newPrice <= 0) {
-                          CenterToast.error(
-                            context,
-                            DevConfig.editInvalidInput,
-                          );
-                          return;
-                        }
-
-                        final oldShares = widget.stock.shares;
-
-                        // 减仓时检查股数是否足够
-                        if (!widget.isAdd && diffShares > oldShares) {
-                          CenterToast.error(context, DevConfig.editOverflow);
-                          return;
-                        }
-
-                        // 计算新总股数
-                        final newShares = widget.isAdd
-                            ? oldShares + diffShares
-                            : oldShares - diffShares;
-
-                        // 判断是否为平仓操作（减仓且数量等于持仓）
-                        final bool isClosePosition =
-                            !widget.isAdd && diffShares == oldShares;
-
-                        // 计算盈亏：基于买入均价
-                        final double avgBuyPrice = _avgBuyPrice;
-                        final double profitLoss = avgBuyPrice > 0
-                            ? (newPrice - avgBuyPrice) * newShares
-                            : 0.0;
-
-                        // 更新股票
-                        final updatedStock = widget.stock.copyWith(
-                          shares: newShares,
-                          // 不更新 currentPrice，保持实时价格
-                          totalValue:
-                              widget.stock.currentPrice *
-                              newShares, // 使用实时价格计算总金额
-                          profitLossAmount: profitLoss,
-                        );
-
-                        // 创建操作记录
-                        String recordType, description;
-                        if (isClosePosition) {
-                          recordType = DevConfig.opSell;
-                          description =
-                              '${DevConfig.opClosePosition} ${widget.stock.symbol}';
-                        } else if (widget.operationRecords.isEmpty) {
-                          recordType = DevConfig.opBuy;
-                          description =
-                              '${DevConfig.opOpenPosition} ${widget.stock.symbol}';
-                        } else {
-                          recordType = widget.isAdd
-                              ? DevConfig.opBuy
-                              : DevConfig.opSell;
-                          description =
-                              '${widget.isAdd ? DevConfig.opAddPosition : DevConfig.opReducePosition} ${widget.stock.symbol}';
-                        }
-
-                        final record = OperationRecord(
-                          date: DateTime.now(),
-                          type: recordType,
-                          description: description,
-                          amount: newPrice,
-                          shares: diffShares,
-                          fee: _feeValue ?? 0.0,
-                        );
-
-                        widget.onSave(updatedStock, record, isClosePosition);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(
-                            colors: widget.isAdd
-                                ? [
-                                    const Color(0xFFE53935),
-                                    const Color(0xFFC62828),
-                                  ]
-                                : [
-                                    const Color(0xFF43A047),
-                                    const Color(0xFF2E7D32),
-                                  ],
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            widget.isAdd
-                                ? DevConfig.btnConfirmBuy
-                                : DevConfig.btnConfirmSell,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
             ),
-          ),
+            const SizedBox(height: 16),
+            _buildInfoSection(),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Text(
+                  DevConfig.editPriceHint,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey,
+                    height: 1.2,
+                  ),
+                ),
+                const Spacer(),
+                if (_isLoadingPrice)
+                  const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.blue,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            AppNumberField(
+              controller: _priceController,
+              hintText: DevConfig.editPricePlaceholder,
+            ),
+            const SizedBox(height: 12),
+            AppNumberField(
+              controller: _sharesController,
+              label: widget.isAdd
+                  ? DevConfig.editAddSharesLabel
+                  : DevConfig.editReduceSharesLabel,
+              hintText: widget.isAdd
+                  ? DevConfig.editAddSharesHint
+                  : DevConfig.editReduceSharesHint,
+            ),
+            const SizedBox(height: 12),
+            AppNumberField(
+              controller: _feeController,
+              label: DevConfig.editFeeLabel,
+              hintText: DevConfig.editFeePlaceholder,
+            ),
+            const SizedBox(height: 20),
+            actionButtonRow(
+              onCancel: () => Navigator.pop(context),
+              onConfirm: _onConfirm,
+              confirmText: widget.isAdd
+                  ? DevConfig.btnConfirmBuy
+                  : DevConfig.btnConfirmSell,
+              confirmGradient: LinearGradient(
+                colors: widget.isAdd
+                    ? [const Color(0xFFE53935), const Color(0xFFC62828)]
+                    : [const Color(0xFF43A047), const Color(0xFF2E7D32)],
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  void _onConfirm() {
+    final diffShares = double.tryParse(_sharesController.text);
+    final newPrice = double.tryParse(_priceController.text);
+    if (diffShares == null ||
+        diffShares <= 0 ||
+        newPrice == null ||
+        newPrice <= 0) {
+      CenterToast.error(context, DevConfig.editInvalidInput);
+      return;
+    }
+
+    final oldShares = widget.stock.shares;
+
+    if (!widget.isAdd && diffShares > oldShares) {
+      CenterToast.error(context, DevConfig.editOverflow);
+      return;
+    }
+
+    final newShares = widget.isAdd
+        ? oldShares + diffShares
+        : oldShares - diffShares;
+    final bool isClosePosition = !widget.isAdd && diffShares == oldShares;
+    final double avgBuyPrice = _avgBuyPrice;
+    final double profitLoss = avgBuyPrice > 0
+        ? (newPrice - avgBuyPrice) * newShares
+        : 0.0;
+
+    final updatedStock = widget.stock.copyWith(
+      shares: newShares,
+      totalValue: widget.stock.currentPrice * newShares,
+      profitLossAmount: profitLoss,
+    );
+
+    String recordType, description;
+    if (isClosePosition) {
+      recordType = DevConfig.opSell;
+      description = '${DevConfig.opClosePosition} ${widget.stock.symbol}';
+    } else if (widget.operationRecords.isEmpty) {
+      recordType = DevConfig.opBuy;
+      description = '${DevConfig.opOpenPosition} ${widget.stock.symbol}';
+    } else {
+      recordType = widget.isAdd ? DevConfig.opBuy : DevConfig.opSell;
+      description =
+          '${widget.isAdd ? DevConfig.opAddPosition : DevConfig.opReducePosition} ${widget.stock.symbol}';
+    }
+
+    final record = OperationRecord(
+      date: DateTime.now(),
+      type: recordType,
+      description: description,
+      amount: newPrice,
+      shares: diffShares,
+      fee: _feeValue ?? 0.0,
+    );
+
+    widget.onSave(updatedStock, record, isClosePosition);
+  }
+
+  Widget _buildInfoSection() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161B22),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF303631)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRowWidget(
+            label: DevConfig.searchStockCode,
+            value: widget.stock.symbol,
+          ),
+          const SizedBox(height: 8),
+          InfoRowWidget(
+            label: DevConfig.searchStockName,
+            value: widget.stock.companyName,
+          ),
+          const SizedBox(height: 8),
+          InfoRowWidget(
+            label: DevConfig.searchRealtimePrice,
+            value:
+                '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(widget.stock.currentPrice)}',
+          ),
+          const SizedBox(height: 8),
+          InfoRowWidget(
+            label: DevConfig.searchShares,
+            value:
+                '${CurrencyHelper.formatRate(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
+          ),
+          if (_avgBuyPrice > 0) ...[
+            const SizedBox(height: 8),
+            InfoRowWidget(
+              label: DevConfig.stockDetailAvgPrice,
+              value:
+                  '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(_avgBuyPrice)}',
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -520,15 +444,14 @@ class MoreOptionsDialog extends StatelessWidget {
                     onDelete();
                   },
                 ),
-            ],
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );
   }
 }
-
 
 /// 派息对话框
 class DividendDialog extends StatefulWidget {
@@ -594,210 +517,156 @@ class _DividendDialogState extends State<DividendDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: const Color(0xFF0C1117),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * DevConfig.dialogWidthRatio,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF303631)),
+    return dialogFrame(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              DevConfig.dividendTitle,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Text(
-                  DevConfig.dividendTitle,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF161B22),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF303631)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InfoRowWidget(
-                      label: DevConfig.searchStockCode,
-                      value: widget.stock.symbol,
-                    ),
-                    const SizedBox(height: 8),
-                    InfoRowWidget(
-                      label: DevConfig.searchStockName,
-                      value: widget.stock.companyName,
-                    ),
-                    const SizedBox(height: 8),
-                    InfoRowWidget(
-                      label: DevConfig.searchShares,
-                      value:
-                          '${CurrencyHelper.formatRate(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // 派息日期
-              const Text(
-                DevConfig.dividendDateLabel,
-                style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.2),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _pickDate,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF161B22),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF303631)),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        _formatDate(_selectedDate),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const Spacer(),
-                      Icon(
-                        Icons.calendar_today,
-                        size: 18,
-                        color: Colors.grey[600],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // 每股派息金额
-              AppNumberField(
-                controller: _amountController,
-                label: DevConfig.dividendAmountLabel,
-                hintText: DevConfig.dividendAmountHint,
-              ),
-              const SizedBox(height: 12),
-              // 税率
-              Row(
-                children: [
-                  Text(
-                    DevConfig.dividendTaxRateLabel,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                      height: 1.2,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '${_taxRate.toStringAsFixed(0)}%',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: const Color(0xFF5B9CF6),
-                  inactiveTrackColor: const Color(0xFF303631),
-                  thumbColor: const Color(0xFF5B9CF6),
-                  overlayColor: const Color(0xFF5B9CF6).withValues(alpha: 0.2),
-                  trackHeight: 4,
-                ),
-                child: Slider(
-                  value: _taxRate,
-                  min: 0,
-                  max: 50,
-                  divisions: 50,
-                  onChanged: (value) => setState(() => _taxRate = value),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFF303631)),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            DevConfig.btnCancel,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        final amount = double.tryParse(_amountController.text);
-                        if (amount == null || amount <= 0) {
-                          CenterToast.error(
-                            context,
-                            DevConfig.dividendInvalidAmount,
-                          );
-                          return;
-                        }
-                        widget.onConfirm(_selectedDate, amount, _taxRate / 100);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.amber,
-                        ),
-                        child: Center(
-                          child: Text(
-                            DevConfig.dividendConfirm,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          const SizedBox(height: 16),
+          _buildStockInfoSection(),
+          const SizedBox(height: 16),
+          const Text(
+            DevConfig.dividendDateLabel,
+            style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.2),
           ),
+          const SizedBox(height: 8),
+          _buildDatePicker(),
+          const SizedBox(height: 12),
+          AppNumberField(
+            controller: _amountController,
+            label: DevConfig.dividendAmountLabel,
+            hintText: DevConfig.dividendAmountHint,
+          ),
+          const SizedBox(height: 12),
+          _buildTaxSlider(),
+          const SizedBox(height: 20),
+          actionButtonRow(
+            onCancel: () => Navigator.pop(context),
+            onConfirm: () {
+              final amount = double.tryParse(_amountController.text);
+              if (amount == null || amount <= 0) {
+                CenterToast.error(context, DevConfig.dividendInvalidAmount);
+                return;
+              }
+              widget.onConfirm(_selectedDate, amount, _taxRate / 100);
+            },
+            confirmText: DevConfig.dividendConfirm,
+            confirmBgColor: Colors.amber,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStockInfoSection() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161B22),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF303631)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRowWidget(
+            label: DevConfig.searchStockCode,
+            value: widget.stock.symbol,
+          ),
+          const SizedBox(height: 8),
+          InfoRowWidget(
+            label: DevConfig.searchStockName,
+            value: widget.stock.companyName,
+          ),
+          const SizedBox(height: 8),
+          InfoRowWidget(
+            label: DevConfig.searchShares,
+            value:
+                '${CurrencyHelper.formatRate(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDatePicker() {
+    return GestureDetector(
+      onTap: _pickDate,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF161B22),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF303631)),
+        ),
+        child: Row(
+          children: [
+            Text(
+              _formatDate(_selectedDate),
+              style: const TextStyle(fontSize: 16, color: Colors.white),
+            ),
+            const Spacer(),
+            Icon(Icons.calendar_today, size: 18, color: Colors.grey[600]),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTaxSlider() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              DevConfig.dividendTaxRateLabel,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.grey,
+                height: 1.2,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${_taxRate.toStringAsFixed(0)}%',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            activeTrackColor: const Color(0xFF5B9CF6),
+            inactiveTrackColor: const Color(0xFF303631),
+            thumbColor: const Color(0xFF5B9CF6),
+            overlayColor: const Color(0xFF5B9CF6).withValues(alpha: 0.2),
+            trackHeight: 4,
+          ),
+          child: Slider(
+            value: _taxRate,
+            min: 0,
+            max: 50,
+            divisions: 50,
+            onChanged: (value) => setState(() => _taxRate = value),
+          ),
+        ),
+      ],
     );
   }
 }

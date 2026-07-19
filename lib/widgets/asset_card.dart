@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../config/app_config.dart';
 import '../utils/currency_helper.dart';
 import 'common/profit_chart.dart';
+import 'common/dialog_utils.dart';
 
 /// 资产总额卡片组件（纯UI展示）
 class AssetCard extends StatefulWidget {
@@ -373,15 +374,12 @@ class _AssetCardState extends State<AssetCard> {
 
   void _showTotalAssetsHelpDialog() {
     final sellText = '${CurrencyHelper.formatCompact(widget.totalSellAmount)}';
-    showDialog(
-      context: context,
-      builder: (ctx) => _helpDialogFrame(
-        title: DevConfig.assetTotalAssets,
-        icon: Icons.account_balance_wallet,
-        children: [
-          _helpLine(DevConfig.assetTotalSellAmount, sellText, Colors.white),
-        ],
-      ),
+    _helpDialogFrame(
+      title: DevConfig.assetTotalAssets,
+      icon: Icons.account_balance_wallet,
+      children: [
+        _helpLine(DevConfig.assetTotalSellAmount, sellText, Colors.white),
+      ],
     );
   }
 
@@ -390,21 +388,18 @@ class _AssetCardState extends State<AssetCard> {
     final floatPL = widget.totalMarketValue - widget.totalCost;
     final floatText =
         '${floatPL >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(floatPL)}';
-    showDialog(
-      context: context,
-      builder: (ctx) => _helpDialogFrame(
-        title: DevConfig.assetTotalCost,
-        icon: Icons.account_balance,
-        children: [
-          _helpLine(DevConfig.assetCostDetailLabel, costText, Colors.white),
-          const SizedBox(height: 6),
-          _helpLine(
-            DevConfig.assetFloatProfitLabel,
-            floatText,
-            floatPL >= 0 ? const Color(0xFFFF5252) : const Color(0xFF69F0AE),
-          ),
-        ],
-      ),
+    _helpDialogFrame(
+      title: DevConfig.assetTotalCost,
+      icon: Icons.account_balance,
+      children: [
+        _helpLine(DevConfig.assetCostDetailLabel, costText, Colors.white),
+        const SizedBox(height: 6),
+        _helpLine(
+          DevConfig.assetFloatProfitLabel,
+          floatText,
+          floatPL >= 0 ? const Color(0xFFFF5252) : const Color(0xFF69F0AE),
+        ),
+      ],
     );
   }
 
@@ -452,21 +447,18 @@ class _AssetCardState extends State<AssetCard> {
   void _showProfitHelpDialog() {
     final realizedText =
         '${widget.totalRealizedPL >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(widget.totalRealizedPL)}';
-    showDialog(
-      context: context,
-      builder: (ctx) => _helpDialogFrame(
-        title: DevConfig.assetTotalProfit,
-        icon: Icons.trending_up,
-        children: [
-          _helpLine(
-            DevConfig.assetTotalRealizedPL,
-            realizedText,
-            widget.totalRealizedPL >= 0
-                ? const Color(0xFFFF5252)
-                : const Color(0xFF69F0AE),
-          ),
-        ],
-      ),
+    _helpDialogFrame(
+      title: DevConfig.assetTotalProfit,
+      icon: Icons.trending_up,
+      children: [
+        _helpLine(
+          DevConfig.assetTotalRealizedPL,
+          realizedText,
+          widget.totalRealizedPL >= 0
+              ? const Color(0xFFFF5252)
+              : const Color(0xFF69F0AE),
+        ),
+      ],
     );
   }
 
@@ -578,16 +570,13 @@ class _AssetCardState extends State<AssetCard> {
     );
   }
 
-  Widget _helpDialogFrame({
+  void _helpDialogFrame({
     required String title,
     required IconData icon,
     required List<Widget> children,
   }) {
-    return AlertDialog(
-      backgroundColor: const Color(0xFF1A1F26),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-      contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
+    InfoDialog.show(
+      context,
       title: Column(
         children: [
           Icon(icon, color: Colors.amber, size: 28),
@@ -611,20 +600,6 @@ class _AssetCardState extends State<AssetCard> {
           ...children,
         ],
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFF5B9CF6),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          ),
-          child: const Text(
-            DevConfig.btnClose,
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
     );
   }
 

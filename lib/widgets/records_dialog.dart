@@ -6,6 +6,7 @@ import '../config/app_config.dart';
 import 'common/empty_state_widget.dart';
 import 'common/confirm_delete_dialog.dart';
 import 'common/app_number_field.dart';
+import 'common/dialog_utils.dart';
 
 /// 记录弹窗（底部弹出，支持下拉关闭）
 class RecordsDialog extends StatefulWidget {
@@ -464,175 +465,116 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
 
     showDialog(
       context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xFF0C1117),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: SizedBox(
-          width: MediaQuery.of(ctx).size.width * DevConfig.dialogWidthRatio,
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF303631)),
+      builder: (ctx) => dialogFrame(
+        context: ctx,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                DevConfig.recordsEditTitle.replaceAll(
+                  '{desc}',
+                  record.description,
+                ),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Text(
-                    DevConfig.recordsEditTitle.replaceAll(
-                      '{desc}',
-                      record.description,
-                    ),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  DevConfig.recordsEditPrice,
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: priceCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color(0xFF161B22),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF303631)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF303631)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.blue),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  DevConfig.recordsEditShares,
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: sharesCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color(0xFF161B22),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF303631)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF303631)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.blue),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => Navigator.pop(ctx),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF303631)),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              DevConfig.btnCancel,
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          final newPrice = double.tryParse(priceCtrl.text);
-                          final newShares = double.tryParse(sharesCtrl.text);
-                          if (newPrice == null ||
-                              newPrice <= 0 ||
-                              newShares == null ||
-                              newShares <= 0) {
-                            return;
-                          }
-                          final updated = record.copyWith(
-                            amount: newPrice,
-                            shares: newShares,
-                          );
-                          setState(() => allRecords[index] = updated);
-                          widget.onEditRecord?.call(
-                            widget.stock.symbol,
-                            index,
-                            updated,
-                          );
-                          Navigator.pop(ctx);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
-                            ),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              DevConfig.btnClose,
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+            const SizedBox(height: 16),
+            const Text(
+              DevConfig.recordsEditPrice,
+              style: TextStyle(fontSize: 13, color: Colors.grey),
             ),
-          ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: priceCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: const TextStyle(fontSize: 16, color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: const Color(0xFF161B22),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.blue),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              DevConfig.recordsEditShares,
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: sharesCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: const TextStyle(fontSize: 16, color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: const Color(0xFF161B22),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.blue),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            actionButtonRow(
+              onCancel: () => Navigator.pop(ctx),
+              onConfirm: () {
+                final newPrice = double.tryParse(priceCtrl.text);
+                final newShares = double.tryParse(sharesCtrl.text);
+                if (newPrice == null ||
+                    newPrice <= 0 ||
+                    newShares == null ||
+                    newShares <= 0)
+                  return;
+                final updated = record.copyWith(
+                  amount: newPrice,
+                  shares: newShares,
+                );
+                setState(() => allRecords[index] = updated);
+                widget.onEditRecord?.call(widget.stock.symbol, index, updated);
+                Navigator.pop(ctx);
+              },
+              confirmText: DevConfig.btnClose,
+              confirmGradient: const LinearGradient(
+                colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -828,232 +770,167 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => Dialog(
-          backgroundColor: const Color(0xFF0C1117),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: SizedBox(
-            width: MediaQuery.of(ctx).size.width * DevConfig.dialogWidthRatio,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF303631)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      DevConfig.dividendEditTitle,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+        builder: (ctx, setDialogState) => dialogFrame(
+          context: ctx,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  DevConfig.dividendEditTitle,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 16),
-                  // 派息日期
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                DevConfig.dividendEditDateLabel,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: ctx,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.dark(
+                            primary: Color(0xFF5B9CF6),
+                            onPrimary: Colors.white,
+                            surface: Color(0xFF1A1F26),
+                            onSurface: Colors.white,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    setDialogState(() => selectedDate = picked);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF161B22),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF303631)),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.calendar_today,
+                        size: 18,
+                        color: Colors.grey[600],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              AppNumberField(
+                controller: amountCtrl,
+                label: DevConfig.dividendEditAmountLabel,
+                hintText: DevConfig.dividendAmountHint,
+              ),
+              const SizedBox(height: 12),
+              AppNumberField(
+                controller: sharesCtrl,
+                label: DevConfig.dividendEditSharesLabel,
+                hintText: DevConfig.editAddSharesHint,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
                   Text(
-                    DevConfig.dividendEditDateLabel,
+                    DevConfig.dividendTaxRateLabel,
                     style: const TextStyle(
                       fontSize: 13,
                       color: Colors.grey,
                       height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: ctx,
-                        initialDate: selectedDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              colorScheme: const ColorScheme.dark(
-                                primary: Color(0xFF5B9CF6),
-                                onPrimary: Colors.white,
-                                surface: Color(0xFF1A1F26),
-                                onSurface: Colors.white,
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (picked != null) {
-                        setDialogState(() => selectedDate = picked);
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF161B22),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF303631)),
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const Spacer(),
-                          Icon(
-                            Icons.calendar_today,
-                            size: 18,
-                            color: Colors.grey[600],
-                          ),
-                        ],
-                      ),
+                  const Spacer(),
+                  Text(
+                    '${editTaxRate.toStringAsFixed(0)}%',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  // 每股派息金额
-                  AppNumberField(
-                    controller: amountCtrl,
-                    label: DevConfig.dividendEditAmountLabel,
-                    hintText: DevConfig.dividendAmountHint,
-                  ),
-                  const SizedBox(height: 12),
-                  // 持仓股数
-                  AppNumberField(
-                    controller: sharesCtrl,
-                    label: DevConfig.dividendEditSharesLabel,
-                    hintText: DevConfig.editAddSharesHint,
-                  ),
-                  const SizedBox(height: 12),
-                  // 税率
-                  Row(
-                    children: [
-                      Text(
-                        DevConfig.dividendTaxRateLabel,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey,
-                          height: 1.2,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${editTaxRate.toStringAsFixed(0)}%',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: const Color(0xFF5B9CF6),
-                      inactiveTrackColor: const Color(0xFF303631),
-                      thumbColor: const Color(0xFF5B9CF6),
-                      overlayColor: const Color(
-                        0xFF5B9CF6,
-                      ).withValues(alpha: 0.2),
-                      trackHeight: 4,
-                    ),
-                    child: Slider(
-                      value: editTaxRate,
-                      min: 0,
-                      max: 50,
-                      divisions: 50,
-                      onChanged: (value) =>
-                          setDialogState(() => editTaxRate = value),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => Navigator.pop(ctx),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFF303631),
-                              ),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                DevConfig.btnCancel,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            final newAmount = double.tryParse(amountCtrl.text);
-                            final newShares = double.tryParse(sharesCtrl.text);
-                            if (newAmount == null ||
-                                newAmount <= 0 ||
-                                newShares == null ||
-                                newShares <= 0) {
-                              return;
-                            }
-                            final updated = record.copyWith(
-                              date: selectedDate,
-                              amount: newAmount,
-                              shares: newShares,
-                              taxRate: editTaxRate / 100,
-                            );
-                            setState(() => allRecords[index] = updated);
-                            widget.onEditRecord?.call(
-                              widget.stock.symbol,
-                              index,
-                              updated,
-                            );
-                            Navigator.pop(ctx);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.amber,
-                            ),
-                            child: const Center(
-                              child: Text(
-                                DevConfig.btnClose,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 8),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: const Color(0xFF5B9CF6),
+                  inactiveTrackColor: const Color(0xFF303631),
+                  thumbColor: const Color(0xFF5B9CF6),
+                  overlayColor: const Color(0xFF5B9CF6).withValues(alpha: 0.2),
+                  trackHeight: 4,
+                ),
+                child: Slider(
+                  value: editTaxRate,
+                  min: 0,
+                  max: 50,
+                  divisions: 50,
+                  onChanged: (value) =>
+                      setDialogState(() => editTaxRate = value),
+                ),
+              ),
+              const SizedBox(height: 16),
+              actionButtonRow(
+                onCancel: () => Navigator.pop(ctx),
+                onConfirm: () {
+                  final newAmount = double.tryParse(amountCtrl.text);
+                  final newShares = double.tryParse(sharesCtrl.text);
+                  if (newAmount == null ||
+                      newAmount <= 0 ||
+                      newShares == null ||
+                      newShares <= 0)
+                    return;
+                  final updated = record.copyWith(
+                    date: selectedDate,
+                    amount: newAmount,
+                    shares: newShares,
+                    taxRate: editTaxRate / 100,
+                  );
+                  setState(() => allRecords[index] = updated);
+                  widget.onEditRecord?.call(
+                    widget.stock.symbol,
+                    index,
+                    updated,
+                  );
+                  Navigator.pop(ctx);
+                },
+                confirmText: DevConfig.btnClose,
+                confirmBgColor: Colors.amber,
+              ),
+            ],
           ),
         ),
       ),
