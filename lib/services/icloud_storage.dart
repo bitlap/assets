@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -60,12 +59,12 @@ class IcloudStorage {
         dividendRecordsToJson(dividendRecords),
       );
     }
-    unawaited(_syncToCloud(stocksFile));
+    await _syncToCloud(stocksFile);
     if (records != null) {
-      unawaited(_syncToCloud(recordsFile));
+      await _syncToCloud(recordsFile);
     }
     if (dividendRecords != null) {
-      unawaited(_syncToCloud(dividendRecordsFile));
+      await _syncToCloud(dividendRecordsFile);
     }
   }
 
@@ -97,7 +96,7 @@ class IcloudStorage {
     await ensureInit();
     final localFile = File(localFilePath(_localPath!, settingsFile));
     await localFile.writeAsString(jsonEncode(settings));
-    unawaited(_syncToCloud(settingsFile));
+    await _syncToCloud(settingsFile);
   }
 
   /// 加载设置（拉取 iCloud 更新后读本地）
@@ -269,7 +268,7 @@ class IcloudStorage {
     await ensureInit();
     final data = snapshots.map((e) => e.toJson()).toList();
     await writeJson(_localPath!, dailyProfitFile, data);
-    unawaited(_syncToCloud(dailyProfitFile));
+    await _syncToCloud(dailyProfitFile);
   }
 
   // 收益快照 - 10分钟粒度（仅当天）
@@ -303,7 +302,7 @@ class IcloudStorage {
     await ensureInit();
     final data = snapshots.map((e) => e.toJson()).toList();
     await writeJson(_localPath!, intradayProfitFile, data);
-    unawaited(_syncToCloud(intradayProfitFile));
+    await _syncToCloud(intradayProfitFile);
   }
 
   // 资产持久化
@@ -317,14 +316,14 @@ class IcloudStorage {
   static Future<void> saveAssets(List<AssetBase> assets) async {
     await ensureInit();
     await writeJson(_localPath!, assetsFile, assetsToJson(assets));
-    unawaited(_syncToCloud(assetsFile));
+    await _syncToCloud(assetsFile);
   }
 
   /// 强制同步收益快照到 iCloud
   static Future<void> syncProfitToCloud() async {
     await ensureInit();
-    unawaited(_syncToCloud(dailyProfitFile));
-    unawaited(_syncToCloud(intradayProfitFile));
+    await _syncToCloud(dailyProfitFile);
+    await _syncToCloud(intradayProfitFile);
   }
 
   static Future<void> recordProfitIfNeeded(

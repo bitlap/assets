@@ -80,25 +80,25 @@ class _AssetsPageState extends State<AssetsPage> {
     await IcloudStorage.saveAssets(_assets);
   }
 
-  void _addAsset(AssetBase asset) {
+  Future<void> _addAsset(AssetBase asset) async {
     setState(() => _assets.add(asset));
-    _save();
+    await _save();
   }
 
-  void _updateAsset(String id, AssetBase asset) {
+  Future<void> _updateAsset(String id, AssetBase asset) async {
     final idx = _assets.indexWhere((a) => a.id == id);
     if (idx == -1) return;
     setState(() => _assets[idx] = asset);
-    _save();
+    await _save();
   }
 
-  void _deleteAsset(String id) {
+  Future<void> _deleteAsset(String id) async {
     final idx = _assets.indexWhere((a) => a.id == id);
     if (idx == -1) return;
     final name = _assets[idx].name;
     setState(() => _assets.removeAt(idx));
-    _save();
-    CenterToast.success(context, '已删除 $name');
+    await _save();
+    if (mounted) CenterToast.success(context, '已删除 $name');
   }
 
   void _onReorder(int oldIndex, int newIndex) {
@@ -214,13 +214,13 @@ class _AssetsPageState extends State<AssetsPage> {
 
   void _openDialog<T extends AssetBase>(
     Future<T?> dialog, {
-    void Function(T)? onAdd,
-    void Function(T)? onUpdate,
+    Future<void> Function(T)? onAdd,
+    Future<void> Function(T)? onUpdate,
   }) async {
     final result = await dialog;
     if (result != null && mounted) {
-      if (onAdd != null) onAdd(result);
-      if (onUpdate != null) onUpdate(result);
+      if (onAdd != null) await onAdd(result);
+      if (onUpdate != null) await onUpdate(result);
       CenterToast.success(context, '已保存');
     }
   }
