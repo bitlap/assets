@@ -1,0 +1,31 @@
+import 'package:flutter/material.dart';
+
+class SortIndicator extends StatelessWidget {
+  final bool isActive;
+  final bool isAscending;
+  final double size;
+  final Color? activeColor;
+
+  const SortIndicator({
+    super.key,
+    this.isActive = false,
+    this.isAscending = false,
+    this.size = 12,
+    this.activeColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size + 2,
+      height: size + 2,
+      child: isActive
+          ? Icon(
+              isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+              size: size,
+              color: activeColor ?? const Color(0xFF5B9CF6),
+            )
+          : null,
+    );
+  }
+}

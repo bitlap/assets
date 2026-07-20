@@ -16,7 +16,7 @@ class TencentQuoteService {
   Future<StockQuote?> fetchQuote(StockSearchResult stock) async {
     if (_breaker.isInCooldown) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][腾讯] 冷却中，跳过: ${stock.code}',
+        '[${DateTime.now().toString().substring(11, 19)}][腾讯] ===> 冷却中，跳过: ${stock.code}',
       );
       return null;
     }
@@ -38,7 +38,7 @@ class TencentQuoteService {
         final quote = _parseQuote(response.body, stock);
         if (quote != null) {
           debugPrint(
-            '[${DateTime.now().toString().substring(11, 19)}][腾讯] ${stock.code}: HKD${quote.currentPrice} (${quote.changePercent}%)',
+            '[${DateTime.now().toString().substring(11, 19)}][腾讯] ===> ${stock.code}: HKD${quote.currentPrice} (${quote.changePercent}%)',
           );
         }
         return quote;
@@ -46,7 +46,7 @@ class TencentQuoteService {
       return null;
     } catch (e) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][腾讯] 获取失败 ${stock.code}: $e',
+        '[${DateTime.now().toString().substring(11, 19)}][腾讯] ===> 获取失败 ${stock.code}: $e',
       );
       _breaker.onFailure();
       return null;
@@ -85,7 +85,7 @@ class TencentQuoteService {
       );
     } catch (e) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][腾讯] 解析失败 ${stock.code}: $e',
+        '[${DateTime.now().toString().substring(11, 19)}][腾讯] ===> 解析失败 ${stock.code}: $e',
       );
       return null;
     }

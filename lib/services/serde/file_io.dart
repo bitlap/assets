@@ -20,7 +20,7 @@ Future<List<Map<String, dynamic>>> readJson(
   final file = File(localFilePath(localPath, name));
   if (!await file.exists()) {
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][本地] 文件不存在: $name',
+      '[${DateTime.now().toString().substring(11, 19)}][本地] ===> 文件不存在: $name',
     );
     return [];
   }
@@ -29,7 +29,7 @@ Future<List<Map<String, dynamic>>> readJson(
     return list.cast<Map<String, dynamic>>();
   } catch (e) {
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][本地] 读取文件失败: $name - $e',
+      '[${DateTime.now().toString().substring(11, 19)}][本地] ===> 读取文件失败: $name - $e',
     );
     return [];
   }
@@ -41,7 +41,7 @@ Future<void> writeJson(String localPath, String name, List<Map> data) async {
     await file.writeAsString(jsonEncode(data));
   } catch (e) {
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][本地] 写入文件失败: $name - $e',
+      '[${DateTime.now().toString().substring(11, 19)}][本地] ===> 写入文件失败: $name - $e',
     );
   }
 }

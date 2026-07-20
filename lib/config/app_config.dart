@@ -47,6 +47,9 @@ class DevConfig {
   static const String sortByProfit = '按盈亏';
   static const String sortByHoldings = '按持仓';
   static const String sortByName = '按代码';
+  static const String sortByManual = '手动';
+  static const String sortByAssetName = '按名称';
+  static const String sortByAssetAmount = '按金额';
   static const String sortDirectionLabel = '方向';
   static const String sortAscending = '升序';
   static const String sortDescending = '降序';

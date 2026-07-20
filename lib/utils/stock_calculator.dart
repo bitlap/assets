@@ -167,6 +167,69 @@ class StockCalculator {
     );
   }
 
+  /// 排序股票列表
+  /// [sortColumn] 'name' = 按代码, 'holdings' = 按持仓价值, 'profit' = 按盈亏
+  static List<StockModel> sortStocks(
+    List<StockModel> source,
+    String sortColumn,
+    bool ascending,
+    String targetCurrency,
+  ) {
+    final sorted = List<StockModel>.from(source);
+    sorted.sort((a, b) {
+      int cmp;
+      switch (sortColumn) {
+        case 'name':
+          cmp = a.symbol.compareTo(b.symbol);
+          break;
+        case 'holdings':
+          final valueA = CurrencyHelper.convertCurrency(
+            a.currentPrice * a.shares,
+            a.currency,
+            targetCurrency,
+          );
+          final valueB = CurrencyHelper.convertCurrency(
+            b.currentPrice * b.shares,
+            b.currency,
+            targetCurrency,
+          );
+          cmp = valueA.compareTo(valueB);
+          if (cmp == 0) cmp = a.shares.compareTo(b.shares);
+          break;
+        case 'profit':
+          final plA = CurrencyHelper.convertCurrency(
+            a.profitLossAmount,
+            a.currency,
+            targetCurrency,
+          );
+          final plB = CurrencyHelper.convertCurrency(
+            b.profitLossAmount,
+            b.currency,
+            targetCurrency,
+          );
+          cmp = plA.compareTo(plB);
+          if (cmp == 0) {
+            final valA = CurrencyHelper.convertCurrency(
+              a.totalValue,
+              a.currency,
+              targetCurrency,
+            );
+            final valB = CurrencyHelper.convertCurrency(
+              b.totalValue,
+              b.currency,
+              targetCurrency,
+            );
+            cmp = valA.compareTo(valB);
+          }
+          break;
+        default:
+          cmp = 0;
+      }
+      return ascending ? cmp : -cmp;
+    });
+    return sorted;
+  }
+
   /// 根据操作记录重算股票的持仓数据
   /// 返回更新后的 StockModel，如果无记录则返回原股票
   static StockModel recalculateFromRecords(

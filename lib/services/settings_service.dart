@@ -7,6 +7,15 @@ class SettingsService {
   static const String keySortColumn = 'sort_column';
   static const String keySortAscending = 'sort_ascending';
   static const String keySyncSettings = 'sync_settings';
+  // 手续费设置
+  static const String keyDefaultFeeType = 'default_fee_type';
+  static const String keyDefaultFeeValue = 'default_fee_value';
+
+  static const String feeTypePercentage = 'percentage';
+  static const String feeTypeFixed = 'fixed';
+  // 资产排序
+  static const String keyAssetSortColumn = 'asset_sort_column';
+  static const String keyAssetSortAscending = 'asset_sort_ascending';
 
   /// 读取保存的默认货币
   static Future<String?> getDefaultCurrency() async {
@@ -32,36 +41,57 @@ class SettingsService {
     await prefs.setBool(keyKeepStockAfterClose, value);
   }
 
-  /// 读取排序列，默认 'profit'
+  /// 读取股票排序列，默认 'profit'
   static Future<String> getSortColumn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(keySortColumn) ?? 'profit';
   }
 
-  /// 保存排序列
+  /// 保存股票排序列
   static Future<void> setSortColumn(String column) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(keySortColumn, column);
   }
 
-  /// 读取排序方向，默认 false（降序）
+  /// 读取股票排序方向，默认 false（降序）
   static Future<bool> getSortAscending() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(keySortAscending) ?? false;
   }
 
-  /// 保存排序方向
+  /// 保存股票排序方向
   static Future<void> setSortAscending(bool ascending) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(keySortAscending, ascending);
   }
 
-  // 手续费设置
-  static const String keyDefaultFeeType = 'default_fee_type';
-  static const String keyDefaultFeeValue = 'default_fee_value';
+  /// 读取资产排序列，null = 手动
+  static Future<String?> getAssetSortColumn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(keyAssetSortColumn);
+  }
 
-  static const String feeTypePercentage = 'percentage';
-  static const String feeTypeFixed = 'fixed';
+  /// 保存资产排序列
+  static Future<void> setAssetSortColumn(String? column) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (column != null) {
+      await prefs.setString(keyAssetSortColumn, column);
+    } else {
+      await prefs.remove(keyAssetSortColumn);
+    }
+  }
+
+  /// 读取资产排序方向，默认 false（降序）
+  static Future<bool> getAssetSortAscending() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(keyAssetSortAscending) ?? false;
+  }
+
+  /// 保存资产排序方向
+  static Future<void> setAssetSortAscending(bool ascending) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(keyAssetSortAscending, ascending);
+  }
 
   /// 读取默认手续费类型（percentage 或 fixed）
   static Future<String> getDefaultFeeType() async {

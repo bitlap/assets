@@ -54,11 +54,11 @@ class ExchangeRateService {
     if (_consecutiveFailures >= _failureThreshold) {
       _cooldownUntil = DateTime.now().add(_cooldownDuration);
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][汇率] 连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inMinutes}分钟',
+        '[${DateTime.now().toString().substring(11, 19)}][汇率] ===> 连续失败$_consecutiveFailures次，进入冷却期${_cooldownDuration.inMinutes}分钟',
       );
     } else {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][汇率] 请求失败 ($_consecutiveFailures/$_failureThreshold)',
+        '[${DateTime.now().toString().substring(11, 19)}][汇率] ===> 请求失败 ($_consecutiveFailures/$_failureThreshold)',
       );
     }
   }
@@ -78,7 +78,7 @@ class ExchangeRateService {
     // 缓存有效，直接返回
     if (hasValidCache) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][汇率] 缓存有效，跳过请求',
+        '[${DateTime.now().toString().substring(11, 19)}][汇率] ===> 缓存有效，跳过请求',
       );
       return _cachedRates;
     }
@@ -86,13 +86,13 @@ class ExchangeRateService {
     // 熔断中
     if (_isInCooldown) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][汇率] 冷却期中，跳过请求 (剩余${cooldownRemainingSeconds}秒)',
+        '[${DateTime.now().toString().substring(11, 19)}][汇率] ===> 冷却期中，跳过请求 (剩余${cooldownRemainingSeconds}秒)',
       );
       return _cachedRates; // 返回旧缓存
     }
 
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][汇率] 开始请求汇率...',
+      '[${DateTime.now().toString().substring(11, 19)}][汇率] ===> 开始请求汇率...',
     );
     Client? client;
     try {
@@ -116,18 +116,18 @@ class ExchangeRateService {
         _cachedRates = rates;
         _lastFetchTime = DateTime.now();
         debugPrint(
-          '[${DateTime.now().toString().substring(11, 19)}][汇率] 更新成功: USD=${rates['USD']}, CNY=${rates['CNY']}, HKD=${rates['HKD']}',
+          '[${DateTime.now().toString().substring(11, 19)}][汇率] ===> 更新成功: USD=${rates['USD']}, CNY=${rates['CNY']}, HKD=${rates['HKD']}',
         );
         return rates;
       }
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][汇率] HTTP ${response.statusCode}',
+        '[${DateTime.now().toString().substring(11, 19)}][汇率] ===> HTTP ${response.statusCode}',
       );
       return _cachedRates;
     } catch (e) {
       client?.close();
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][汇率] 请求失败: $e',
+        '[${DateTime.now().toString().substring(11, 19)}][汇率] ===> 请求失败: $e',
       );
       _onRequestFailure();
       return _cachedRates; // 失败时返回旧缓存

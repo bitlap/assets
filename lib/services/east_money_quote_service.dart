@@ -23,13 +23,13 @@ class EastMoneyQuoteService {
     if (stocks.isEmpty) return;
     if (_breaker.isInCooldown) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][东方财富] 冷却中，跳过批量',
+        '[${DateTime.now().toString().substring(11, 19)}][东方财富] ===> 冷却中，跳过批量',
       );
       return;
     }
 
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][东方财富] 批量查询: ${stocks.length}只',
+      '[${DateTime.now().toString().substring(11, 19)}][东方财富] ===> 批量查询: ${stocks.length}只',
     );
 
     try {
@@ -62,14 +62,14 @@ class EastMoneyQuoteService {
             if (quote == null) continue;
             onQuote(secid, quote);
             debugPrint(
-              '[${DateTime.now().toString().substring(11, 19)}][东方财富] $code: USD${quote.currentPrice} (${quote.changePercent}%)',
+              '[${DateTime.now().toString().substring(11, 19)}][东方财富] ===> $code: USD${quote.currentPrice} (${quote.changePercent}%)',
             );
           }
         }
       }
     } catch (e) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][东方财富] 批量失败: $e',
+        '[${DateTime.now().toString().substring(11, 19)}][东方财富] ===> 批量失败: $e',
       );
       _breaker.onFailure();
     }

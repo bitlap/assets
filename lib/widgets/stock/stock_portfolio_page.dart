@@ -12,13 +12,16 @@ import '../../services/stock_quote_service.dart';
 import '../../services/exchange_rate_service.dart';
 import '../../services/settings_service.dart';
 import '../../services/icloud_storage.dart';
+import '../common/empty_state_widget.dart';
+import '../common/draggable_fab.dart';
 import 'stock_card.dart';
+import 'stock_header.dart';
+import 'stock_list_header.dart';
 import 'records_dialog.dart';
 import 'edit_delete_dialogs.dart';
 import 'search_stock_dialog.dart';
 import 'stock_summary_card.dart';
 import '../settings_page.dart';
-import '../common/empty_state_widget.dart';
 
 /// 股票持仓主页 - 仅负责状态管理和页面组装
 class StockPortfolioPage extends StatefulWidget {
@@ -51,10 +54,8 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   // 排序状态
   String _sortColumn = 'profit'; // 'name', 'holdings', 'profit'
   bool _sortAscending = false;
-
-  // 悬浮按钮位置
-  double _fabY = 0;
-  bool _fabInitialized = false;
+  // 市场筛选
+  String? _filterMarket;
 
   /// 数据是否有变更（脏标记），用于延迟写入 iCloud
   bool _dataDirty = false;
@@ -198,14 +199,18 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
 
   /// 拉取汇率但不触发 UI 重建
   Future<void> _fetchExchangeRatesWithoutRebuild() async {
-    debugPrint('[${DateTime.now().toString().substring(11, 19)}][首页] 刷新汇率...');
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][首页] ===> 刷新汇率...',
+    );
     final rates = await _exchangeRateService.fetchRates();
     if (rates != null) {
       CurrencyHelper.updateRates(rates);
-      debugPrint('[${DateTime.now().toString().substring(11, 19)}][首页] 汇率拉取完成');
+      debugPrint(
+        '[${DateTime.now().toString().substring(11, 19)}][首页] ===> 汇率拉取完成',
+      );
     } else {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][首页] 汇率刷新无更新',
+        '[${DateTime.now().toString().substring(11, 19)}][首页] ===> 汇率刷新无更新',
       );
     }
   }
@@ -215,7 +220,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
     if (!_isForeground) return;
     _collapseExpandedStock();
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][首页] 开始全量刷新...',
+      '[${DateTime.now().toString().substring(11, 19)}][首页] ===> 开始全量刷新...',
     );
     await _syncSettingsFromCloud();
 
@@ -254,13 +259,15 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
         _scrollController.jumpTo(0);
       }
     });
-    debugPrint('[${DateTime.now().toString().substring(11, 19)}][首页] 全量刷新完成');
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][首页] ===> 全量刷新完成',
+    );
   }
 
   /// 拉取行情但不触发 UI 重建
   Future<Map<String, StockQuote?>> _fetchQuotesWithoutRebuild() async {
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][首页] 开始刷新行情: ${stocks.length}只股票',
+      '[${DateTime.now().toString().substring(11, 19)}][首页] ===> 开始刷新行情: ${stocks.length}只股票',
     );
     final searchResults = stocks
         .map(
@@ -275,7 +282,9 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
         )
         .toList();
     final quotes = await _quoteService.getStockQuotesBatch(searchResults);
-    debugPrint('[${DateTime.now().toString().substring(11, 19)}][首页] 行情拉取完成');
+    debugPrint(
+      '[${DateTime.now().toString().substring(11, 19)}][首页] ===> 行情拉取完成',
+    );
     return quotes;
   }
 
@@ -343,74 +352,16 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   double get totalRealizedPL => _assetSummary.totalRealizedPL;
   double get totalProfitPercent => _assetSummary.totalProfitPercent;
   double get exchangeRate => CurrencyHelper.getExchangeRate(selectedCurrency);
+  List<StockModel> get _filteredStocks => _filterMarket == null
+      ? stocks
+      : stocks.where((s) => s.marketType == _filterMarket).toList();
 
-  // 排序
-  /// 排序规则：
-  /// 股票列：按股票代码，次级无
-  /// 持仓列：按持仓价值（价格×股数），相同则按股数
-  /// 盈亏列：按盈亏金额（含负数亏损），相同则按总价值
-  List<StockModel> get _sortedStocks {
-    final sorted = List<StockModel>.from(stocks);
-    sorted.sort((a, b) {
-      int cmp;
-      switch (_sortColumn) {
-        case 'name':
-          cmp = a.symbol.compareTo(b.symbol);
-          break;
-        case 'holdings':
-          // 按持仓价值（价格×股数）排序，转换为统一币种
-          final valueA =
-              CurrencyHelper.convertCurrency(
-                a.currentPrice * a.shares,
-                a.currency,
-                selectedCurrency,
-              ).compareTo(
-                CurrencyHelper.convertCurrency(
-                  b.currentPrice * b.shares,
-                  b.currency,
-                  selectedCurrency,
-                ),
-              );
-          cmp = valueA;
-          if (cmp == 0) {
-            // 持仓价值相同，按股数排序
-            cmp = a.shares.compareTo(b.shares);
-          }
-          break;
-        case 'profit':
-          // 盈亏金额（含负数亏损），转换为统一币种再比较
-          final plA = CurrencyHelper.convertCurrency(
-            a.profitLossAmount,
-            a.currency,
-            selectedCurrency,
-          );
-          final plB = CurrencyHelper.convertCurrency(
-            b.profitLossAmount,
-            b.currency,
-            selectedCurrency,
-          );
-          cmp = plA.compareTo(plB);
-          if (cmp == 0) {
-            final valA = CurrencyHelper.convertCurrency(
-              a.totalValue,
-              a.currency,
-              selectedCurrency,
-            );
-            final valB = CurrencyHelper.convertCurrency(
-              b.totalValue,
-              b.currency,
-              selectedCurrency,
-            );
-            cmp = valA.compareTo(valB);
-          }
-          break;
-        default:
-          cmp = 0;
-      }
-      return _sortAscending ? cmp : -cmp;
-    });
-    return sorted;
-  }
+  List<StockModel> get _sortedStocks => StockCalculator.sortStocks(
+    _filteredStocks,
+    _sortColumn,
+    _sortAscending,
+    selectedCurrency,
+  );
 
   void _onColumnTap(String column) {
     _collapseExpandedStock();
@@ -424,17 +375,75 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
     });
   }
 
-  Widget _buildSortIndicator(String column, {bool alignRight = false}) {
-    final isActive = _sortColumn == column;
-    return SizedBox(
-      width: 14,
-      child: isActive
-          ? Icon(
-              _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-              size: 12,
-              color: const Color(0xFF5B9CF6),
-            )
-          : null,
+  void _showMarketFilter() {
+    final markets = <String?>[
+      null,
+      DevConfig.searchMarketUS,
+      DevConfig.searchMarketHK,
+    ];
+    final labels = ['全部', DevConfig.searchMarketUS, DevConfig.searchMarketHK];
+    final icons = [Icons.all_inclusive, Icons.language, Icons.location_city];
+    final colors = [null, Colors.blue, Colors.orange];
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1F26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          '筛选市场',
+          style: TextStyle(fontSize: 16, color: Colors.white),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(markets.length, (i) {
+            final selected = _filterMarket == markets[i];
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() => _filterMarket = markets[i]);
+                  Navigator.pop(ctx);
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? Colors.blue.withOpacity(0.15)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        icons[i],
+                        size: 20,
+                        color: selected
+                            ? Colors.blue
+                            : (colors[i] ?? Colors.grey),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        labels[i],
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: selected ? Colors.blue : Colors.white,
+                        ),
+                      ),
+                      if (selected) const Spacer(),
+                      if (selected)
+                        const Icon(Icons.check, size: 16, color: Colors.blue),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
     );
   }
 
@@ -734,7 +743,20 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   // 页面组装（仅股票内容，不含外壳/底部 Tab）
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [_buildStockTab(), _buildFloatingAddButton()]);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final usableHeight = constraints.maxHeight;
+        return Stack(
+          children: [
+            _buildStockTab(),
+            DraggableFab(
+              onTap: _showSearchStockDialog,
+              maxHeight: usableHeight,
+            ),
+          ],
+        );
+      },
+    );
   }
 
   /// 股票 Tab 内容
@@ -757,7 +779,11 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeader(),
+                    StockSectionTitle(
+                      stockCount: stocks.length,
+                      onAddTap: _showSearchStockDialog,
+                      onSettingsTap: _showSettingsPage,
+                    ),
                     const SizedBox(height: 8),
                     StockSummaryCard(
                       selectedCurrency: selectedCurrency,
@@ -773,7 +799,13 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
                       onCollapse: _collapseExpandedStock,
                     ),
                     const SizedBox(height: 8),
-                    _buildStockListHeader(),
+                    StockListHeader(
+                      sortColumn: _sortColumn,
+                      sortAscending: _sortAscending,
+                      onColumnTap: _onColumnTap,
+                      filterMarket: _filterMarket,
+                      onFilterTap: _showMarketFilter,
+                    ),
                     const SizedBox(height: 2),
                     if (_sortedStocks.isEmpty) ...[
                       const EmptyStateWidget(
@@ -805,196 +837,6 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
             ),
           );
         },
-      ),
-    );
-  }
-
-  /// 顶部标题栏
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                DevConfig.homeTitle,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  height: 1.2,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                DevConfig.homeSubtitle.replaceAll(
-                  '{count}',
-                  '${stocks.length}',
-                ),
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey[400],
-                  height: 1.2,
-                ),
-              ),
-              const SizedBox(height: 2),
-            ],
-          ),
-          Row(
-            children: [
-              IconButton(
-                onPressed: _showSearchStockDialog,
-                icon: const Icon(Icons.add, color: Color(0xFF5B9CF6), size: 30),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-              ),
-              IconButton(
-                onPressed: _showSettingsPage,
-                icon: const Icon(Icons.settings, color: Colors.white, size: 30),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFloatingAddButton() {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    // 去掉 SafeArea 上下边距，得到实际可用高度
-    final usableHeight =
-        mediaQuery.size.height -
-        mediaQuery.padding.top -
-        mediaQuery.padding.bottom;
-    final fabSize = 56.0;
-
-    if (!_fabInitialized) {
-      _fabY = (usableHeight - fabSize) / 2;
-      _fabInitialized = true;
-    }
-
-    final fabLeft = screenWidth - fabSize - 16;
-
-    return Positioned(
-      left: fabLeft,
-      top: _fabY,
-      child: GestureDetector(
-        onPanUpdate: (details) {
-          setState(() {
-            _fabY = (_fabY + details.delta.dy).clamp(
-              20,
-              usableHeight - fabSize - 20,
-            );
-          });
-        },
-        onTap: _showSearchStockDialog,
-        child: Container(
-          width: fabSize,
-          height: fabSize,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
-            ),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue.withOpacity(0.4),
-                blurRadius: 12,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
-        ),
-      ),
-    );
-  }
-
-  /// 股票列表标题（可点击排序）
-  Widget _buildStockListHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(26, 2, 26, 2),
-      child: Row(
-        children: [
-          const SizedBox(width: 48),
-          Expanded(
-            flex: 2,
-            child: GestureDetector(
-              onTap: () => _onColumnTap('name'),
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    DevConfig.homeStockHeader,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[500],
-                      height: 1.2,
-                    ),
-                  ),
-                  _buildSortIndicator('name'),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: GestureDetector(
-              onTap: () => _onColumnTap('holdings'),
-              behavior: HitTestBehavior.opaque,
-              child: Align(
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      DevConfig.homeHoldingHeader,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[500],
-                        height: 1.2,
-                      ),
-                    ),
-                    _buildSortIndicator('holdings'),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: GestureDetector(
-              onTap: () => _onColumnTap('profit'),
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    DevConfig.homeProfitHeader,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[500],
-                      height: 1.2,
-                    ),
-                  ),
-                  _buildSortIndicator('profit', alignRight: true),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

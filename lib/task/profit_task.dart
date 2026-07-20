@@ -62,11 +62,11 @@ void callbackDispatcher() {
       );
       await IcloudStorage.recordProfitIfNeeded(summary.totalProfit, currency);
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][WorkManager] 后台任务执行成功 totalProfit: ${summary.totalProfit} ($currency)',
+        '[${DateTime.now().toString().substring(11, 19)}][WorkManager] ===> 后台任务执行成功 totalProfit: ${summary.totalProfit} ($currency)',
       );
     } catch (e) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][WorkManager] 后台任务失败: $e',
+        '[${DateTime.now().toString().substring(11, 19)}][WorkManager] ===> 后台任务失败: $e',
       );
     }
     return Future.value(true);

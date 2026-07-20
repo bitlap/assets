@@ -60,7 +60,7 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
     _intradaySnapshots = intraday;
     _applyRange();
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][图表] 加载: 天级=${daily.length}, 10分钟=${intraday.length}, 展示=${_snapshots.length}, 货币=${widget.targetCurrency}',
+      '[${DateTime.now().toString().substring(11, 19)}][图表] ===> 加载: 天级=${daily.length}, 10分钟=${intraday.length}, 展示=${_snapshots.length}, 货币=${widget.targetCurrency}',
     );
   }
 

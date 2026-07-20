@@ -37,7 +37,7 @@ class IcloudStorage {
       }
     } catch (e) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][iCloud] 获取 iCloud 路径失败: $e，使用本地 fallback',
+        '[${DateTime.now().toString().substring(11, 19)}][iCloud] ===> 获取 iCloud 路径失败: $e，使用本地 fallback',
       );
     }
   }
@@ -67,9 +67,6 @@ class IcloudStorage {
     if (dividendRecords != null) {
       unawaited(_syncToCloud(dividendRecordsFile));
     }
-    debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][本地] 股票记录保存完成: ${stocks.length} 只股票, ${records?.length} 个股票记录, ${dividendRecords?.length} 个派息记录',
-    );
   }
 
   /// 从本地加载股票和记录
@@ -92,10 +89,6 @@ class IcloudStorage {
     final dividendRecords = dividendRecordsFromJson(
       await readJson(_localPath!, dividendRecordsFile),
     );
-    debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][本地] 加载完成: ${stocks.length} 只股票, ${records.length} 个股票记录, ${dividendRecords.length} 个派息记录',
-    );
-
     return (stocks, records, dividendRecords);
   }
 
@@ -114,7 +107,7 @@ class IcloudStorage {
     final local = File(localFilePath(_localPath!, settingsFile));
     if (!await local.exists()) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][本地] 设置文件不存在: $settingsFile',
+        '[${DateTime.now().toString().substring(11, 19)}][本地] ===> 设置文件不存在: $settingsFile',
       );
       return {};
     }
@@ -122,7 +115,7 @@ class IcloudStorage {
       return jsonDecode(await local.readAsString()) as Map<String, dynamic>;
     } catch (e) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][本地] 设置读取失败: $e',
+        '[${DateTime.now().toString().substring(11, 19)}][本地] ===> 设置读取失败: $e',
       );
       return {};
     }
@@ -214,7 +207,7 @@ class IcloudStorage {
       await cloud.writeAsString(await local.readAsString());
     } catch (e) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][iCloud] 同步到 iCloud 失败: $name - $e',
+        '[${DateTime.now().toString().substring(11, 19)}][iCloud] ===> 同步到 iCloud 失败: $name - $e',
       );
     }
   }
@@ -235,12 +228,12 @@ class IcloudStorage {
       if (cloudTime.isAfter(localTime)) {
         await local.writeAsString(await cloud.readAsString());
         debugPrint(
-          '[${DateTime.now().toString().substring(11, 19)}][iCloud] 从 iCloud 同步到本地: $name',
+          '[${DateTime.now().toString().substring(11, 19)}][iCloud] ===> 从 iCloud 同步到本地: $name',
         );
       }
     } catch (e) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][iCloud] 从 iCloud 拉取失败: $name - $e',
+        '[${DateTime.now().toString().substring(11, 19)}][iCloud] ===> 从 iCloud 拉取失败: $name - $e',
       );
     }
   }
@@ -252,9 +245,6 @@ class IcloudStorage {
     await ensureInit();
     await _syncFromCloud(dailyProfitFile);
     final data = await readJson(_localPath!, dailyProfitFile);
-    debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][快照] 加载天级: ${data.length} 条, 目标货币: $targetCurrency',
-    );
     final snapshots = data.map((e) => ProfitSnapshot.fromJson(e)).toList();
     if (targetCurrency != DevConfig.defaultCurrency) {
       return snapshots
@@ -277,9 +267,6 @@ class IcloudStorage {
     List<ProfitSnapshot> snapshots,
   ) async {
     await ensureInit();
-    debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][快照] 保存天级: ${snapshots.length} 条',
-    );
     final data = snapshots.map((e) => e.toJson()).toList();
     await writeJson(_localPath!, dailyProfitFile, data);
     unawaited(_syncToCloud(dailyProfitFile));
@@ -292,9 +279,6 @@ class IcloudStorage {
     await ensureInit();
     await _syncFromCloud(intradayProfitFile);
     final data = await readJson(_localPath!, intradayProfitFile);
-    debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][快照] 加载10分钟: ${data.length} 条, 目标货币: $targetCurrency',
-    );
     final snapshots = data.map((e) => ProfitSnapshot.fromJson(e)).toList();
     if (targetCurrency != DevConfig.defaultCurrency) {
       return snapshots
@@ -363,18 +347,13 @@ class IcloudStorage {
     var intraday = await loadIntradayProfitHistory(
       targetCurrency: DevConfig.defaultCurrency,
     );
-
-    debugPrint(
-      '[${now.toString().substring(11, 19)}][快照] 记录 profit=$totalProfit ($sourceCurrency) → ${profitInDefaultCurrency.toStringAsFixed(2)} (${DevConfig.defaultCurrency}), 天级=${daily.length}, 10分钟=${intraday.length}',
-    );
-
     // 检查是否跨天：将昨天最后一条转存为天级
     if (intraday.isNotEmpty) {
       final last = intraday.last;
       final lastDay = DateTime(last.time.year, last.time.month, last.time.day);
       if (lastDay.isBefore(today)) {
         debugPrint(
-          '[${now.toString().substring(11, 19)}][快照] 跨天: 最后一条 ${last.time.toString().substring(0, 19)} → 转存为天级',
+          '[${now.toString().substring(11, 19)}][快照] ===> 跨天: 最后一条 ${last.time.toString().substring(0, 19)} → 转存为天级',
         );
         daily.add(
           ProfitSnapshot(time: last.time, totalProfit: last.totalProfit),
@@ -391,9 +370,6 @@ class IcloudStorage {
       final last = intraday.last;
       if (last.totalProfit == profitInDefaultCurrency &&
           now.difference(last.time).inMinutes < 10) {
-        debugPrint(
-          '[${now.toString().substring(11, 19)}][快照] 跳过: 相同值 $profitInDefaultCurrency，距上次 ${now.difference(last.time).inMinutes} 分钟',
-        );
         return;
       }
     }
@@ -402,9 +378,5 @@ class IcloudStorage {
       ProfitSnapshot(time: now, totalProfit: profitInDefaultCurrency),
     );
     await saveIntradayProfitHistory(intraday);
-
-    debugPrint(
-      '[${now.toString().substring(11, 19)}][快照] 已保存: 10分钟=${intraday.length} 条',
-    );
   }
 }

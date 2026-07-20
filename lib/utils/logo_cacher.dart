@@ -17,11 +17,11 @@ class LogoCacher {
     if (!await dir.exists()) {
       await dir.create(recursive: true);
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][Logo] 📁 创建缓存目录: ${dir.path}',
+        '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 创建缓存目录: ${dir.path}',
       );
     } else {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][Logo] 📁 缓存目录已存在: ${dir.path}',
+        '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 缓存目录已存在: ${dir.path}',
       );
     }
     _cachePath = dir.path;
@@ -36,12 +36,12 @@ class LogoCacher {
     final file = File(_filePath(code));
     if (file.existsSync()) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][Logo] 缓存命中: $code',
+        '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 缓存命中: $code',
       );
       return FileImage(file);
     }
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][Logo] 缓存未命中: $code',
+      '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 缓存未命中: $code',
     );
     return null;
   }
@@ -54,23 +54,23 @@ class LogoCacher {
     if (!_downloading.contains(key)) {
       _downloading.add(key);
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][Logo] 开始下载: $code -> $logoUrl',
+        '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 开始下载: $code -> $logoUrl',
       );
       await _downloadToCache(key, logoUrl);
     } else {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][Logo] 已在下载队列中: $code',
+        '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 已在下载队列中: $code',
       );
     }
     // 下载完成后从本地缓存读取
     final local = syncCached(code);
     if (local != null) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][Logo] 下载完成，使用本地缓存: $code',
+        '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 下载完成，使用本地缓存: $code',
       );
     } else {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][Logo] 下载后仍无缓存，fallback 到网络: $code',
+        '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 下载后仍无缓存，fallback 到网络: $code',
       );
     }
     return local ?? NetworkImage(logoUrl);
@@ -85,16 +85,16 @@ class LogoCacher {
         await file.parent.create(recursive: true);
         await file.writeAsBytes(response.bodyBytes);
         debugPrint(
-          '[${DateTime.now().toString().substring(11, 19)}][Logo] 缓存成功: $code (${response.bodyBytes.length} bytes)',
+          '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 缓存成功: $code (${response.bodyBytes.length} bytes)',
         );
       } else {
         debugPrint(
-          '[${DateTime.now().toString().substring(11, 19)}][Logo] 下载失败 HTTP ${response.statusCode}: $code',
+          '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 下载失败 HTTP ${response.statusCode}: $code',
         );
       }
     } catch (e) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][Logo] 下载异常 $code: $e',
+        '[${DateTime.now().toString().substring(11, 19)}][Logo] ===> 下载异常 $code: $e',
       );
     }
     _downloading.remove(code);

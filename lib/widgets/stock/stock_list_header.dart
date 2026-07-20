@@ -1,0 +1,124 @@
+import 'package:flutter/material.dart';
+import '../../config/app_config.dart';
+import '../common/sort_indicator.dart';
+
+class StockListHeader extends StatelessWidget {
+  final String sortColumn;
+  final bool sortAscending;
+  final ValueChanged<String> onColumnTap;
+  final String? filterMarket;
+  final VoidCallback onFilterTap;
+
+  const StockListHeader({
+    super.key,
+    required this.sortColumn,
+    required this.sortAscending,
+    required this.onColumnTap,
+    required this.filterMarket,
+    required this.onFilterTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(26, 2, 26, 2),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 24,
+            child: GestureDetector(
+              onTap: onFilterTap,
+              child: Icon(
+                filterMarket != null
+                    ? Icons.filter_alt
+                    : Icons.filter_alt_outlined,
+                size: 18,
+                color: filterMarket != null ? Colors.blue : Colors.grey[500],
+              ),
+            ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 2,
+            child: GestureDetector(
+              onTap: () => onColumnTap('name'),
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    DevConfig.homeStockHeader,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[500],
+                      height: 1.2,
+                    ),
+                  ),
+                  SortIndicator(
+                    isActive: sortColumn == 'name',
+                    isAscending: sortAscending,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: GestureDetector(
+              onTap: () => onColumnTap('holdings'),
+              behavior: HitTestBehavior.opaque,
+              child: Align(
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      DevConfig.homeHoldingHeader,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[500],
+                        height: 1.2,
+                      ),
+                    ),
+                    SortIndicator(
+                      isActive: sortColumn == 'holdings',
+                      isAscending: sortAscending,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: GestureDetector(
+              onTap: () => onColumnTap('profit'),
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    DevConfig.homeProfitHeader,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[500],
+                      height: 1.2,
+                    ),
+                  ),
+                  SortIndicator(
+                    isActive: sortColumn == 'profit',
+                    isAscending: sortAscending,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

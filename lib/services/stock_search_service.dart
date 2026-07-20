@@ -33,20 +33,20 @@ class StockSearchService {
         cachedResults != null &&
         DateTime.now().difference(cachedTime) < _searchCacheTTL) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][搜索] 缓存命中: $keyword (${cachedResults.length}条)',
+        '[${DateTime.now().toString().substring(11, 19)}][搜索] ===> 缓存命中: $keyword (${cachedResults.length}条)',
       );
       return cachedResults;
     }
 
     if (_breaker.isInCooldown) {
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][搜索] 冷却期中，跳过搜索: $keyword',
+        '[${DateTime.now().toString().substring(11, 19)}][搜索] ===> 冷却期中，跳过搜索: $keyword',
       );
       return cachedResults ?? [];
     }
 
     debugPrint(
-      '[${DateTime.now().toString().substring(11, 19)}][搜索] 搜索: $keyword',
+      '[${DateTime.now().toString().substring(11, 19)}][搜索] ===> 搜索: $keyword',
     );
     Client? client;
     try {
@@ -69,18 +69,18 @@ class StockSearchService {
         _searchCacheTime[keyword] = DateTime.now();
         _searchCacheValue[keyword] = results;
         debugPrint(
-          '[${DateTime.now().toString().substring(11, 19)}][搜索] 搜索成功: $keyword -> ${results.length}条结果',
+          '[${DateTime.now().toString().substring(11, 19)}][搜索] ===> 搜索成功: $keyword -> ${results.length}条结果',
         );
         return results;
       }
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][搜索] HTTP ${response.statusCode}',
+        '[${DateTime.now().toString().substring(11, 19)}][搜索] ===> HTTP ${response.statusCode}',
       );
       return [];
     } catch (e) {
       client?.close();
       debugPrint(
-        '[${DateTime.now().toString().substring(11, 19)}][搜索] 搜索失败: $e',
+        '[${DateTime.now().toString().substring(11, 19)}][搜索] ===> 搜索失败: $e',
       );
       _breaker.onFailure();
       return [];
