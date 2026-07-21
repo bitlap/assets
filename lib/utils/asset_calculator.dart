@@ -40,6 +40,22 @@ class AssetCalculator {
     return sum;
   }
 
+  /// 按类型汇总资产价值
+  static Map<AssetType, double> getTotalByType(
+    List<AssetBase> assets,
+    String targetCurrency,
+  ) {
+    final totals = <AssetType, double>{};
+    for (final a in assets) {
+      totals.update(
+        a.type,
+        (v) => v + getAssetValue(a, targetCurrency),
+        ifAbsent: () => getAssetValue(a, targetCurrency),
+      );
+    }
+    return totals;
+  }
+
   /// 排序资产列表
   static List<AssetBase> sortAssets(
     List<AssetBase> source,

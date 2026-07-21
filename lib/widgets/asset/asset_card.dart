@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/asset_config.dart';
 
 class AssetCardFrame extends StatelessWidget {
   final IconData icon;
@@ -37,13 +38,13 @@ class AssetCardFrame extends StatelessWidget {
         children: [
           if (c != null)
             Text(
-              '创建:${_f(c)}',
+              AssetConfig.createdLabel.replaceAll('{date}', _f(c)),
               style: TextStyle(fontSize: 10, color: Colors.grey[600]),
             ),
           if (c != null && u != null) const SizedBox(height: 2),
           if (u != null)
             Text(
-              '更新:${_f(u)}',
+              AssetConfig.updatedLabel.replaceAll('{date}', _f(u)),
               style: TextStyle(fontSize: 10, color: Colors.grey[600]),
             ),
         ],

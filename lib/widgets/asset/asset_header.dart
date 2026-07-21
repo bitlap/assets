@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/currency_helper.dart';
 import '../../config/app_config.dart';
+import '../../config/asset_config.dart';
 
 // ─── Section Title ─────────────────────────────────────────
 
@@ -36,7 +37,10 @@ class AssetSectionTitle extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                '共 $assetCount 项资产',
+                AssetConfig.assetCountLabel.replaceAll(
+                  '{count}',
+                  '$assetCount',
+                ),
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey[400],
@@ -94,7 +98,7 @@ class AssetHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                '总资产',
+                DevConfig.assetTotalAssets,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.white70,
@@ -151,13 +155,13 @@ class AssetHeader extends StatelessWidget {
             children: [
               _summaryChip(
                 Icons.show_chart,
-                '股票',
+                DevConfig.tabStock,
                 CurrencyHelper.formatCompact(stockTotalValue),
               ),
               const SizedBox(width: 8),
               _summaryChip(
                 Icons.account_balance,
-                '存款理财',
+                AssetConfig.depositWealthLabel,
                 CurrencyHelper.formatCompact(totalAssets - stockTotalValue),
               ),
             ],

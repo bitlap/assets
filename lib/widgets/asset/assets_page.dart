@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../models/asset_account.dart';
+import '../../models/asset_flat_item.dart';
 import '../../utils/currency_helper.dart';
 import '../../utils/center_toast.dart';
 import '../../utils/asset_calculator.dart';
+import '../../utils/asset_reorder_util.dart';
 import '../../config/app_config.dart';
+import '../../config/asset_config.dart';
 import '../../services/icloud_storage.dart';
 import '../../services/settings_service.dart';
 import '../common/empty_state_widget.dart';
@@ -30,21 +33,6 @@ class AssetsPage extends StatefulWidget {
   State<AssetsPage> createState() => _AssetsPageState();
 }
 
-sealed class _FlatItem {
-  const _FlatItem();
-}
-
-class _SectionHeader extends _FlatItem {
-  final AssetType type;
-  final bool expanded;
-  const _SectionHeader(this.type, this.expanded);
-}
-
-class _AssetCardItem extends _FlatItem {
-  final AssetBase asset;
-  const _AssetCardItem(this.asset);
-}
-
 class _AssetsPageState extends State<AssetsPage> {
   List<AssetBase> _assets = [];
   bool _isLoading = false;
@@ -54,7 +42,7 @@ class _AssetsPageState extends State<AssetsPage> {
     AssetType.timeDeposit,
     AssetType.wealthProduct,
   ];
-  List<_FlatItem> _flatItems = [];
+  List<AssetFlatItem> _flatItems = [];
 
   double get _totalAssets => AssetCalculator.calculateTotalAssets(
     _assets,
@@ -62,27 +50,18 @@ class _AssetsPageState extends State<AssetsPage> {
     widget.currency,
   );
 
-  Map<AssetType, double> _totalByType(String currency) {
-    final totals = <AssetType, double>{};
-    for (final a in _assets) {
-      totals.update(
-        a.type,
-        (v) => v + AssetCalculator.getAssetValue(a, currency),
-        ifAbsent: () => AssetCalculator.getAssetValue(a, currency),
-      );
-    }
-    return totals;
-  }
+  Map<AssetType, double> _totalByType(String currency) =>
+      AssetCalculator.getTotalByType(_assets, currency);
 
   void _rebuildFlatItems() {
     _flatItems = [];
     for (final type in _sectionOrder) {
       final items = _assets.where((a) => a.type == type).toList();
       if (items.isEmpty) continue;
-      _flatItems.add(_SectionHeader(type, _expandedTypes.contains(type)));
+      _flatItems.add(SectionHeader(type, _expandedTypes.contains(type)));
       if (_expandedTypes.contains(type)) {
         for (final a in items) {
-          _flatItems.add(_AssetCardItem(a));
+          _flatItems.add(AssetCardItem(a));
         }
       }
     }
@@ -169,7 +148,12 @@ class _AssetsPageState extends State<AssetsPage> {
     try {
       await _save();
     } catch (_) {}
-    if (mounted) CenterToast.success(context, '已删除 $name');
+    if (mounted) {
+      CenterToast.success(
+        context,
+        AssetConfig.toastDeleted.replaceAll('{name}', name),
+      );
+    }
   }
 
   void _onFlatReorder(int oldIndex, int newIndex) {
@@ -177,57 +161,55 @@ class _AssetsPageState extends State<AssetsPage> {
       if (newIndex > oldIndex) newIndex--;
       final item = _flatItems[oldIndex];
 
-      if (item is _SectionHeader) {
-        if (mounted) CenterToast.warning(context, '分类不可移动');
-        return;
-      }
-      if (item is _AssetCardItem) {
+      if (item is SectionHeader) {
+        if (newIndex < _flatItems.length - 1) {
+          final targetIdx = newIndex < oldIndex ? newIndex : newIndex + 1;
+          if (_flatItems[targetIdx] is AssetCardItem) {
+            if (mounted) CenterToast.warning(context, '请在分类标题之间拖拽');
+            return;
+          }
+        }
+        final order = reorderSectionOrder(
+          _sectionOrder,
+          _flatItems,
+          item.type,
+          oldIndex,
+          newIndex,
+        );
+        if (identical(order, _sectionOrder)) return;
+        setState(() => _sectionOrder = order);
+      } else if (item is AssetCardItem) {
         final type = item.asset.type;
         final typeAssetsLen = _assets.where((a) => a.type == type).length;
 
-        int sameTypeCount = 0;
-        bool crossSection = false;
-        for (int i = 0; i < newIndex; i++) {
-          final origIdx = i < oldIndex ? i : i + 1;
-          if (origIdx >= _flatItems.length) break;
-          final fi = _flatItems[origIdx];
-          if (fi is _AssetCardItem && fi.asset.type == type) {
-            sameTypeCount++;
-          } else if (fi is _SectionHeader && fi.type != type) {
-            crossSection = true;
-          } else if (fi is _AssetCardItem && fi.asset.type != type) {
-            crossSection = true;
-          }
+        final (sectionStart, sectionEnd) = findSectionRange(_flatItems, type);
+        if (sectionStart < 0) return;
+
+        int adjEnd = sectionEnd;
+        if (oldIndex < sectionStart) {
+          adjEnd--;
+        } else if (oldIndex < sectionEnd) {
+          adjEnd--;
         }
-        if (crossSection) {
-          if (mounted) CenterToast.warning(context, '不能移动到其他分类');
+        if (newIndex <= sectionStart || newIndex > adjEnd) {
+          if (mounted)
+            CenterToast.warning(context, AssetConfig.toastCrossSection);
           return;
         }
         if (typeAssetsLen <= 1) return;
 
-        final newAssets = List<AssetBase>.from(_assets)
-          ..removeAt(_assets.indexOf(item.asset));
-
-        int insertAt = newAssets.length;
-        int typeCount = 0;
-        for (int i = 0; i < newAssets.length; i++) {
-          if (newAssets[i].type == type) {
-            if (typeCount == sameTypeCount) {
-              insertAt = i;
-              break;
-            }
-            typeCount++;
-          }
-        }
-        if (insertAt == newAssets.length && typeCount > 0) {
-          for (int i = newAssets.length - 1; i >= 0; i--) {
-            if (newAssets[i].type == type) {
-              insertAt = i + 1;
-              break;
-            }
-          }
-        }
-        newAssets.insert(insertAt, item.asset);
+        final sameTypeCount = computeSameTypeCount(
+          _flatItems,
+          type,
+          oldIndex,
+          newIndex,
+        );
+        final newAssets = reorderAssets(
+          _assets,
+          item.asset,
+          type,
+          sameTypeCount,
+        );
         setState(() => _assets = newAssets);
       } else {
         return;
@@ -334,7 +316,7 @@ class _AssetsPageState extends State<AssetsPage> {
     if (result != null && mounted) {
       if (onAdd != null) await onAdd(result);
       if (onUpdate != null) await onUpdate(result);
-      CenterToast.success(context, '已保存');
+      CenterToast.success(context, AssetConfig.toastSaved);
     }
   }
 
@@ -382,8 +364,8 @@ class _AssetsPageState extends State<AssetsPage> {
                         hasScrollBody: false,
                         child: EmptyStateWidget(
                           icon: Icons.account_balance_wallet_outlined,
-                          title: '还没有资产',
-                          subtitle: '点击右下角 + 添加现金、存款或理财',
+                          title: AssetConfig.emptyTitle,
+                          subtitle: AssetConfig.emptySubtitle,
                           iconSize: 64,
                           padding: EdgeInsets.symmetric(vertical: 40),
                         ),
@@ -395,9 +377,9 @@ class _AssetsPageState extends State<AssetsPage> {
                         itemBuilder: (context, index) {
                           final item = _flatItems[index];
                           return switch (item) {
-                            _SectionHeader(:final type, :final expanded) =>
+                            SectionHeader(:final type, :final expanded) =>
                               _buildSectionHeader(type, expanded, index),
-                            _AssetCardItem(:final asset) => _buildAssetCardItem(
+                            AssetCardItem(:final asset) => _buildAssetCardItem(
                               asset,
                               index,
                             ),
@@ -440,12 +422,16 @@ class _AssetsPageState extends State<AssetsPage> {
     final total = _totalByType(widget.currency)[type] ?? 0;
 
     final (icon, iconColor, label) = switch (type) {
-      AssetType.cash => (Icons.payments, Colors.teal, '现金'),
-      AssetType.timeDeposit => (Icons.savings, Colors.orange, '定期存款'),
+      AssetType.cash => (Icons.payments, Colors.teal, AssetConfig.cash),
+      AssetType.timeDeposit => (
+        Icons.savings,
+        Colors.orange,
+        AssetConfig.timeDeposit,
+      ),
       AssetType.wealthProduct => (
         Icons.trending_up,
         Colors.blueAccent,
-        '理财/基金',
+        AssetConfig.wealthProduct,
       ),
     };
 
@@ -559,11 +545,13 @@ class _AssetsPageState extends State<AssetsPage> {
   }
 
   Future<bool> _confirmDelete(AssetBase asset) async {
-    final name = asset.name.isNotEmpty ? asset.name : '此项';
+    final name = asset.name.isNotEmpty
+        ? asset.name
+        : AssetConfig.defaultNameFallback;
     return ConfirmDeleteDialog.show(
       context,
       title: DevConfig.btnConfirm,
-      content: '确定要删除 $name 吗？',
+      content: AssetConfig.deleteConfirm.replaceAll('{name}', name),
     );
   }
 
@@ -589,7 +577,9 @@ class _AssetsPageState extends State<AssetsPage> {
       ),
       icon: Icons.payments,
       iconColor: Colors.teal,
-      name: cash.name.isNotEmpty ? cash.name : '现金 ($cash.currency)',
+      name: cash.name.isNotEmpty
+          ? cash.name
+          : AssetConfig.defaultNameCash.replaceAll('{currency}', cash.currency),
       createdAt: cash.createdAt,
       updatedAt: cash.updatedAt,
       trailing: Align(
@@ -623,7 +613,7 @@ class _AssetsPageState extends State<AssetsPage> {
       ),
       icon: Icons.savings,
       iconColor: Colors.orange,
-      name: td.name.isNotEmpty ? td.name : '定期存款',
+      name: td.name.isNotEmpty ? td.name : AssetConfig.defaultNameTD,
       createdAt: td.createdAt,
       updatedAt: td.updatedAt,
       trailing: Align(
@@ -642,7 +632,9 @@ class _AssetsPageState extends State<AssetsPage> {
             ),
             const SizedBox(height: 2),
             Text(
-              daysLeft > 0 ? '还剩 ${daysLeft}天' : '已到期',
+              daysLeft > 0
+                  ? AssetConfig.daysRemaining.replaceAll('{days}', '$daysLeft')
+                  : AssetConfig.expired,
               style: TextStyle(
                 fontSize: 11,
                 color: daysLeft > 0 ? Colors.grey[500] : Colors.orange,
@@ -669,7 +661,7 @@ class _AssetsPageState extends State<AssetsPage> {
       ),
       icon: Icons.trending_up,
       iconColor: Colors.blueAccent,
-      name: wp.name.isNotEmpty ? wp.name : '理财产品',
+      name: wp.name.isNotEmpty ? wp.name : AssetConfig.defaultNameWP,
       createdAt: wp.createdAt,
       updatedAt: wp.updatedAt,
       trailing: Align(

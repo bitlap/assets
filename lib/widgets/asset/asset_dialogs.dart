@@ -3,6 +3,7 @@ import '../../models/asset_account.dart';
 import '../../utils/currency_helper.dart';
 import '../../utils/center_toast.dart';
 import '../../config/app_config.dart';
+import '../../config/asset_config.dart';
 import '../common/app_number_field.dart';
 import '../common/dialog_utils.dart';
 
@@ -17,7 +18,7 @@ Future<String?> showAddAssetSheet(BuildContext context) {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            '添加资产',
+            AssetConfig.titleAddAsset,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -25,15 +26,20 @@ Future<String?> showAddAssetSheet(BuildContext context) {
             ),
           ),
           const SizedBox(height: 16),
-          _addOption(Icons.payments, Colors.teal, '现金', () {
+          _addOption(Icons.payments, Colors.teal, AssetConfig.cash, () {
             Navigator.pop(ctx, 'cash');
           }),
-          _addOption(Icons.savings, Colors.orange, '定期存款', () {
+          _addOption(Icons.savings, Colors.orange, AssetConfig.timeDeposit, () {
             Navigator.pop(ctx, 'td');
           }),
-          _addOption(Icons.trending_up, Colors.blueAccent, '理财/基金', () {
-            Navigator.pop(ctx, 'wp');
-          }),
+          _addOption(
+            Icons.trending_up,
+            Colors.blueAccent,
+            AssetConfig.wealthProduct,
+            () {
+              Navigator.pop(ctx, 'wp');
+            },
+          ),
           const SizedBox(height: 8),
         ],
       ),
@@ -119,7 +125,7 @@ class _CashDialogState extends State<_CashDialog> {
         children: [
           Center(
             child: Text(
-              isEdit ? '编辑现金' : '添加现金',
+              isEdit ? AssetConfig.titleEditCash : AssetConfig.titleAddCash,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -128,11 +134,17 @@ class _CashDialogState extends State<_CashDialog> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('名称', style: TextStyle(fontSize: 13, color: Colors.grey)),
+          const Text(
+            AssetConfig.fieldName,
+            style: TextStyle(fontSize: 13, color: Colors.grey),
+          ),
           const SizedBox(height: 6),
-          _dialogTextField(nameCtrl, '例：活期账户、钱包'),
+          _dialogTextField(nameCtrl, AssetConfig.hintCashName),
           const SizedBox(height: 12),
-          const Text('余额', style: TextStyle(fontSize: 13, color: Colors.grey)),
+          const Text(
+            AssetConfig.fieldBalance,
+            style: TextStyle(fontSize: 13, color: Colors.grey),
+          ),
           const SizedBox(height: 6),
           Row(
             children: [
@@ -156,7 +168,7 @@ class _CashDialogState extends State<_CashDialog> {
             onConfirm: () {
               final balance = double.tryParse(balanceCtrl.text);
               if (balance == null || balance < 0) {
-                CenterToast.error(context, '请输入有效金额');
+                CenterToast.error(context, AssetConfig.toastInvalidBalance);
                 return;
               }
               final updated = CashAccount(
@@ -172,7 +184,7 @@ class _CashDialogState extends State<_CashDialog> {
               );
               Navigator.pop(context, updated);
             },
-            confirmText: isEdit ? DevConfig.btnClose : '添加',
+            confirmText: isEdit ? DevConfig.btnClose : DevConfig.btnAdd,
             confirmGradient: const LinearGradient(
               colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
             ),
@@ -259,7 +271,7 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
         children: [
           Center(
             child: Text(
-              isEdit ? '编辑定期存款' : '添加定期存款',
+              isEdit ? AssetConfig.titleEditTD : AssetConfig.titleAddTD,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -268,11 +280,14 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
             ),
           ),
           const SizedBox(height: 16),
-          _label('名称'),
+          _label(AssetConfig.fieldName),
           const SizedBox(height: 6),
-          _dialogTextField(nameCtrl, '例：一年定期'),
+          _dialogTextField(nameCtrl, AssetConfig.hintTDName),
           const SizedBox(height: 12),
-          const Text('本金', style: TextStyle(fontSize: 13, color: Colors.grey)),
+          const Text(
+            AssetConfig.fieldPrincipal,
+            style: TextStyle(fontSize: 13, color: Colors.grey),
+          ),
           const SizedBox(height: 6),
           Row(
             children: [
@@ -292,7 +307,7 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
           ),
           const SizedBox(height: 12),
           const Text(
-            '年利率 (%)',
+            AssetConfig.fieldAnnualRate,
             style: TextStyle(fontSize: 13, color: Colors.grey),
           ),
           const SizedBox(height: 6),
@@ -300,9 +315,9 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _label('存入日期')),
+              Expanded(child: _label(AssetConfig.fieldStartDate)),
               const SizedBox(width: 16),
-              Expanded(child: _label('期限 (月)')),
+              Expanded(child: _label(AssetConfig.fieldDuration)),
             ],
           ),
           const SizedBox(height: 6),
@@ -346,11 +361,11 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
               final principal = double.tryParse(principalCtrl.text);
               final rate = double.tryParse(rateCtrl.text);
               if (principal == null || principal <= 0) {
-                CenterToast.error(context, '请输入有效本金');
+                CenterToast.error(context, AssetConfig.toastInvalidPrincipal);
                 return;
               }
               if (rate == null || rate < 0) {
-                CenterToast.error(context, '请输入有效利率');
+                CenterToast.error(context, AssetConfig.toastInvalidRate);
                 return;
               }
               final updated = TimeDeposit(
@@ -369,7 +384,7 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
               );
               Navigator.pop(context, updated);
             },
-            confirmText: isEdit ? DevConfig.btnClose : '添加',
+            confirmText: isEdit ? DevConfig.btnClose : DevConfig.btnAdd,
             confirmGradient: const LinearGradient(
               colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
             ),
@@ -452,7 +467,7 @@ class _WealthProductDialogState extends State<_WealthProductDialog> {
         children: [
           Center(
             child: Text(
-              isEdit ? '编辑理财/基金' : '添加理财/基金',
+              isEdit ? AssetConfig.titleEditWP : AssetConfig.titleAddWP,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -461,19 +476,19 @@ class _WealthProductDialogState extends State<_WealthProductDialog> {
             ),
           ),
           const SizedBox(height: 16),
-          _label('名称'),
+          _label(AssetConfig.fieldName),
           const SizedBox(height: 6),
-          _dialogTextField(nameCtrl, '例：余额宝、某某基金'),
+          _dialogTextField(nameCtrl, AssetConfig.hintWPName),
           const SizedBox(height: 12),
           const Text(
-            '持有份额',
+            AssetConfig.fieldShares,
             style: TextStyle(fontSize: 13, color: Colors.grey),
           ),
           const SizedBox(height: 6),
           AppNumberField(controller: sharesCtrl, hintText: '0.00'),
           const SizedBox(height: 12),
           const Text(
-            '最新净值',
+            AssetConfig.fieldNav,
             style: TextStyle(fontSize: 13, color: Colors.grey),
           ),
           const SizedBox(height: 6),
@@ -497,11 +512,11 @@ class _WealthProductDialogState extends State<_WealthProductDialog> {
               final shares = double.tryParse(sharesCtrl.text);
               final nav = double.tryParse(navCtrl.text);
               if (shares == null || shares <= 0) {
-                CenterToast.error(context, '请输入有效份额');
+                CenterToast.error(context, AssetConfig.toastInvalidShares);
                 return;
               }
               if (nav == null || nav <= 0) {
-                CenterToast.error(context, '请输入有效净值');
+                CenterToast.error(context, AssetConfig.toastInvalidNav);
                 return;
               }
               final updated = WealthProduct(
@@ -518,7 +533,7 @@ class _WealthProductDialogState extends State<_WealthProductDialog> {
               );
               Navigator.pop(context, updated);
             },
-            confirmText: isEdit ? DevConfig.btnClose : '添加',
+            confirmText: isEdit ? DevConfig.btnClose : DevConfig.btnAdd,
             confirmGradient: const LinearGradient(
               colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
             ),
@@ -704,7 +719,12 @@ Widget _durationSelector(int selected, ValueChanged<int> onChanged) {
         dropdownColor: const Color(0xFF1A1F26),
         style: const TextStyle(color: Colors.white, fontSize: 14),
         items: options
-            .map((m) => DropdownMenuItem(value: m, child: Text('${m}个月')))
+            .map(
+              (m) => DropdownMenuItem(
+                value: m,
+                child: Text(AssetConfig.durationMonths.replaceAll('{m}', '$m')),
+              ),
+            )
             .toList(),
         onChanged: (v) {
           if (v != null) onChanged(v);
