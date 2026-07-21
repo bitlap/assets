@@ -14,6 +14,7 @@ class SettingsService {
   static const String keyDefaultFeeValue = 'default_fee_value';
   static const String keyAssetSortColumn = 'asset_sort_column';
   static const String keyAssetSortAscending = 'asset_sort_ascending';
+  static const String keyAssetSectionOrder = 'asset_section_order';
 
   static const String feeTypePercentage = 'percentage';
   static const String feeTypeFixed = 'fixed';
@@ -38,9 +39,7 @@ class SettingsService {
         _cache = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
         return _cache!;
       } catch (e) {
-        debugPrint(
-          '[SettingsService] ===> 读取设置失败: $e',
-        );
+        debugPrint('[SettingsService] ===> 读取设置失败: $e');
       }
     }
     _cache = {};
@@ -143,6 +142,23 @@ class SettingsService {
   static Future<void> setAssetSortAscending(bool ascending) async {
     final settings = await _load();
     settings[keyAssetSortAscending] = ascending;
+    await _save();
+  }
+
+  /// 读取资产分类顺序，默认 [cash, timeDeposit, wealthProduct]
+  static Future<List<String>> getAssetSectionOrder() async {
+    final settings = await _load();
+    final list = settings[keyAssetSectionOrder] as List<dynamic>?;
+    if (list != null && list.isNotEmpty) {
+      return list.cast<String>();
+    }
+    return ['cash', 'timeDeposit', 'wealthProduct'];
+  }
+
+  /// 保存资产分类顺序
+  static Future<void> setAssetSectionOrder(List<String> order) async {
+    final settings = await _load();
+    settings[keyAssetSectionOrder] = order;
     await _save();
   }
 

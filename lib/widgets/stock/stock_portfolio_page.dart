@@ -224,9 +224,15 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   /// 统一刷新：先更新汇率，再更新股票价格，同时从 iCloud 拉取最新数据
   Future<void> _refreshAll() async {
     setState(() => _isLoading = true);
-    if (!_isForeground) { if (mounted) setState(() => _isLoading = false); return; }
+    if (!_isForeground) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
     _collapseExpandedStock();
-    if (!mounted) { _isLoading = false; return; }
+    if (!mounted) {
+      _isLoading = false;
+      return;
+    }
     debugPrint(
       '[${DateTime.now().toString().substring(11, 19)}][首页] ===> 开始全量刷新...',
     );

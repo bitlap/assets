@@ -9,6 +9,7 @@ class AssetCardFrame extends StatelessWidget {
   final Widget trailing;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final Widget? leading;
 
   const AssetCardFrame({
     super.key,
@@ -20,6 +21,7 @@ class AssetCardFrame extends StatelessWidget {
     required this.trailing,
     required this.onTap,
     required this.onLongPress,
+    this.leading,
   });
 
   String _f(DateTime d) =>
@@ -52,8 +54,7 @@ class AssetCardFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.fromLTRB(4, 12, 12, 12),
+      padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1F26),
         borderRadius: BorderRadius.circular(14),
@@ -66,16 +67,7 @@ class AssetCardFrame extends StatelessWidget {
           height: 50,
           child: Row(
             children: [
-              Container(
-                width: 28,
-                height: 40,
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.drag_indicator,
-                  size: 20,
-                  color: Colors.grey[700],
-                ),
-              ),
+              leading ?? const SizedBox(width: 4),
               Expanded(
                 flex: 3,
                 child: Row(

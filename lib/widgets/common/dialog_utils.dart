@@ -30,6 +30,14 @@ Widget dialogFrame({
   EdgeInsets? padding,
   double? widthRatio,
 }) {
+  final view = View.of(context);
+  final pixRatio = view.devicePixelRatio;
+  final bottomInset = view.viewInsets.bottom / pixRatio;
+  final screenHeight = view.physicalSize.height / pixRatio;
+  final vInset = (insetPadding?.vertical ?? 48);
+  final vPad = (padding?.vertical ?? 40);
+  final maxContentHeight = screenHeight - bottomInset - vInset - vPad - 16;
+
   return Dialog(
     backgroundColor: bgColor ?? _bg,
     shape: RoundedRectangleBorder(borderRadius: borderRadius ?? _radius20),
@@ -47,7 +55,10 @@ Widget dialogFrame({
           bgColor: bgColor,
           borderColor: borderColor,
         ),
-        child: child,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxContentHeight),
+          child: SingleChildScrollView(child: child),
+        ),
       ),
     ),
   );

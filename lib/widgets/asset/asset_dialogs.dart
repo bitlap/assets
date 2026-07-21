@@ -143,7 +143,11 @@ class _CashDialogState extends State<_CashDialog> {
                 ),
               ),
               const SizedBox(width: 8),
-              _currencySelector(currency, (c) => setState(() => currency = c)),
+              _currencySelector(
+                context,
+                currency,
+                (c) => setState(() => currency = c),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -249,132 +253,128 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
     final isEdit = widget.td != null;
     return dialogFrame(
       context: context,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Text(
-                isEdit ? '编辑定期存款' : '添加定期存款',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              isEdit ? '编辑定期存款' : '添加定期存款',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 16),
-            _label('名称'),
-            const SizedBox(height: 6),
-            _dialogTextField(nameCtrl, '例：一年定期'),
-            const SizedBox(height: 12),
-            const Text(
-              '本金',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: AppNumberField(
-                    controller: principalCtrl,
-                    hintText: '0.00',
-                  ),
+          ),
+          const SizedBox(height: 16),
+          _label('名称'),
+          const SizedBox(height: 6),
+          _dialogTextField(nameCtrl, '例：一年定期'),
+          const SizedBox(height: 12),
+          const Text('本金', style: TextStyle(fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: AppNumberField(
+                  controller: principalCtrl,
+                  hintText: '0.00',
                 ),
-                const SizedBox(width: 8),
-                _currencySelector(
-                  currency,
-                  (c) => setState(() => currency = c),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              '年利率 (%)',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
-            ),
-            const SizedBox(height: 6),
-            AppNumberField(controller: rateCtrl, hintText: '2.5'),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(child: _label('存入日期')),
-                const SizedBox(width: 16),
-                Expanded(child: _label('期限 (月)')),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: _dateButton(startDate, () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: startDate,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
-                      builder: (c, child) => Theme(
-                        data: Theme.of(c).copyWith(
-                          colorScheme: const ColorScheme.dark(
-                            primary: Color(0xFF5B9CF6),
-                            onPrimary: Colors.white,
-                            surface: Color(0xFF1A1F26),
-                            onSurface: Colors.white,
-                          ),
+              ),
+              const SizedBox(width: 8),
+              _currencySelector(
+                context,
+                currency,
+                (c) => setState(() => currency = c),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            '年利率 (%)',
+            style: TextStyle(fontSize: 13, color: Colors.grey),
+          ),
+          const SizedBox(height: 6),
+          AppNumberField(controller: rateCtrl, hintText: '2.5'),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _label('存入日期')),
+              const SizedBox(width: 16),
+              Expanded(child: _label('期限 (月)')),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: _dateButton(startDate, () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: startDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    builder: (c, child) => Theme(
+                      data: Theme.of(c).copyWith(
+                        colorScheme: const ColorScheme.dark(
+                          primary: Color(0xFF5B9CF6),
+                          onPrimary: Colors.white,
+                          surface: Color(0xFF1A1F26),
+                          onSurface: Colors.white,
                         ),
-                        child: child!,
                       ),
-                    );
-                    if (picked != null) setState(() => startDate = picked);
-                  }),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _durationSelector(
-                    durationMonths,
-                    (v) => setState(() => durationMonths = v),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            actionButtonRow(
-              onCancel: () => Navigator.pop(context),
-              onConfirm: () {
-                final principal = double.tryParse(principalCtrl.text);
-                final rate = double.tryParse(rateCtrl.text);
-                if (principal == null || principal <= 0) {
-                  CenterToast.error(context, '请输入有效本金');
-                  return;
-                }
-                if (rate == null || rate < 0) {
-                  CenterToast.error(context, '请输入有效利率');
-                  return;
-                }
-                final updated = TimeDeposit(
-                  id:
-                      widget.td?.id ??
-                      DateTime.now().millisecondsSinceEpoch.toString(),
-                  sortOrder: widget.td?.sortOrder ?? widget.assetCount,
-                  currency: currency,
-                  name: nameCtrl.text.trim(),
-                  principal: principal,
-                  annualRate: rate,
-                  startDate: startDate,
-                  durationMonths: durationMonths,
-                  createdAt: widget.td?.createdAt ?? DateTime.now(),
-                  updatedAt: DateTime.now(),
-                );
-                Navigator.pop(context, updated);
-              },
-              confirmText: isEdit ? DevConfig.btnClose : '添加',
-              confirmGradient: const LinearGradient(
-                colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+                      child: child!,
+                    ),
+                  );
+                  if (picked != null) setState(() => startDate = picked);
+                }),
               ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _durationSelector(
+                  durationMonths,
+                  (v) => setState(() => durationMonths = v),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          actionButtonRow(
+            onCancel: () => Navigator.pop(context),
+            onConfirm: () {
+              final principal = double.tryParse(principalCtrl.text);
+              final rate = double.tryParse(rateCtrl.text);
+              if (principal == null || principal <= 0) {
+                CenterToast.error(context, '请输入有效本金');
+                return;
+              }
+              if (rate == null || rate < 0) {
+                CenterToast.error(context, '请输入有效利率');
+                return;
+              }
+              final updated = TimeDeposit(
+                id:
+                    widget.td?.id ??
+                    DateTime.now().millisecondsSinceEpoch.toString(),
+                sortOrder: widget.td?.sortOrder ?? widget.assetCount,
+                currency: currency,
+                name: nameCtrl.text.trim(),
+                principal: principal,
+                annualRate: rate,
+                startDate: startDate,
+                durationMonths: durationMonths,
+                createdAt: widget.td?.createdAt ?? DateTime.now(),
+                updatedAt: DateTime.now(),
+              );
+              Navigator.pop(context, updated);
+            },
+            confirmText: isEdit ? DevConfig.btnClose : '添加',
+            confirmGradient: const LinearGradient(
+              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -483,7 +483,11 @@ class _WealthProductDialogState extends State<_WealthProductDialog> {
                 child: AppNumberField(controller: navCtrl, hintText: '1.0000'),
               ),
               const SizedBox(width: 8),
-              _currencySelector(currency, (c) => setState(() => currency = c)),
+              _currencySelector(
+                context,
+                currency,
+                (c) => setState(() => currency = c),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -574,30 +578,88 @@ Widget _dialogTextField(TextEditingController ctrl, String hint) {
   );
 }
 
-Widget _currencySelector(String selected, ValueChanged<String> onChanged) {
+Widget _currencySelector(
+  BuildContext context,
+  String selected,
+  ValueChanged<String> onChanged,
+) {
   final currencies = CurrencyHelper.exchangeRates.keys.toList();
-  return Container(
-    height: 48,
-    padding: const EdgeInsets.symmetric(horizontal: 8),
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      color: const Color(0xFF161B22),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFF303631)),
-    ),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        value: selected,
-        dropdownColor: const Color(0xFF1A1F26),
-        style: const TextStyle(color: Colors.white, fontSize: 14),
-        items: currencies
-            .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-            .toList(),
-        onChanged: (v) {
-          if (v != null) onChanged(v);
+  return Builder(
+    builder: (btnCtx) {
+      return GestureDetector(
+        onTap: () async {
+          final RenderBox button = btnCtx.findRenderObject() as RenderBox;
+          final overlay =
+              Overlay.of(context).context.findRenderObject() as RenderBox;
+          final result = await showMenu<String>(
+            context: context,
+            position: RelativeRect.fromRect(
+              button.localToGlobal(Offset.zero, ancestor: overlay) &
+                  button.size,
+              Offset.zero & overlay.size,
+            ),
+            color: const Color(0xFF1A1F26),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: const BorderSide(color: Color(0xFF303631)),
+            ),
+            constraints: const BoxConstraints(maxHeight: 300),
+            items: currencies.map((c) {
+              final isSel = c == selected;
+              return PopupMenuItem<String>(
+                value: c,
+                height: 36,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      child: isSel
+                          ? const Icon(
+                              Icons.check,
+                              color: Color(0xFF5B9CF6),
+                              size: 16,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      c,
+                      style: TextStyle(
+                        color: isSel ? const Color(0xFF5B9CF6) : Colors.white,
+                        fontSize: 14,
+                        fontWeight: isSel ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          );
+          if (result != null) onChanged(result);
         },
-      ),
-    ),
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0xFF161B22),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF303631)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                selected,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.expand_more, color: Colors.grey, size: 20),
+            ],
+          ),
+        ),
+      );
+    },
   );
 }
 
