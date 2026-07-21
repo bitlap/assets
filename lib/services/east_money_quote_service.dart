@@ -62,7 +62,7 @@ class EastMoneyQuoteService {
             if (quote == null) continue;
             onQuote(secid, quote);
             debugPrint(
-              '[${DateTime.now().toString().substring(11, 19)}][东方财富] ===> $code: USD${quote.currentPrice} (${quote.changePercent}%)',
+              '[${DateTime.now().toString().substring(11, 19)}][东方财富] ===> $code: ${quote.currentPrice} (${quote.changePercent}%)',
             );
           }
         }

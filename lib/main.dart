@@ -5,7 +5,6 @@ import 'package:workmanager/workmanager.dart';
 
 import 'config/app_config.dart';
 import 'utils/logo_cacher.dart';
-import 'services/settings_service.dart';
 import 'widgets/stock/stock_portfolio_page.dart';
 import 'widgets/asset/assets_page.dart';
 import 'task/profit_task.dart';

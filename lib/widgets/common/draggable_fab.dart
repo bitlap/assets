@@ -15,12 +15,16 @@ class _DraggableFabState extends State<DraggableFab> {
   bool _initialized = false;
   static const double _fabSize = 56.0;
 
+  double get _maxTop => 20;
+  double get _minTop => widget.maxHeight - _fabSize - 20;
+
   @override
   Widget build(BuildContext context) {
     if (!_initialized) {
       _fabY = (widget.maxHeight - _fabSize) / 2;
       _initialized = true;
     }
+    _fabY = _fabY.clamp(_maxTop, _minTop);
 
     return Positioned(
       right: 16,
@@ -28,10 +32,7 @@ class _DraggableFabState extends State<DraggableFab> {
       child: GestureDetector(
         onPanUpdate: (details) {
           setState(() {
-            _fabY = (_fabY + details.delta.dy).clamp(
-              20,
-              widget.maxHeight - _fabSize - 20,
-            );
+            _fabY = (_fabY + details.delta.dy).clamp(_maxTop, _minTop);
           });
         },
         onTap: widget.onTap,

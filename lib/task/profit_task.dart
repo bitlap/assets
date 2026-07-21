@@ -8,7 +8,9 @@ import '../models/stock_search_models.dart';
 import '../services/icloud_storage.dart';
 import '../services/settings_service.dart';
 import '../services/stock_quote_service.dart';
+import '../services/exchange_rate_service.dart';
 import '../utils/stock_calculator.dart';
+import '../utils/currency_helper.dart';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
@@ -48,11 +50,20 @@ void callbackDispatcher() {
                 currentPrice: quote.currentPrice,
                 changePercent: quote.changePercent,
               );
+              stocks[idx] = StockCalculator.recalculateFromRecords(
+                stocks[idx],
+                records[stock.symbol] ?? [],
+              );
             }
           }
         }
       }
 
+      // 后台 isolate 中 CurrencyHelper 使用硬编码默认汇率，需拉取实时汇率
+      final rates = await ExchangeRateService().fetchRates();
+      if (rates != null) {
+        CurrencyHelper.updateRates(rates);
+      }
       final currency = await _readCurrency();
       final summary = StockCalculator.calculateAssetSummary(
         stocks,

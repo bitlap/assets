@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../models/stock_model.dart';
 import '../models/asset_account.dart';
@@ -120,78 +119,21 @@ class IcloudStorage {
     }
   }
 
-  /// 从本地 + iCloud 加载设置覆盖 SharedPreferences
+  /// 从 iCloud 拉取设置到本地文件，并刷新 SettingsService 缓存
   static Future<void> loadSettings() async {
     final enabled = await SettingsService.getSyncSettings();
-    if (!enabled) {
-      return;
-    }
+    if (!enabled) return;
     final cloud = await pullSettingsFromCloud();
-    if (cloud.isEmpty) {
-      return;
-    }
-    final prefs = await SharedPreferences.getInstance();
-    if (cloud.containsKey(SettingsService.keyDefaultCurrency)) {
-      await prefs.setString(
-        SettingsService.keyDefaultCurrency,
-        cloud[SettingsService.keyDefaultCurrency],
-      );
-    }
-    if (cloud.containsKey(SettingsService.keyKeepStockAfterClose)) {
-      await prefs.setBool(
-        SettingsService.keyKeepStockAfterClose,
-        cloud[SettingsService.keyKeepStockAfterClose],
-      );
-    }
-    if (cloud.containsKey(SettingsService.keySortColumn)) {
-      await prefs.setString(
-        SettingsService.keySortColumn,
-        cloud[SettingsService.keySortColumn],
-      );
-    }
-    if (cloud.containsKey(SettingsService.keySortAscending)) {
-      await prefs.setBool(
-        SettingsService.keySortAscending,
-        cloud[SettingsService.keySortAscending],
-      );
-    }
-    if (cloud.containsKey(SettingsService.keyDefaultFeeType)) {
-      await prefs.setString(
-        SettingsService.keyDefaultFeeType,
-        cloud[SettingsService.keyDefaultFeeType],
-      );
-    }
-    if (cloud.containsKey(SettingsService.keyDefaultFeeValue)) {
-      await prefs.setDouble(
-        SettingsService.keyDefaultFeeValue,
-        (cloud[SettingsService.keyDefaultFeeValue] as num).toDouble(),
-      );
-    }
+    if (cloud.isEmpty) return;
+    await SettingsService.applyAll(cloud);
   }
 
-  /// 把 SharedPreferences 上传到本地 + iCloud
+  /// 将当前设置同步到本地文件 + iCloud
   static Future<void> saveSettings() async {
     final enabled = await SettingsService.getSyncSettings();
-    if (!enabled) {
-      return;
-    }
-    final prefs = await SharedPreferences.getInstance();
-    await pushSettingsToCloud({
-      SettingsService.keyDefaultCurrency:
-          prefs.getString(SettingsService.keyDefaultCurrency) ??
-          DevConfig.defaultCurrency,
-      SettingsService.keyKeepStockAfterClose:
-          prefs.getBool(SettingsService.keyKeepStockAfterClose) ?? false,
-      SettingsService.keySortColumn:
-          prefs.getString(SettingsService.keySortColumn) ?? 'profit',
-      SettingsService.keySortAscending:
-          prefs.getBool(SettingsService.keySortAscending) ?? false,
-      SettingsService.keyDefaultFeeType:
-          prefs.getString(SettingsService.keyDefaultFeeType) ??
-          SettingsService.feeTypeFixed,
-      SettingsService.keyDefaultFeeValue:
-          prefs.getDouble(SettingsService.keyDefaultFeeValue) ?? 0.0,
-    });
+    if (!enabled) return;
+    final settings = await SettingsService.getAll();
+    await pushSettingsToCloud(settings);
   }
 
   /// 将本地文件同步到 iCloud（若开启了同步且有 iCloud 路径）

@@ -32,6 +32,7 @@ class AssetsPage extends StatefulWidget {
 class _AssetsPageState extends State<AssetsPage> {
   List<AssetBase> _assets = [];
   AssetType? _filterType;
+  bool _isLoading = false;
 
   String? _sortColumn = 'amount';
   bool _sortAscending = false;
@@ -54,14 +55,13 @@ class _AssetsPageState extends State<AssetsPage> {
   );
 
   void _onSortColumnTap(String column) {
-    setState(() {
-      if (_sortColumn == column) {
-        _sortAscending = !_sortAscending;
-      } else {
-        _sortColumn = column;
-        _sortAscending = column == 'amount' ? false : true;
-      }
-    });
+    if (_sortColumn == column) {
+      _sortAscending = !_sortAscending;
+    } else {
+      _sortColumn = column;
+      _sortAscending = column == 'amount' ? false : true;
+    }
+    _load();
   }
 
   @override
@@ -71,9 +71,13 @@ class _AssetsPageState extends State<AssetsPage> {
   }
 
   Future<void> _load() async {
+    setState(() => _isLoading = true);
     final assets = await IcloudStorage.loadAssets();
     if (!mounted) return;
-    setState(() => _assets = assets);
+    setState(() {
+      _assets = assets;
+      _isLoading = false;
+    });
   }
 
   Future<void> _save() async {
@@ -296,8 +300,10 @@ class _AssetsPageState extends State<AssetsPage> {
                           onFilterTap: () => showAssetFilterMenu(
                             context,
                             currentFilter: _filterType,
-                            onFilterChanged: (t) =>
-                                setState(() => _filterType = t),
+                            onFilterChanged: (t) {
+                              _filterType = t;
+                              _load();
+                            },
                           ),
                           onSortTap: _onSortColumnTap,
                         ),
@@ -313,6 +319,14 @@ class _AssetsPageState extends State<AssetsPage> {
                   ],
                 ),
               ),
+              if (_isLoading)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black26,
+                    alignment: Alignment.center,
+                    child: const CircularProgressIndicator(color: Colors.blue),
+                  ),
+                ),
               DraggableFab(
                 onTap: () async {
                   final action = await showAddAssetSheet(context);

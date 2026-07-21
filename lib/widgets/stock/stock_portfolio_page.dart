@@ -56,6 +56,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   bool _sortAscending = false;
   // 市场筛选
   String? _filterMarket;
+  bool _isLoading = false;
 
   /// 数据是否有变更（脏标记），用于延迟写入 iCloud
   bool _dataDirty = false;
@@ -78,6 +79,8 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
     _loadKeepStockSetting();
     // 加载排序设置
     _loadSortSettings();
+    // 首次打开立即刷新汇率
+    _fetchExchangeRatesWithoutRebuild();
     // 启动后延迟刷新价格和汇率，然后定时刷新一次
     _startRefresh();
   }
@@ -120,6 +123,9 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
       _dividendRecords
         ..clear()
         ..addAll(data.$3);
+      for (final stock in stocks) {
+        _recalculateStockFromRecords(stock.symbol);
+      }
     });
   }
 
@@ -176,9 +182,9 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   }
 
   Future<void> _onResumed() async {
+    if (mounted) await _syncStockData();
     await IcloudStorage.recordProfitIfNeeded(totalProfit, selectedCurrency);
     unawaited(IcloudStorage.syncProfitToCloud());
-    if (mounted) await _syncStockData();
   }
 
   /// 启动定时刷新（价格 + 汇率）
@@ -217,8 +223,10 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
 
   /// 统一刷新：先更新汇率，再更新股票价格，同时从 iCloud 拉取最新数据
   Future<void> _refreshAll() async {
-    if (!_isForeground) return;
+    setState(() => _isLoading = true);
+    if (!_isForeground) { if (mounted) setState(() => _isLoading = false); return; }
     _collapseExpandedStock();
+    if (!mounted) { _isLoading = false; return; }
     debugPrint(
       '[${DateTime.now().toString().substring(11, 19)}][首页] ===> 开始全量刷新...',
     );
@@ -237,11 +245,6 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
     final data = await IcloudStorage.loadStocks();
     if (!mounted) return;
 
-    // 先记录收益快照，再 setState 让 chart 能读到最新数据
-    await IcloudStorage.recordProfitIfNeeded(totalProfit, selectedCurrency);
-
-    if (!mounted) return;
-
     // 合并为一次 setState，避免列表多次重建导致 LOGO 缓存日志重复打印
     setState(() {
       stocks = data.$1;
@@ -254,11 +257,15 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
       _applyQuotes(stocks, quotes);
     });
     _markDirty();
+
+    // setState 之后记录收益快照，确保用最新盈亏值
+    await IcloudStorage.recordProfitIfNeeded(totalProfit, selectedCurrency);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(0);
       }
     });
+    if (mounted) setState(() => _isLoading = false);
     debugPrint(
       '[${DateTime.now().toString().substring(11, 19)}][首页] ===> 全量刷新完成',
     );
@@ -680,6 +687,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   void _onCurrencyChanged(String newCurrency) {
     _collapseExpandedStock();
     setState(() => selectedCurrency = newCurrency);
+    SettingsService.setDefaultCurrency(newCurrency);
     _markDirty();
   }
 
@@ -749,6 +757,14 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
         return Stack(
           children: [
             _buildStockTab(),
+            if (_isLoading)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black26,
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(color: Colors.blue),
+                ),
+              ),
             DraggableFab(
               onTap: _showSearchStockDialog,
               maxHeight: usableHeight,

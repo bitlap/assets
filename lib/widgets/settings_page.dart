@@ -79,12 +79,6 @@ class _SettingsPageState extends State<SettingsPage> {
       DevConfig.licenseDescHttp,
     ),
     _OpenSourceLib(
-      'shared_preferences',
-      'Flutter Team',
-      'BSD 3-Clause',
-      DevConfig.licenseDescSharedPrefs,
-    ),
-    _OpenSourceLib(
       'url_launcher',
       'Flutter Team',
       'BSD 3-Clause',

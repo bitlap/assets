@@ -77,7 +77,7 @@ lib/
 │   └── calculator_models.dart         # 计算模型（AssetSummary）
 ├── services/
 │   ├── exchange_rate_service.dart     # 实时汇率（缓存 + 熔断）
-│   ├── settings_service.dart          # 用户设置持久化（SharedPreferences）
+│   ├── settings_service.dart          # 用户设置持久化（文件系统 JSON）
 │   ├── stock_search_service.dart      # 股票搜索（缓存 + 熔断）
 │   ├── stock_quote_service.dart       # 行情路由（腾讯 + 东方财富）
 │   ├── east_money_quote_service.dart  # 东方财富行情实现
@@ -114,7 +114,7 @@ lib/
 | 框架     | Flutter (Dart SDK ^3.12.2) |
 | 设计     | Material 3                 |
 | HTTP   | http                       |
-| 本地存储   | shared_preferences + 文件系统  |
+| 本地存储   | 文件系统 (JSON)  |
 | 云存储    | iCloud（可选同步，读写均走本地）       |
 | 后台任务   | workmanager                |
 | 国际化    | intl                       |

@@ -7,7 +7,7 @@ class DevConfig {
   static String appVersion = '1.0.0';
 
   // 默认币种和语言
-  static const String defaultCurrency = 'CNY';
+  static const String defaultCurrency = 'USD';
   static const String defaultLocaleLanguage = 'zh';
   static const String defaultLocaleCountry = 'CN';
 
