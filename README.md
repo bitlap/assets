@@ -1,6 +1,6 @@
 # 股票持仓 (Stock Portfolio)
 
-一款使用 Flutter 开发的个人持仓管理 iOS 应用，支持实时行情、多币种切换、盈亏统计、操作记录追踪等功能，采用 Material 3 暗色主题设计。
+一款使用 Flutter 开发的个人持仓管理 iOS 应用，支持实时行情、多币种切换、盈亏统计、操作记录追踪、**多类型资产管理**等功能，采用 Material 3 暗色主题设计。
 
 ## 功能特性
 
@@ -9,6 +9,14 @@
 - 股息率 = 税后总股息 / 总资产
 - 持仓比例 = 持仓总市值 / 总资产
 - 点击帮助图标查看明细说明；设置页提供"计算公式"对话框
+
+### 多类型资产管理
+- 支持**现金**、**定期存款**、**理财/基金**三种资产类型统一管理
+- 资产按分类**分组展示**，每个分类可独立**折叠/展开**
+- **分类拖拽排序**：长按分类标题拖拽调整分类顺序，自动持久化
+- **资产拖拽排序**：同一分类内的资产可拖拽调整顺序
+- 跨分类操作被拦截并给出友好提示
+- 每种资产类型支持添加/编辑/删除操作
 
 ### 收益曲线
 - 展示总收益走势图（自动记录快照）
@@ -71,8 +79,11 @@
 lib/
 ├── main.dart                          # 入口 + 全局状态管理 + 页面组装
 ├── config/
-│   └── app_config.dart                # 全局常量（文案、配置、时间参数）
+│   ├── app_config.dart                # 全局常量（文案、配置、时间参数）
+│   └── asset_config.dart              # 资产模块常量（文案、字段标签、默认名称）
 ├── models/
+│   ├── asset_account.dart             # 资产数据模型（AssetBase / Cash / TD / WP）
+│   ├── asset_flat_item.dart           # 资产列表扁平化模型（SectionHeader / AssetCardItem）
 │   ├── stock_model.dart               # 数据模型（Stock / Record / Dividend / ProfitSnapshot）
 │   └── calculator_models.dart         # 计算模型（AssetSummary）
 ├── services/
@@ -87,12 +98,18 @@ lib/
 ├── task/
 │   └── profit_task.dart               # WorkManager 后台收益快照任务
 ├── utils/
+│   ├── asset_calculator.dart          # 资产价值计算（换算 / 汇总 / 排序 / 按类型汇总）
+│   ├── asset_reorder_util.dart        # 资产拖拽排序纯函数（分类/资产重排）
 │   ├── center_toast.dart              # 居中 Toast 提示
 │   ├── currency_helper.dart           # 汇率换算 / 货币符号
 │   ├── logo_cacher.dart               # Logo 图片缓存
 │   └── stock_calculator.dart          # 盈亏 / 均成本 / 资产汇总计算
 └── widgets/
-    ├── asset_card.dart                # 资产总额卡片（含收益曲线）
+    ├── asset/
+    │   ├── assets_page.dart           # 资产主页（分组折叠列表 + 拖拽排序）
+    │   ├── asset_dialogs.dart         # 资产添加/编辑对话框（现金/定期/理财）
+    │   ├── asset_header.dart          # 资产页标题 + 总资产摘要卡片
+    │   └── asset_card.dart            # 资产卡片通用框架
     ├── stock_card.dart                # 股票卡片（展开详情）
     ├── records_dialog.dart            # 操作/派息记录底部弹窗
     ├── edit_delete_dialogs.dart       # 加仓/减仓/删除对话框
@@ -101,6 +118,7 @@ lib/
     └── common/
         ├── app_number_field.dart      # 统一数字输入框
         ├── confirm_delete_dialog.dart # 统一删除确认弹窗
+        ├── dialog_utils.dart          # 对话框工具（键盘避让适配等）
         ├── empty_state_widget.dart    # 统一空状态组件
         ├── info_row_widget.dart       # 统一信息行组件
         ├── profit_chart.dart          # 收益曲线组件（CustomPaint 渲染）
