@@ -2,9 +2,9 @@
 
 一款使用 Flutter 开发的个人持仓管理 iOS 应用，支持实时行情、多币种切换、盈亏统计、操作记录追踪、**多类型资产管理**等功能，采用 Material 3 暗色主题设计。
 
-> 无内购无广告，使用公开 API，不保证严格实时。
+已在[App Store](https://apps.apple.com/cn/app/iassets/id6790114856) 上线，欢迎使用。
 
-[App Store](https://apps.apple.com/cn/app/iassets/id6790114856) 
+> 无内购无广告，使用公开 API，不保证严格实时。
 
 ## 功能特性
 
