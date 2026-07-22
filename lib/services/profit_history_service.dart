@@ -9,14 +9,14 @@ class ProfitSnapshot {
   ProfitSnapshot({required this.time, required this.totalProfit});
 
   Map<String, dynamic> toJson() => {
-        'time': time.toIso8601String(),
-        'totalProfit': totalProfit,
-      };
+    'time': time.toIso8601String(),
+    'totalProfit': totalProfit,
+  };
 
   factory ProfitSnapshot.fromJson(Map<String, dynamic> json) => ProfitSnapshot(
-        time: DateTime.parse(json['time'] as String),
-        totalProfit: (json['totalProfit'] as num).toDouble(),
-      );
+    time: DateTime.parse(json['time'] as String),
+    totalProfit: (json['totalProfit'] as num).toDouble(),
+  );
 }
 
 class ProfitHistoryService {
@@ -29,7 +29,9 @@ class ProfitHistoryService {
     try {
       final content = await file.readAsString();
       final list = jsonDecode(content) as List;
-      return list.map((e) => ProfitSnapshot.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => ProfitSnapshot.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }
@@ -55,7 +57,8 @@ class ProfitHistoryService {
       orElse: () => ProfitSnapshot(time: today, totalProfit: totalProfit),
     );
 
-    if (todaySnapshot.time == today && todaySnapshot.totalProfit != totalProfit) {
+    if (todaySnapshot.time == today &&
+        todaySnapshot.totalProfit != totalProfit) {
       snapshots.removeWhere(
         (s) =>
             s.time.year == today.year &&
