@@ -10,22 +10,21 @@ class ExchangeRateService {
   factory ExchangeRateService() => _instance;
   ExchangeRateService._internal();
 
-  static const String _apiUrl =
-      'https://api.exchangerate-api.com/v4/latest/USD';
+  static const String _apiUrl = 'https://open.er-api.com/v6/latest/USD';
 
   /// 汇率缓存
   Map<String, double>? _cachedRates;
   DateTime? _lastFetchTime;
   static const Duration _cacheTTL = Duration(
-    minutes: DevConfig.exchangeRateCacheTTLMin,
+    minutes: AppConfig.exchangeRateCacheTTLMin,
   );
 
   /// 熔断机制（与股票服务独立，互不影响）
   int _consecutiveFailures = 0;
   DateTime? _cooldownUntil;
-  static const int _failureThreshold = DevConfig.failureThreshold;
+  static const int _failureThreshold = AppConfig.failureThreshold;
   static const Duration _cooldownDuration = Duration(
-    minutes: DevConfig.cooldownDurationMin,
+    minutes: AppConfig.cooldownDurationMin,
   );
 
   bool get _isInCooldown {
@@ -99,7 +98,7 @@ class ExchangeRateService {
       client = Client();
       final response = await client
           .get(Uri.parse(_apiUrl))
-          .timeout(Duration(seconds: DevConfig.httpTimeoutSec));
+          .timeout(Duration(seconds: AppConfig.httpTimeoutSec));
       client.close();
       client = null;
 

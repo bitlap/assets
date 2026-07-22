@@ -27,7 +27,7 @@ class ConfirmDeleteDialog extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
         child: SizedBox(
-          width: MediaQuery.of(context).size.width * DevConfig.dialogWidthRatio,
+          width: MediaQuery.of(context).size.width * AppConfig.dialogWidthRatio,
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -83,7 +83,7 @@ class ConfirmDeleteDialog extends StatelessWidget {
                           ),
                           child: const Center(
                             child: Text(
-                              DevConfig.btnCancel,
+                              AppConfig.btnCancel,
                               style: TextStyle(
                                 fontSize: 15,
                                 color: Colors.grey,
@@ -106,7 +106,7 @@ class ConfirmDeleteDialog extends StatelessWidget {
                           ),
                           child: const Center(
                             child: Text(
-                              DevConfig.btnDelete,
+                              AppConfig.btnDelete,
                               style: TextStyle(
                                 fontSize: 15,
                                 color: Colors.white,
@@ -134,7 +134,7 @@ class ConfirmDeleteDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       child: SizedBox(
-        width: MediaQuery.of(context).size.width * DevConfig.dialogWidthRatio,
+        width: MediaQuery.of(context).size.width * AppConfig.dialogWidthRatio,
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -190,7 +190,7 @@ class ConfirmDeleteDialog extends StatelessWidget {
                         ),
                         child: const Center(
                           child: Text(
-                            DevConfig.btnCancel,
+                            AppConfig.btnCancel,
                             style: TextStyle(
                               fontSize: 15,
                               color: Colors.grey,
@@ -216,7 +216,7 @@ class ConfirmDeleteDialog extends StatelessWidget {
                         ),
                         child: const Center(
                           child: Text(
-                            DevConfig.btnDelete,
+                            AppConfig.btnDelete,
                             style: TextStyle(
                               fontSize: 15,
                               color: Colors.white,

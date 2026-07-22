@@ -79,7 +79,7 @@ class _StockSummaryCardState extends State<StockSummaryCard> {
               Row(
                 children: [
                   const Text(
-                    DevConfig.assetTotalAssets,
+                    StockConfig.assetTotalAssets,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.white70,
@@ -183,7 +183,7 @@ class _StockSummaryCardState extends State<StockSummaryCard> {
               Icon(Icons.account_balance, size: 12, color: Colors.amber),
               const SizedBox(width: 4),
               Text(
-                DevConfig.assetTotalCost,
+                StockConfig.assetTotalCost,
                 style: const TextStyle(
                   fontSize: 11,
                   color: Colors.white70,
@@ -212,10 +212,10 @@ class _StockSummaryCardState extends State<StockSummaryCard> {
   void _showTotalAssetsHelpDialog() {
     final sellText = '${CurrencyHelper.formatCompact(widget.totalSellAmount)}';
     _helpDialogFrame(
-      title: DevConfig.assetTotalAssets,
+      title: StockConfig.assetTotalAssets,
       icon: Icons.account_balance_wallet,
       children: [
-        _helpLine(DevConfig.assetTotalSellAmount, sellText, Colors.white),
+        _helpLine(StockConfig.assetTotalSellAmount, sellText, Colors.white),
       ],
     );
   }
@@ -226,13 +226,13 @@ class _StockSummaryCardState extends State<StockSummaryCard> {
     final floatText =
         '${floatPL >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(floatPL)}';
     _helpDialogFrame(
-      title: DevConfig.assetTotalCost,
+      title: StockConfig.assetTotalCost,
       icon: Icons.account_balance,
       children: [
-        _helpLine(DevConfig.assetCostDetailLabel, costText, Colors.white),
+        _helpLine(StockConfig.assetCostDetailLabel, costText, Colors.white),
         const SizedBox(height: 6),
         _helpLine(
-          DevConfig.assetFloatProfitLabel,
+          StockConfig.assetFloatProfitLabel,
           floatText,
           floatPL >= 0 ? const Color(0xFFFF5252) : const Color(0xFF69F0AE),
         ),
@@ -255,7 +255,7 @@ class _StockSummaryCardState extends State<StockSummaryCard> {
               Icon(Icons.trending_up, size: 12, color: Colors.amber),
               const SizedBox(width: 4),
               Text(
-                DevConfig.assetTotalProfit,
+                StockConfig.assetTotalProfit,
                 style: const TextStyle(
                   fontSize: 11,
                   color: Colors.white70,
@@ -285,11 +285,11 @@ class _StockSummaryCardState extends State<StockSummaryCard> {
     final realizedText =
         '${widget.totalRealizedPL >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(widget.totalRealizedPL)}';
     _helpDialogFrame(
-      title: DevConfig.assetTotalProfit,
+      title: StockConfig.assetTotalProfit,
       icon: Icons.trending_up,
       children: [
         _helpLine(
-          DevConfig.assetTotalRealizedPL,
+          StockConfig.assetTotalRealizedPL,
           realizedText,
           widget.totalRealizedPL >= 0
               ? const Color(0xFFFF5252)
@@ -369,7 +369,7 @@ class _StockSummaryCardState extends State<StockSummaryCard> {
               const Icon(Icons.monetization_on, size: 12, color: Colors.amber),
               const SizedBox(width: 4),
               const Text(
-                DevConfig.assetTotalDividends,
+                StockConfig.assetTotalDividends,
                 style: TextStyle(
                   fontSize: 11,
                   color: Colors.white70,

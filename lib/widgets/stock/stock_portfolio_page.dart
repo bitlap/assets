@@ -35,7 +35,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
     with WidgetsBindingObserver {
   // 状态
   List<StockModel> stocks = [];
-  String selectedCurrency = DevConfig.defaultCurrency;
+  String selectedCurrency = AppConfig.defaultCurrency;
   String? _expandedStockSymbol;
   // 每只股票的操作记录
   final Map<String, List<OperationRecord>> _operationRecords = {};
@@ -190,13 +190,13 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   /// 启动定时刷新（价格 + 汇率）
   void _startRefresh() {
     // 首次加载后延迟刷新
-    Future.delayed(Duration(seconds: DevConfig.refreshInitialDelaySec), () {
+    Future.delayed(Duration(seconds: AppConfig.refreshInitialDelaySec), () {
       if (mounted) _refreshAll();
     });
 
     // 定时刷新价格和汇率
     _priceRefreshTimer = Timer.periodic(
-      Duration(seconds: DevConfig.refreshIntervalSec),
+      Duration(seconds: AppConfig.refreshIntervalSec),
       (_) {
         if (mounted) _refreshAll();
       },
@@ -290,7 +290,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
             market: stock.marketType,
             secid:
                 stock.secid ??
-                '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}',
+                '${stock.marketType == StockConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}',
           ),
         )
         .toList();
@@ -309,7 +309,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
     for (final stock in stockList) {
       final secid =
           stock.secid ??
-          '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}';
+          '${stock.marketType == StockConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}';
       final quote = quotes[secid];
       if (quote != null) {
         final index = stockList.indexWhere((s) => s.symbol == stock.symbol);
@@ -391,10 +391,14 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   void _showMarketFilter() {
     final markets = <String?>[
       null,
-      DevConfig.searchMarketUS,
-      DevConfig.searchMarketHK,
+      StockConfig.searchMarketUS,
+      StockConfig.searchMarketHK,
     ];
-    final labels = ['全部', DevConfig.searchMarketUS, DevConfig.searchMarketHK];
+    final labels = [
+      '全部',
+      StockConfig.searchMarketUS,
+      StockConfig.searchMarketHK,
+    ];
     final icons = [Icons.all_inclusive, Icons.language, Icons.location_city];
     final colors = [null, Colors.blue, Colors.orange];
     showDialog(
@@ -506,17 +510,17 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
     if (record != null) {
       String action;
       if (isClosed) {
-        action = DevConfig.opClosePosition;
+        action = StockConfig.opClosePosition;
       } else if (_operationRecords[updatedStock.symbol]?.length == 1) {
-        action = DevConfig.opOpenPosition;
+        action = StockConfig.opOpenPosition;
       } else {
-        action = record.type == DevConfig.opBuy
-            ? DevConfig.opAddPosition
-            : DevConfig.opReducePosition;
+        action = record.type == StockConfig.opBuy
+            ? StockConfig.opAddPosition
+            : StockConfig.opReducePosition;
       }
       CenterToast.success(
         context,
-        '${action}${DevConfig.resultAddSuccess.replaceAll(DevConfig.opAddPosition, '')}',
+        '${action}${StockConfig.resultAddSuccess.replaceAll(StockConfig.opAddPosition, '')}',
       );
     }
   }
@@ -528,7 +532,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
       _dividendRecords.remove(stock.symbol);
     });
     _markDirty();
-    CenterToast.success(context, DevConfig.resultDeleteSuccess);
+    CenterToast.success(context, StockConfig.resultDeleteSuccess);
   }
 
   void _showRecordsDialog(StockModel stock) {
@@ -639,7 +643,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
           });
           _markDirty();
           Navigator.pop(context);
-          CenterToast.success(context, DevConfig.dividendSuccess);
+          CenterToast.success(context, StockConfig.dividendSuccess);
         },
       ),
     );
@@ -683,7 +687,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
             _recalculateStockFromRecords(newStock.symbol);
           });
           _markDirty();
-          CenterToast.success(context, DevConfig.resultAddStockSuccess);
+          CenterToast.success(context, StockConfig.resultAddStockSuccess);
         },
       ),
     );
@@ -832,8 +836,8 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
                     if (_sortedStocks.isEmpty) ...[
                       const EmptyStateWidget(
                         icon: Icons.show_chart,
-                        title: DevConfig.homeEmptyTitle,
-                        subtitle: DevConfig.homeEmptySubtitle,
+                        title: StockConfig.homeEmptyTitle,
+                        subtitle: StockConfig.homeEmptySubtitle,
                         iconSize: 64,
                         padding: EdgeInsets.symmetric(vertical: 60),
                       ),

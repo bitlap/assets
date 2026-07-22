@@ -248,7 +248,7 @@ class _AssetsPageState extends State<AssetsPage> {
     );
   }
 
-  // ─── Dialogs ────────────────────────────────────────────
+  // Dialogs
 
   void _onAddCash() => _openDialog<CashAccount>(
     showCashAssetDialog(
@@ -320,7 +320,7 @@ class _AssetsPageState extends State<AssetsPage> {
     }
   }
 
-  // ─── Build ──────────────────────────────────────────────
+  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -414,7 +414,7 @@ class _AssetsPageState extends State<AssetsPage> {
     );
   }
 
-  // ─── Section Header ─────────────────────────────────────
+  // Section Header
 
   Widget _buildSectionHeader(AssetType type, bool expanded, int index) {
     final items = _assets.where((a) => a.type == type).toList();
@@ -514,7 +514,7 @@ class _AssetsPageState extends State<AssetsPage> {
     );
   }
 
-  // ─── Asset Item ─────────────────────────────────────────
+  // Asset Item
 
   Widget _buildAssetCardItem(AssetBase asset, int index) {
     return ReorderableDelayedDragStartListener(
@@ -550,7 +550,7 @@ class _AssetsPageState extends State<AssetsPage> {
         : AssetConfig.defaultNameFallback;
     return ConfirmDeleteDialog.show(
       context,
-      title: DevConfig.btnConfirm,
+      title: AppConfig.btnConfirm,
       content: AssetConfig.deleteConfirm.replaceAll('{name}', name),
     );
   }

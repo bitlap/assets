@@ -31,7 +31,7 @@ void callbackDispatcher() {
                 market: s.marketType,
                 secid:
                     s.secid ??
-                    '${s.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${s.symbol}',
+                    '${s.marketType == StockConfig.searchMarketUS ? '105' : '116'}.${s.symbol}',
               ),
             )
             .toList();
@@ -41,7 +41,7 @@ void callbackDispatcher() {
         for (final stock in stocks) {
           final secid =
               stock.secid ??
-              '${stock.marketType == DevConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}';
+              '${stock.marketType == StockConfig.searchMarketUS ? '105' : '116'}.${stock.symbol}';
           final quote = quotes[secid];
           if (quote != null) {
             final idx = stocks.indexWhere((s) => s.symbol == stock.symbol);
@@ -91,8 +91,8 @@ Future<String> _readCurrency() async {
     if (await file.exists()) {
       final json = jsonDecode(await file.readAsString());
       return json[SettingsService.keyDefaultCurrency] as String? ??
-          DevConfig.defaultCurrency;
+          AppConfig.defaultCurrency;
     }
   } catch (_) {}
-  return DevConfig.defaultCurrency;
+  return AppConfig.defaultCurrency;
 }

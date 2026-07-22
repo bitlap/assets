@@ -1,3 +1,5 @@
+import 'package:assets/config/app_config.dart';
+
 import '../../models/stock_model.dart';
 import '../../models/asset_account.dart';
 
@@ -149,7 +151,7 @@ Map<String, List<DividendRecord>> dividendRecordsFromJson(
             taxRate: r.containsKey('taxRate')
                 ? (r['taxRate'] as num).toDouble()
                 : 0.0,
-            currency: r['currency'] as String? ?? 'USD',
+            currency: r['currency'] as String? ?? AppConfig.defaultCurrency,
           ),
         )
         .toList();

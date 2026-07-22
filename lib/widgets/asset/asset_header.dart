@@ -3,7 +3,7 @@ import '../../utils/currency_helper.dart';
 import '../../config/app_config.dart';
 import '../../config/asset_config.dart';
 
-// ─── Section Title ─────────────────────────────────────────
+// Section Title
 
 class AssetSectionTitle extends StatelessWidget {
   final int assetCount;
@@ -27,7 +27,7 @@ class AssetSectionTitle extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                DevConfig.tabAsset,
+                StockConfig.tabAsset,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -61,7 +61,7 @@ class AssetSectionTitle extends StatelessWidget {
   }
 }
 
-// ─── Header (Summary Card) ─────────────────────────────────
+// Header (Summary Card)
 
 class AssetHeader extends StatelessWidget {
   final double totalAssets;
@@ -98,7 +98,7 @@ class AssetHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                DevConfig.assetTotalAssets,
+                StockConfig.assetTotalAssets,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.white70,
@@ -155,7 +155,7 @@ class AssetHeader extends StatelessWidget {
             children: [
               _summaryChip(
                 Icons.show_chart,
-                DevConfig.tabStock,
+                StockConfig.tabStock,
                 CurrencyHelper.formatCompact(stockTotalValue),
               ),
               const SizedBox(width: 8),

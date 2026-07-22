@@ -54,7 +54,7 @@ class CurrencySelector {
                       child: Row(
                         children: [
                           Text(
-                            DevConfig.assetSelectCurrency,
+                            StockConfig.assetSelectCurrency,
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,

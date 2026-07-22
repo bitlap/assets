@@ -181,20 +181,20 @@ class IcloudStorage {
 
   // 收益快照 - 天粒度（历史）
   static Future<List<ProfitSnapshot>> loadDailyProfitHistory({
-    String targetCurrency = DevConfig.defaultCurrency,
+    String targetCurrency = AppConfig.defaultCurrency,
   }) async {
     await ensureInit();
     await _syncFromCloud(dailyProfitFile);
     final data = await readJson(_localPath!, dailyProfitFile);
     final snapshots = data.map((e) => ProfitSnapshot.fromJson(e)).toList();
-    if (targetCurrency != DevConfig.defaultCurrency) {
+    if (targetCurrency != AppConfig.defaultCurrency) {
       return snapshots
           .map(
             (s) => ProfitSnapshot(
               time: s.time,
               totalProfit: CurrencyHelper.convertCurrency(
                 s.totalProfit,
-                DevConfig.defaultCurrency,
+                AppConfig.defaultCurrency,
                 targetCurrency,
               ),
             ),
@@ -215,20 +215,20 @@ class IcloudStorage {
 
   // 收益快照 - 10分钟粒度（仅当天）
   static Future<List<ProfitSnapshot>> loadIntradayProfitHistory({
-    String targetCurrency = DevConfig.defaultCurrency,
+    String targetCurrency = AppConfig.defaultCurrency,
   }) async {
     await ensureInit();
     await _syncFromCloud(intradayProfitFile);
     final data = await readJson(_localPath!, intradayProfitFile);
     final snapshots = data.map((e) => ProfitSnapshot.fromJson(e)).toList();
-    if (targetCurrency != DevConfig.defaultCurrency) {
+    if (targetCurrency != AppConfig.defaultCurrency) {
       return snapshots
           .map(
             (s) => ProfitSnapshot(
               time: s.time,
               totalProfit: CurrencyHelper.convertCurrency(
                 s.totalProfit,
-                DevConfig.defaultCurrency,
+                AppConfig.defaultCurrency,
                 targetCurrency,
               ),
             ),
@@ -279,14 +279,14 @@ class IcloudStorage {
     final profitInDefaultCurrency = CurrencyHelper.convertCurrency(
       totalProfit,
       sourceCurrency,
-      DevConfig.defaultCurrency,
+      AppConfig.defaultCurrency,
     );
 
     var daily = await loadDailyProfitHistory(
-      targetCurrency: DevConfig.defaultCurrency,
+      targetCurrency: AppConfig.defaultCurrency,
     );
     var intraday = await loadIntradayProfitHistory(
-      targetCurrency: DevConfig.defaultCurrency,
+      targetCurrency: AppConfig.defaultCurrency,
     );
     // 检查是否跨天：将昨天最后一条转存为天级
     if (intraday.isNotEmpty) {

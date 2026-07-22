@@ -13,9 +13,8 @@ class StockModel {
   final String? logoUrl; // Logo URL
   final String marketType; // 市场类型：美股、港股
   final double changePercent; // 日涨跌幅（%）
-  final String? _currency; // 股票币种（美股=USD，港股=HKD）
-  String get currency =>
-      _currency ?? (marketType == DevConfig.searchMarketHK ? 'HKD' : 'USD');
+  final String? _currency; // 股票币种
+  String get currency => _currency ?? AppConfig.currencyForMarket(marketType);
   final String? secid; // 东方财富 secid（用于获取行情）
 
   StockModel({
@@ -28,7 +27,7 @@ class StockModel {
     required this.profitLossAmount,
     required this.isPositive,
     this.logoUrl,
-    this.marketType = DevConfig.searchMarketUS,
+    this.marketType = StockConfig.searchMarketUS,
     this.changePercent = 0.0,
     String? currency,
     this.secid,

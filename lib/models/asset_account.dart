@@ -15,7 +15,7 @@ sealed class AssetBase {
     required this.id,
     required this.type,
     this.sortOrder = 0,
-    this.currency = DevConfig.defaultCurrency,
+    this.currency = AppConfig.defaultCurrency,
     this.name = '',
     this.createdAt,
     this.updatedAt,
@@ -55,7 +55,7 @@ class CashAccount extends AssetBase {
   CashAccount({
     required super.id,
     super.sortOrder = 0,
-    super.currency = DevConfig.defaultCurrency,
+    super.currency = AppConfig.defaultCurrency,
     super.name = '',
     super.createdAt,
     super.updatedAt,
@@ -68,7 +68,7 @@ class CashAccount extends AssetBase {
   static CashAccount fromJson(Map<String, dynamic> json) => CashAccount(
     id: json['id'] as String,
     sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
-    currency: json['currency'] as String? ?? DevConfig.defaultCurrency,
+    currency: json['currency'] as String? ?? AppConfig.defaultCurrency,
     name: json['name'] as String? ?? '',
     balance: (json['balance'] as num?)?.toDouble() ?? 0,
     createdAt: json['createdAt'] != null
@@ -89,7 +89,7 @@ class TimeDeposit extends AssetBase {
   TimeDeposit({
     required super.id,
     super.sortOrder = 0,
-    super.currency = DevConfig.defaultCurrency,
+    super.currency = AppConfig.defaultCurrency,
     super.name = '',
     super.createdAt,
     super.updatedAt,
@@ -117,7 +117,7 @@ class TimeDeposit extends AssetBase {
   static TimeDeposit fromJson(Map<String, dynamic> json) => TimeDeposit(
     id: json['id'] as String,
     sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
-    currency: json['currency'] as String? ?? DevConfig.defaultCurrency,
+    currency: json['currency'] as String? ?? AppConfig.defaultCurrency,
     name: json['name'] as String? ?? '',
     principal: (json['principal'] as num?)?.toDouble() ?? 0,
     annualRate: (json['annualRate'] as num?)?.toDouble() ?? 0,
@@ -141,7 +141,7 @@ class WealthProduct extends AssetBase {
   WealthProduct({
     required super.id,
     super.sortOrder = 0,
-    super.currency = DevConfig.defaultCurrency,
+    super.currency = AppConfig.defaultCurrency,
     super.name = '',
     super.createdAt,
     super.updatedAt,
@@ -161,7 +161,7 @@ class WealthProduct extends AssetBase {
   static WealthProduct fromJson(Map<String, dynamic> json) => WealthProduct(
     id: json['id'] as String,
     sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
-    currency: json['currency'] as String? ?? DevConfig.defaultCurrency,
+    currency: json['currency'] as String? ?? AppConfig.defaultCurrency,
     name: json['name'] as String? ?? '',
     shares: (json['shares'] as num?)?.toDouble() ?? 0,
     nav: (json['nav'] as num?)?.toDouble() ?? 0,

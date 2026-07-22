@@ -47,7 +47,7 @@ class StockListHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    DevConfig.homeStockHeader,
+                    StockConfig.homeStockHeader,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -74,7 +74,7 @@ class StockListHeader extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      DevConfig.homeHoldingHeader,
+                      StockConfig.homeHoldingHeader,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -101,7 +101,7 @@ class StockListHeader extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    DevConfig.homeProfitHeader,
+                    StockConfig.homeProfitHeader,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

@@ -19,7 +19,7 @@ class StockSearchService {
   final Map<String, DateTime> _searchCacheTime = {};
   final Map<String, List<StockSearchResult>> _searchCacheValue = {};
   static const Duration _searchCacheTTL = Duration(
-    minutes: DevConfig.searchCacheTTLMin,
+    minutes: AppConfig.searchCacheTTLMin,
   );
 
   int get cooldownRemainingSeconds => _breaker.cooldownRemainingSeconds;
@@ -58,7 +58,7 @@ class StockSearchService {
       client = Client();
       final response = await client
           .get(uri)
-          .timeout(Duration(seconds: DevConfig.httpTimeoutSec));
+          .timeout(Duration(seconds: AppConfig.httpTimeoutSec));
       client.close();
       client = null;
 
@@ -107,29 +107,29 @@ class StockSearchService {
       switch (marketId) {
         case '105':
         case '106':
-          market = DevConfig.searchMarketUS;
+          market = StockConfig.searchMarketUS;
           secid = '$marketId.$rawCode';
           break;
         case '107':
-          market = DevConfig.searchMarketUS;
+          market = StockConfig.searchMarketUS;
           secid = '105.$rawCode';
           break;
         case '116':
-          market = DevConfig.searchMarketHK;
+          market = StockConfig.searchMarketHK;
           secid = '$marketId.$rawCode';
           break;
         default:
-          if (exchange.contains(DevConfig.exchangeNasdaq) ||
-              exchange.contains(DevConfig.exchangeNewYork) ||
-              exchange.contains(DevConfig.exchangeAmerica) ||
+          if (exchange.contains(StockConfig.exchangeNasdaq) ||
+              exchange.contains(StockConfig.exchangeNewYork) ||
+              exchange.contains(StockConfig.exchangeAmerica) ||
               exchange.contains('NYSE') ||
               exchange.contains('NASDAQ') ||
               exchange.contains('ARCA')) {
-            market = DevConfig.searchMarketUS;
+            market = StockConfig.searchMarketUS;
             secid = '105.$rawCode';
-          } else if (exchange.contains(DevConfig.exchangeHK) ||
-              exchange.contains(DevConfig.exchangeHongKong)) {
-            market = DevConfig.searchMarketHK;
+          } else if (exchange.contains(StockConfig.exchangeHK) ||
+              exchange.contains(StockConfig.exchangeHongKong)) {
+            market = StockConfig.searchMarketHK;
             secid = '116.$rawCode';
           }
           break;

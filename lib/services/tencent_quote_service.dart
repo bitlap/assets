@@ -22,7 +22,7 @@ class TencentQuoteService {
     }
 
     try {
-      final prefix = stock.market == DevConfig.searchMarketUS ? 'us' : 'hk';
+      final prefix = stock.market == StockConfig.searchMarketUS ? 'us' : 'hk';
       final symbol = '$prefix${stock.code}';
 
       final client = Client();
@@ -30,7 +30,7 @@ class TencentQuoteService {
 
       final response = await client
           .get(uri)
-          .timeout(Duration(seconds: DevConfig.httpTimeoutSec));
+          .timeout(Duration(seconds: AppConfig.httpTimeoutSec));
       client.close();
       _breaker.onSuccess();
 
@@ -71,7 +71,7 @@ class TencentQuoteService {
         changePercent = double.tryParse(parts[32]) ?? 0.0;
       }
 
-      final logoUrl = stock.market == DevConfig.searchMarketUS
+      final logoUrl = stock.market == StockConfig.searchMarketUS
           ? 'https://logos.stocktwits-cdn.com/${stock.code.toUpperCase()}.png?w=64'
           : null;
 

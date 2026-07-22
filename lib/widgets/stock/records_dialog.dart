@@ -103,7 +103,7 @@ class _RecordsDialogState extends State<RecordsDialog>
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Text(
-                    DevConfig.stockRecord,
+                    StockConfig.stockRecord,
                     style: TextStyle(
                       fontSize: 12,
                       color: Color(0xFF5B9CF6),
@@ -164,7 +164,7 @@ class _RecordsDialogState extends State<RecordsDialog>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(DevConfig.recordsOpTab),
+                        const Text(StockConfig.recordsOpTab),
                         const SizedBox(width: 3),
                         GestureDetector(
                           onTap: _showOpDeleteHint,
@@ -182,7 +182,7 @@ class _RecordsDialogState extends State<RecordsDialog>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(DevConfig.recordsDivTab),
+                        const Text(StockConfig.recordsDivTab),
                         const SizedBox(width: 3),
                         GestureDetector(
                           onTap: _showDivDeleteHint,
@@ -235,20 +235,20 @@ class _RecordsDialogState extends State<RecordsDialog>
             Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
             SizedBox(width: 8),
             Text(
-              DevConfig.recordsOpTab,
+              StockConfig.recordsOpTab,
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           ],
         ),
         content: Text(
-          DevConfig.recordsDeleteHint,
+          StockConfig.recordsDeleteHint,
           style: TextStyle(color: Colors.grey[400], fontSize: 13, height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
-              DevConfig.btnClose,
+              AppConfig.btnClose,
               style: TextStyle(color: Color(0xFF5B9CF6)),
             ),
           ),
@@ -268,20 +268,20 @@ class _RecordsDialogState extends State<RecordsDialog>
             Icon(Icons.info_outline, size: 20, color: Colors.amber),
             SizedBox(width: 8),
             Text(
-              DevConfig.recordsDivTab,
+              StockConfig.recordsDivTab,
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           ],
         ),
         content: Text(
-          DevConfig.recordsDivDeleteHint,
+          StockConfig.recordsDivDeleteHint,
           style: TextStyle(color: Colors.grey[400], fontSize: 13, height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
-              DevConfig.btnClose,
+              AppConfig.btnClose,
               style: TextStyle(color: Color(0xFF5B9CF6)),
             ),
           ),
@@ -324,8 +324,8 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
     if (allRecords.isEmpty) {
       return const EmptyStateWidget(
         icon: Icons.list_alt,
-        title: DevConfig.recordsEmptyOp,
-        subtitle: DevConfig.recordsEmptyOpHint,
+        title: StockConfig.recordsEmptyOp,
+        subtitle: StockConfig.recordsEmptyOpHint,
       );
     }
 
@@ -334,7 +334,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
       itemCount: allRecords.length,
       itemBuilder: (context, index) {
         final record = allRecords[index];
-        final isBuy = record.type == DevConfig.opBuy;
+        final isBuy = record.type == StockConfig.opBuy;
         final iconColor = isBuy ? Colors.redAccent : Colors.greenAccent;
         final iconBgColor = isBuy
             ? Colors.red.withOpacity(0.15)
@@ -358,8 +358,8 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
           ),
           confirmDismiss: (_) => ConfirmDeleteDialog.show(
             context,
-            title: DevConfig.btnConfirm,
-            content: DevConfig.recordsDeleteOpConfirm,
+            title: AppConfig.btnConfirm,
+            content: StockConfig.recordsDeleteOpConfirm,
           ),
           onDismissed: (_) {
             setState(() => allRecords.removeAt(index));
@@ -402,7 +402,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                         if (record.amount > 0) ...[
                           const SizedBox(height: 4),
                           Text(
-                            '${DevConfig.recordsFormulaLabel}: ${CurrencyHelper.formatRate(record.amount)}/${DevConfig.recordsDivAmountPerShare} × ${CurrencyHelper.formatRate(record.shares)}${DevConfig.stockSharesSuffix}',
+                            '${StockConfig.recordsFormulaLabel}: ${CurrencyHelper.formatRate(record.amount)}/${StockConfig.recordsDivAmountPerShare} × ${CurrencyHelper.formatRate(record.shares)}${StockConfig.stockSharesSuffix}',
                             style: TextStyle(
                               color: Colors.grey[500],
                               fontSize: 11,
@@ -411,7 +411,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                         ],
                         const SizedBox(height: 2),
                         Text(
-                          '${DevConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
+                          '${StockConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 10,
@@ -424,7 +424,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '${isBuy ? "+" : "-"}${CurrencyHelper.formatRate(record.shares)}${DevConfig.stockSharesSuffix}',
+                        '${isBuy ? "+" : "-"}${CurrencyHelper.formatRate(record.shares)}${StockConfig.stockSharesSuffix}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -433,7 +433,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${DevConfig.recordsOpLabel}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
+                        '${StockConfig.recordsOpLabel}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount * record.shares)}',
                         style: TextStyle(
                           color: isBuy ? Colors.redAccent : Colors.greenAccent,
                           fontWeight: FontWeight.w500,
@@ -473,7 +473,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
           children: [
             Center(
               child: Text(
-                DevConfig.recordsEditTitle.replaceAll(
+                StockConfig.recordsEditTitle.replaceAll(
                   '{desc}',
                   record.description,
                 ),
@@ -486,7 +486,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
             ),
             const SizedBox(height: 16),
             const Text(
-              DevConfig.recordsEditPrice,
+              StockConfig.recordsEditPrice,
               style: TextStyle(fontSize: 13, color: Colors.grey),
             ),
             const SizedBox(height: 6),
@@ -519,7 +519,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
             ),
             const SizedBox(height: 12),
             const Text(
-              DevConfig.recordsEditShares,
+              StockConfig.recordsEditShares,
               style: TextStyle(fontSize: 13, color: Colors.grey),
             ),
             const SizedBox(height: 6),
@@ -569,7 +569,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                 widget.onEditRecord?.call(widget.stock.symbol, index, updated);
                 Navigator.pop(ctx);
               },
-              confirmText: DevConfig.btnClose,
+              confirmText: AppConfig.btnClose,
               confirmGradient: const LinearGradient(
                 colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
               ),
@@ -625,8 +625,8 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
     if (allRecords.isEmpty) {
       return const EmptyStateWidget(
         icon: Icons.attach_money,
-        title: DevConfig.recordsEmptyDiv,
-        subtitle: DevConfig.recordsEmptyDivHint,
+        title: StockConfig.recordsEmptyDiv,
+        subtitle: StockConfig.recordsEmptyDivHint,
       );
     }
 
@@ -653,8 +653,8 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
           ),
           confirmDismiss: (_) => ConfirmDeleteDialog.show(
             context,
-            title: DevConfig.btnConfirm,
-            content: DevConfig.recordsDeleteDivConfirm,
+            title: AppConfig.btnConfirm,
+            content: StockConfig.recordsDeleteDivConfirm,
           ),
           onDismissed: (_) {
             setState(() => allRecords.removeAt(index));
@@ -691,7 +691,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          DevConfig.recordsDivTab + ' ${widget.stock.symbol}',
+                          StockConfig.recordsDivTab + ' ${widget.stock.symbol}',
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -700,7 +700,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${DevConfig.recordsFormulaLabel}: ${CurrencyHelper.formatRate(record.shares)}${DevConfig.stockSharesSuffix} × ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}/${DevConfig.recordsDivAmountPerShare} × ${1 - record.taxRate}',
+                          '${StockConfig.recordsFormulaLabel}: ${CurrencyHelper.formatRate(record.shares)}${StockConfig.stockSharesSuffix} × ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.amount)}/${StockConfig.recordsDivAmountPerShare} × ${1 - record.taxRate}',
                           style: TextStyle(
                             color: Colors.grey[500],
                             fontSize: 11,
@@ -708,7 +708,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${DevConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
+                          '${StockConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 10,
@@ -730,7 +730,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${DevConfig.recordsDivLabel}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.afterTaxAmount)}',
+                        '${StockConfig.recordsDivLabel}: ${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(record.afterTaxAmount)}',
                         style: TextStyle(
                           color: Colors.amber,
                           fontWeight: FontWeight.w500,
@@ -739,7 +739,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${DevConfig.dividendDateLabel}: ${DateFormat('yyyy-MM-dd').format(record.date)}',
+                        '${StockConfig.dividendDateLabel}: ${DateFormat('yyyy-MM-dd').format(record.date)}',
                         style: TextStyle(color: Colors.grey[500], fontSize: 11),
                       ),
                     ],
@@ -778,7 +778,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
             children: [
               Center(
                 child: Text(
-                  DevConfig.dividendEditTitle,
+                  StockConfig.dividendEditTitle,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -788,7 +788,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
               ),
               const SizedBox(height: 16),
               Text(
-                DevConfig.dividendEditDateLabel,
+                StockConfig.dividendEditDateLabel,
                 style: const TextStyle(
                   fontSize: 13,
                   color: Colors.grey,
@@ -853,20 +853,20 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
               const SizedBox(height: 12),
               AppNumberField(
                 controller: amountCtrl,
-                label: DevConfig.dividendEditAmountLabel,
-                hintText: DevConfig.dividendAmountHint,
+                label: StockConfig.dividendEditAmountLabel,
+                hintText: StockConfig.dividendAmountHint,
               ),
               const SizedBox(height: 12),
               AppNumberField(
                 controller: sharesCtrl,
-                label: DevConfig.dividendEditSharesLabel,
-                hintText: DevConfig.editAddSharesHint,
+                label: StockConfig.dividendEditSharesLabel,
+                hintText: StockConfig.editAddSharesHint,
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Text(
-                    DevConfig.dividendTaxRateLabel,
+                    StockConfig.dividendTaxRateLabel,
                     style: const TextStyle(
                       fontSize: 13,
                       color: Colors.grey,
@@ -927,7 +927,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                   );
                   Navigator.pop(ctx);
                 },
-                confirmText: DevConfig.btnClose,
+                confirmText: AppConfig.btnClose,
                 confirmBgColor: Colors.amber,
               ),
             ],

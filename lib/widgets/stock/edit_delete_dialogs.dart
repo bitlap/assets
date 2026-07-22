@@ -142,8 +142,8 @@ class _EditStockDialogState extends State<EditStockDialog> {
             Center(
               child: Text(
                 widget.isAdd
-                    ? DevConfig.opAddPosition
-                    : DevConfig.opReducePosition,
+                    ? StockConfig.opAddPosition
+                    : StockConfig.opReducePosition,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -157,7 +157,7 @@ class _EditStockDialogState extends State<EditStockDialog> {
             Row(
               children: [
                 const Text(
-                  DevConfig.editPriceHint,
+                  StockConfig.editPriceHint,
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey,
@@ -179,31 +179,31 @@ class _EditStockDialogState extends State<EditStockDialog> {
             const SizedBox(height: 8),
             AppNumberField(
               controller: _priceController,
-              hintText: DevConfig.editPricePlaceholder,
+              hintText: StockConfig.editPricePlaceholder,
             ),
             const SizedBox(height: 12),
             AppNumberField(
               controller: _sharesController,
               label: widget.isAdd
-                  ? DevConfig.editAddSharesLabel
-                  : DevConfig.editReduceSharesLabel,
+                  ? StockConfig.editAddSharesLabel
+                  : StockConfig.editReduceSharesLabel,
               hintText: widget.isAdd
-                  ? DevConfig.editAddSharesHint
-                  : DevConfig.editReduceSharesHint,
+                  ? StockConfig.editAddSharesHint
+                  : StockConfig.editReduceSharesHint,
             ),
             const SizedBox(height: 12),
             AppNumberField(
               controller: _feeController,
-              label: DevConfig.editFeeLabel,
-              hintText: DevConfig.editFeePlaceholder,
+              label: StockConfig.editFeeLabel,
+              hintText: StockConfig.editFeePlaceholder,
             ),
             const SizedBox(height: 20),
             actionButtonRow(
               onCancel: () => Navigator.pop(context),
               onConfirm: _onConfirm,
               confirmText: widget.isAdd
-                  ? DevConfig.btnConfirmBuy
-                  : DevConfig.btnConfirmSell,
+                  ? AppConfig.btnConfirmBuy
+                  : AppConfig.btnConfirmSell,
               confirmGradient: LinearGradient(
                 colors: widget.isAdd
                     ? [const Color(0xFFE53935), const Color(0xFFC62828)]
@@ -223,14 +223,14 @@ class _EditStockDialogState extends State<EditStockDialog> {
         diffShares <= 0 ||
         newPrice == null ||
         newPrice <= 0) {
-      CenterToast.error(context, DevConfig.editInvalidInput);
+      CenterToast.error(context, StockConfig.editInvalidInput);
       return;
     }
 
     final oldShares = widget.stock.shares;
 
     if (!widget.isAdd && diffShares > oldShares) {
-      CenterToast.error(context, DevConfig.editOverflow);
+      CenterToast.error(context, StockConfig.editOverflow);
       return;
     }
 
@@ -251,15 +251,15 @@ class _EditStockDialogState extends State<EditStockDialog> {
 
     String recordType, description;
     if (isClosePosition) {
-      recordType = DevConfig.opSell;
-      description = '${DevConfig.opClosePosition} ${widget.stock.symbol}';
+      recordType = StockConfig.opSell;
+      description = '${StockConfig.opClosePosition} ${widget.stock.symbol}';
     } else if (widget.operationRecords.isEmpty) {
-      recordType = DevConfig.opBuy;
-      description = '${DevConfig.opOpenPosition} ${widget.stock.symbol}';
+      recordType = StockConfig.opBuy;
+      description = '${StockConfig.opOpenPosition} ${widget.stock.symbol}';
     } else {
-      recordType = widget.isAdd ? DevConfig.opBuy : DevConfig.opSell;
+      recordType = widget.isAdd ? StockConfig.opBuy : StockConfig.opSell;
       description =
-          '${widget.isAdd ? DevConfig.opAddPosition : DevConfig.opReducePosition} ${widget.stock.symbol}';
+          '${widget.isAdd ? StockConfig.opAddPosition : StockConfig.opReducePosition} ${widget.stock.symbol}';
     }
 
     final record = OperationRecord(
@@ -286,30 +286,30 @@ class _EditStockDialogState extends State<EditStockDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InfoRowWidget(
-            label: DevConfig.searchStockCode,
+            label: StockConfig.searchStockCode,
             value: widget.stock.symbol,
           ),
           const SizedBox(height: 8),
           InfoRowWidget(
-            label: DevConfig.searchStockName,
+            label: StockConfig.searchStockName,
             value: widget.stock.companyName,
           ),
           const SizedBox(height: 8),
           InfoRowWidget(
-            label: DevConfig.searchRealtimePrice,
+            label: StockConfig.searchRealtimePrice,
             value:
                 '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(widget.stock.currentPrice)}',
           ),
           const SizedBox(height: 8),
           InfoRowWidget(
-            label: DevConfig.searchShares,
+            label: StockConfig.searchShares,
             value:
-                '${CurrencyHelper.formatRate(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
+                '${CurrencyHelper.formatRate(widget.stock.shares)}${StockConfig.stockSharesSuffix}',
           ),
           if (_avgBuyPrice > 0) ...[
             const SizedBox(height: 8),
             InfoRowWidget(
-              label: DevConfig.stockDetailAvgPrice,
+              label: StockConfig.stockDetailAvgPrice,
               value:
                   '${CurrencyHelper.getSymbol(widget.stock.currency)}${CurrencyHelper.formatRate(_avgBuyPrice)}',
             ),
@@ -334,8 +334,8 @@ class DeleteStockDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConfirmDeleteDialog(
-      title: DevConfig.btnConfirm,
-      content: DevConfig.deleteConfirmContent
+      title: AppConfig.btnConfirm,
+      content: StockConfig.deleteConfirmContent
           .replaceAll('{symbol}', stock.symbol)
           .replaceAll('{name}', stock.companyName),
       onConfirm: onDelete,
@@ -367,7 +367,7 @@ class MoreOptionsDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       child: SizedBox(
-        width: MediaQuery.of(context).size.width * DevConfig.dialogWidthRatio,
+        width: MediaQuery.of(context).size.width * AppConfig.dialogWidthRatio,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
@@ -382,7 +382,7 @@ class MoreOptionsDialog extends StatelessWidget {
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
                   child: Text(
-                    DevConfig.opMoreActions,
+                    StockConfig.opMoreActions,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -397,7 +397,7 @@ class MoreOptionsDialog extends StatelessWidget {
                     color: Colors.redAccent,
                   ),
                   title: const Text(
-                    DevConfig.opAddPosition,
+                    StockConfig.opAddPosition,
                     style: TextStyle(color: Colors.white, fontSize: 15),
                   ),
                   onTap: () {
@@ -411,7 +411,7 @@ class MoreOptionsDialog extends StatelessWidget {
                     color: Colors.greenAccent,
                   ),
                   title: const Text(
-                    DevConfig.opReducePosition,
+                    StockConfig.opReducePosition,
                     style: TextStyle(color: Colors.white, fontSize: 15),
                   ),
                   onTap: () {
@@ -425,7 +425,7 @@ class MoreOptionsDialog extends StatelessWidget {
                     color: Colors.amber,
                   ),
                   title: const Text(
-                    DevConfig.opDividend,
+                    StockConfig.opDividend,
                     style: TextStyle(color: Colors.white, fontSize: 15),
                   ),
                   onTap: () {
@@ -436,7 +436,7 @@ class MoreOptionsDialog extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.delete, color: Colors.redAccent),
                   title: const Text(
-                    DevConfig.opDeleteStock,
+                    StockConfig.opDeleteStock,
                     style: TextStyle(color: Colors.redAccent, fontSize: 15),
                   ),
                   onTap: () {
@@ -525,7 +525,7 @@ class _DividendDialogState extends State<DividendDialog> {
         children: [
           Center(
             child: Text(
-              DevConfig.dividendTitle,
+              StockConfig.dividendTitle,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -537,7 +537,7 @@ class _DividendDialogState extends State<DividendDialog> {
           _buildStockInfoSection(),
           const SizedBox(height: 16),
           const Text(
-            DevConfig.dividendDateLabel,
+            StockConfig.dividendDateLabel,
             style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.2),
           ),
           const SizedBox(height: 8),
@@ -545,8 +545,8 @@ class _DividendDialogState extends State<DividendDialog> {
           const SizedBox(height: 12),
           AppNumberField(
             controller: _amountController,
-            label: DevConfig.dividendAmountLabel,
-            hintText: DevConfig.dividendAmountHint,
+            label: StockConfig.dividendAmountLabel,
+            hintText: StockConfig.dividendAmountHint,
           ),
           const SizedBox(height: 12),
           _buildTaxSlider(),
@@ -556,12 +556,12 @@ class _DividendDialogState extends State<DividendDialog> {
             onConfirm: () {
               final amount = double.tryParse(_amountController.text);
               if (amount == null || amount <= 0) {
-                CenterToast.error(context, DevConfig.dividendInvalidAmount);
+                CenterToast.error(context, StockConfig.dividendInvalidAmount);
                 return;
               }
               widget.onConfirm(_selectedDate, amount, _taxRate / 100);
             },
-            confirmText: DevConfig.dividendConfirm,
+            confirmText: StockConfig.dividendConfirm,
             confirmBgColor: Colors.amber,
           ),
         ],
@@ -581,19 +581,19 @@ class _DividendDialogState extends State<DividendDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InfoRowWidget(
-            label: DevConfig.searchStockCode,
+            label: StockConfig.searchStockCode,
             value: widget.stock.symbol,
           ),
           const SizedBox(height: 8),
           InfoRowWidget(
-            label: DevConfig.searchStockName,
+            label: StockConfig.searchStockName,
             value: widget.stock.companyName,
           ),
           const SizedBox(height: 8),
           InfoRowWidget(
-            label: DevConfig.searchShares,
+            label: StockConfig.searchShares,
             value:
-                '${CurrencyHelper.formatRate(widget.stock.shares)}${DevConfig.stockSharesSuffix}',
+                '${CurrencyHelper.formatRate(widget.stock.shares)}${StockConfig.stockSharesSuffix}',
           ),
         ],
       ),
@@ -631,7 +631,7 @@ class _DividendDialogState extends State<DividendDialog> {
         Row(
           children: [
             Text(
-              DevConfig.dividendTaxRateLabel,
+              StockConfig.dividendTaxRateLabel,
               style: const TextStyle(
                 fontSize: 13,
                 color: Colors.grey,

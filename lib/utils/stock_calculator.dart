@@ -18,13 +18,13 @@ class StockCalculator {
     int sellCount = 0;
 
     for (final record in records) {
-      if (record.type == DevConfig.opBuy) {
+      if (record.type == StockConfig.opBuy) {
         currentShares += record.shares;
         totalBuyAmount += record.amount * record.shares + record.fee;
         buyCount++;
         if (record.amount > maxBuyPrice) maxBuyPrice = record.amount;
         if (record.amount < minBuyPrice) minBuyPrice = record.amount;
-      } else if (record.type == DevConfig.opSell) {
+      } else if (record.type == StockConfig.opSell) {
         currentShares -= record.shares;
         totalSellAmount += record.amount * record.shares - record.fee;
         sellCount++;
@@ -58,10 +58,10 @@ class StockCalculator {
     double totalSellAmount = 0.0;
     double currentShares = 0.0;
     for (final r in records) {
-      if (r.type == DevConfig.opBuy) {
+      if (r.type == StockConfig.opBuy) {
         totalBuyAmount += r.amount * r.shares + r.fee;
         currentShares += r.shares;
-      } else if (r.type == DevConfig.opSell) {
+      } else if (r.type == StockConfig.opSell) {
         totalSellAmount += r.amount * r.shares - r.fee;
         currentShares -= r.shares;
       }
@@ -75,7 +75,7 @@ class StockCalculator {
     List<StockModel> stocks,
     Map<String, List<OperationRecord>> operationRecords, [
     Map<String, List<DividendRecord>>? dividendRecords,
-    String targetCurrency = DevConfig.defaultCurrency,
+    String targetCurrency = AppConfig.defaultCurrency,
   ]) {
     double totalMarketValue = 0.0;
     double unrealizedPL = 0.0;

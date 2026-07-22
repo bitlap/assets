@@ -29,11 +29,11 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
   List<ProfitSnapshot> _intradaySnapshots = [];
 
   static const List<_RangeOption> _rangeOptions = [
-    _RangeOption(DevConfig.profitRangeToday, 0),
-    _RangeOption(DevConfig.profitRange7d, 1),
-    _RangeOption(DevConfig.profitRange30d, 2),
-    _RangeOption(DevConfig.profitRange180d, 3),
-    _RangeOption(DevConfig.profitRange360d, 4),
+    _RangeOption(StockConfig.profitRangeToday, 0),
+    _RangeOption(StockConfig.profitRange7d, 1),
+    _RangeOption(StockConfig.profitRange30d, 2),
+    _RangeOption(StockConfig.profitRange180d, 3),
+    _RangeOption(StockConfig.profitRange360d, 4),
   ];
 
   @override
@@ -100,7 +100,7 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
               const Icon(Icons.timeline, size: 12, color: Colors.amber),
               const SizedBox(width: 4),
               const Text(
-                DevConfig.profitChartTitle,
+                StockConfig.profitChartTitle,
                 style: TextStyle(
                   fontSize: 11,
                   color: Colors.white70,
@@ -172,7 +172,7 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
         height: 200,
         alignment: Alignment.center,
         child: Text(
-          DevConfig.profitNoData,
+          StockConfig.profitNoData,
           style: TextStyle(fontSize: 12, color: Colors.grey[500]),
         ),
       );

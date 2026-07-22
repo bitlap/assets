@@ -47,7 +47,7 @@ Widget dialogFrame({
     child: SizedBox(
       width:
           MediaQuery.of(context).size.width *
-          (widthRatio ?? DevConfig.dialogWidthRatio),
+          (widthRatio ?? AppConfig.dialogWidthRatio),
       child: Container(
         padding: padding ?? const EdgeInsets.all(20),
         decoration: dialogFrameDecoration(
@@ -75,7 +75,7 @@ Widget cancelButton({required VoidCallback onTap, String? text}) {
       ),
       child: Center(
         child: Text(
-          text ?? DevConfig.btnCancel,
+          text ?? AppConfig.btnCancel,
           style: const TextStyle(
             fontSize: 15,
             color: Colors.grey,
@@ -201,7 +201,7 @@ class InfoDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(
-            closeText ?? DevConfig.btnClose,
+            closeText ?? AppConfig.btnClose,
             style: const TextStyle(color: Color(0xFF5B9CF6)),
           ),
         ),

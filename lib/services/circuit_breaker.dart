@@ -8,9 +8,9 @@ class CircuitBreaker {
 
   int _consecutiveFailures = 0;
   DateTime? _cooldownUntil;
-  static const int _failureThreshold = DevConfig.failureThreshold;
+  static const int _failureThreshold = AppConfig.failureThreshold;
   static const Duration _cooldownDuration = Duration(
-    minutes: DevConfig.cooldownDurationMin,
+    minutes: AppConfig.cooldownDurationMin,
   );
 
   bool get isInCooldown {

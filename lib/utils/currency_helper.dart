@@ -5,7 +5,8 @@ class CurrencyHelper {
   /// 汇率映射表（以 USD 为基准，1 USD = X 目标货币）
   /// 初始为硬编码默认值，获取实时汇率后会动态更新
   static Map<String, double> exchangeRates = {
-    'CNY': 7.24,
+    'CNY': 6.77,
+    'CNH': 6.77,
     'USD': 1.0,
     'HKD': 7.78,
     'EUR': 0.92,
@@ -21,6 +22,7 @@ class CurrencyHelper {
   /// 支持的币种列表（用于过滤 API 返回的多余币种）
   static const Set<String> supportedCurrencies = {
     'CNY',
+    'CNH',
     'USD',
     'HKD',
     'EUR',
@@ -47,14 +49,14 @@ class CurrencyHelper {
     switch (currency) {
       case 'CNY':
         return '¥';
+      case 'CNH':
+        return '¥';
       case 'USD':
         return '\$';
       case 'HKD':
         return 'HK\$';
       case 'EUR':
         return '€';
-      case 'JPY':
-        return '¥';
       case 'GBP':
         return '£';
       default:
@@ -81,20 +83,14 @@ class CurrencyHelper {
   }) {
     final fmt = formatBase ?? (v) => v.toStringAsFixed(2);
     if (value.abs() >= 10000) {
-      return '${fmt(value / 10000)}${DevConfig.suffixWan}';
+      return '${fmt(value / 10000)}${AppConfig.suffixWan}';
     }
     return fmt(value);
   }
 
   /// 根据市场类型返回对应币种
-  static String currencyForMarket(String marketType) {
-    switch (marketType) {
-      case DevConfig.searchMarketHK:
-        return 'HKD';
-      default:
-        return 'USD';
-    }
-  }
+  static String currencyForMarket(String marketType) =>
+      AppConfig.currencyForMarket(marketType);
 
   /// 将金额从源币种转换为目标币种（以 USD 为中间货币）
   static double convertCurrency(

@@ -17,7 +17,7 @@ class StockQuoteService {
   final Map<String, DateTime> _cacheTime = {};
   final Map<String, StockQuote?> _cacheValue = {};
   static const Duration _cacheTTL = Duration(
-    minutes: DevConfig.quoteCacheTTLMin,
+    minutes: AppConfig.quoteCacheTTLMin,
   );
 
   int get cooldownRemainingSeconds => CircuitBreaker().cooldownRemainingSeconds;
@@ -95,9 +95,9 @@ class StockQuoteService {
   }
 
   static String? getLogoUrl(String code, String market) {
-    if (market == DevConfig.searchMarketUS) {
+    if (market == StockConfig.searchMarketUS) {
       return 'https://logos.stocktwits-cdn.com/${code.toUpperCase()}.png?w=64';
-    } else if (market == DevConfig.searchMarketHK) {
+    } else if (market == StockConfig.searchMarketHK) {
       return null;
     }
     return null;

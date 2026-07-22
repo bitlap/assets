@@ -54,7 +54,7 @@ class StockCard extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: stock.marketType == DevConfig.searchMarketUS
+                        color: stock.marketType == StockConfig.searchMarketUS
                             ? Colors.blue
                             : Colors.orange,
                         borderRadius: BorderRadius.circular(4),
@@ -71,7 +71,7 @@ class StockCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      DevConfig.stockTotalValue,
+                      StockConfig.stockTotalValue,
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey[500],
@@ -253,7 +253,7 @@ class StockCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
-              '${CurrencyHelper.formatRate(stock.shares)}${DevConfig.stockSharesSuffix}',
+              '${CurrencyHelper.formatRate(stock.shares)}${StockConfig.stockSharesSuffix}',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -355,7 +355,7 @@ class StockCard extends StatelessWidget {
             Icon(Icons.list_alt, size: 14, color: Colors.white),
             SizedBox(width: 4),
             Text(
-              DevConfig.stockRecord,
+              StockConfig.stockRecord,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -384,7 +384,7 @@ class StockCard extends StatelessWidget {
             Icon(Icons.more_horiz, size: 14, color: Colors.white),
             const SizedBox(width: 4),
             Text(
-              DevConfig.stockMore,
+              StockConfig.stockMore,
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -404,28 +404,28 @@ class StockCard extends StatelessWidget {
 
     final items = [
       _DetailItem(
-        DevConfig.stockDetailTotalCost,
+        StockConfig.stockDetailTotalCost,
         CurrencyHelper.formatCompact(totalCost),
       ),
       _DetailItem(
-        DevConfig.stockDetailAvgPrice,
+        StockConfig.stockDetailAvgPrice,
         CurrencyHelper.formatRate(stats.avgBuyPrice),
       ),
       _DetailItem(
-        DevConfig.stockDetailMaxPrice,
+        StockConfig.stockDetailMaxPrice,
         CurrencyHelper.formatRate(stats.maxBuyPrice),
       ),
       _DetailItem(
-        DevConfig.stockDetailMinPrice,
+        StockConfig.stockDetailMinPrice,
         CurrencyHelper.formatRate(stats.minBuyPrice),
       ),
       _DetailItem(
-        DevConfig.stockDetailBuyCount,
-        '${stats.buyCount} ${DevConfig.suffixCount}',
+        StockConfig.stockDetailBuyCount,
+        '${stats.buyCount} ${AppConfig.suffixCount}',
       ),
       _DetailItem(
-        DevConfig.stockDetailSellCount,
-        '${stats.sellCount} ${DevConfig.suffixCount}',
+        StockConfig.stockDetailSellCount,
+        '${stats.sellCount} ${AppConfig.suffixCount}',
       ),
     ];
 

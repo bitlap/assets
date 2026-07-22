@@ -5,6 +5,8 @@ import '../utils/currency_helper.dart';
 import '../utils/center_toast.dart';
 import '../services/settings_service.dart';
 import '../config/app_config.dart';
+import '../config/sort_options.dart';
+import '../models/settings/open_source_lib.dart';
 import 'common/app_number_field.dart';
 import 'common/settings_expansion_card.dart';
 import 'common/dialog_utils.dart';
@@ -45,85 +47,6 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _isFeeExpanded = false;
   String _selectedFeeType = SettingsService.feeTypePercentage;
   late TextEditingController _feeValueController;
-
-  static const List<Map<String, String>> sortOptions = [
-    {'key': 'profit', 'label': DevConfig.sortByProfit},
-    {'key': 'holdings', 'label': DevConfig.sortByHoldings},
-    {'key': 'name', 'label': DevConfig.sortByName},
-  ];
-
-  static const List<_OpenSourceLib> _openSourceLibs = [
-    _OpenSourceLib(
-      'Flutter',
-      'Google',
-      'BSD 3-Clause',
-      DevConfig.licenseDescFlutter,
-    ),
-    _OpenSourceLib('Dart', 'Google', 'BSD 3-Clause', DevConfig.licenseDescDart),
-    _OpenSourceLib(
-      'cupertino_icons',
-      'Flutter Team',
-      'MIT',
-      DevConfig.licenseDescCupertino,
-    ),
-    _OpenSourceLib(
-      'intl',
-      'Dart Team',
-      'BSD 3-Clause',
-      DevConfig.licenseDescIntl,
-    ),
-    _OpenSourceLib(
-      'http',
-      'Dart Team',
-      'BSD 3-Clause',
-      DevConfig.licenseDescHttp,
-    ),
-    _OpenSourceLib(
-      'url_launcher',
-      'Flutter Team',
-      'BSD 3-Clause',
-      DevConfig.licenseDescUrlLauncher,
-    ),
-    _OpenSourceLib(
-      'path_provider',
-      'Flutter Team',
-      'BSD 3-Clause',
-      DevConfig.licenseDescPathProvider,
-    ),
-    _OpenSourceLib(
-      'package_info_plus',
-      'Flutter Team',
-      'BSD 3-Clause',
-      DevConfig.licenseDescPackageInfo,
-    ),
-    _OpenSourceLib(
-      'workmanager',
-      'Flutter Team',
-      'MIT',
-      DevConfig.licenseDescWorkmanager,
-    ),
-  ];
-
-  static const List<_OpenSourceLib> _dataSources = [
-    _OpenSourceLib(
-      DevConfig.dataSourceNameEastMoney,
-      DevConfig.dataSourceAuthorEastMoney,
-      '—',
-      DevConfig.dataSourceDescEastMoney,
-    ),
-    _OpenSourceLib(
-      DevConfig.dataSourceNameTencent,
-      DevConfig.dataSourceAuthorTencent,
-      '—',
-      DevConfig.dataSourceDescTencent,
-    ),
-    _OpenSourceLib(
-      'ExchangeRate-API',
-      'exchangerate-api.com',
-      '—',
-      DevConfig.dataSourceDescExchangeRate,
-    ),
-  ];
 
   @override
   void initState() {
@@ -201,7 +124,9 @@ class _SettingsPageState extends State<SettingsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              value ? DevConfig.keepStockOnLabel : DevConfig.keepStockOffLabel,
+              value
+                  ? SettingsConfig.keepStockOnLabel
+                  : SettingsConfig.keepStockOffLabel,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -210,7 +135,9 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              value ? DevConfig.keepStockOnDesc : DevConfig.keepStockOffDesc,
+              value
+                  ? SettingsConfig.keepStockOnDesc
+                  : SettingsConfig.keepStockOffDesc,
               style: TextStyle(
                 color: Colors.grey[400],
                 fontSize: 13,
@@ -223,7 +150,7 @@ class _SettingsPageState extends State<SettingsPage> {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
-              DevConfig.btnCancel,
+              AppConfig.btnCancel,
               style: TextStyle(color: Colors.grey),
             ),
           ),
@@ -235,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage> {
               widget.onSettingsChanged?.call();
             },
             child: const Text(
-              DevConfig.btnClose,
+              AppConfig.btnClose,
               style: TextStyle(color: Color(0xFF5B9CF6)),
             ),
           ),
@@ -264,7 +191,7 @@ class _SettingsPageState extends State<SettingsPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          DevConfig.settingsTitle,
+          SettingsConfig.settingsTitle,
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -282,20 +209,20 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           _buildSectionHeader(
             Icons.currency_exchange,
-            DevConfig.sectionCurrency,
+            SettingsConfig.sectionCurrency,
           ),
           const SizedBox(height: 8),
           _buildCurrencySection(),
           const SizedBox(height: 24),
-          _buildSectionHeader(Icons.trending_up, DevConfig.sectionStock),
+          _buildSectionHeader(Icons.trending_up, SettingsConfig.sectionStock),
           const SizedBox(height: 8),
           _buildStockSettingsGroup(),
           const SizedBox(height: 24),
-          _buildSectionHeader(Icons.cloud_outlined, DevConfig.sectionSync),
+          _buildSectionHeader(Icons.cloud_outlined, SettingsConfig.sectionSync),
           const SizedBox(height: 8),
           _buildSyncGroup(),
           const SizedBox(height: 24),
-          _buildSectionHeader(Icons.more_horiz, DevConfig.sectionOther),
+          _buildSectionHeader(Icons.more_horiz, SettingsConfig.sectionOther),
           const SizedBox(height: 8),
           _buildOtherGroup(),
           const SizedBox(height: 32),
@@ -446,7 +373,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Row(
                 children: [
                   const Text(
-                    DevConfig.sectionFee,
+                    SettingsConfig.sectionFee,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -485,12 +412,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 Row(
                   children: [
                     _buildFeeTypeChip(
-                      DevConfig.feeTypePercentage,
+                      SettingsConfig.feeTypePercentage,
                       SettingsService.feeTypePercentage,
                     ),
                     const SizedBox(width: 8),
                     _buildFeeTypeChip(
-                      DevConfig.feeTypeFixed,
+                      SettingsConfig.feeTypeFixed,
                       SettingsService.feeTypeFixed,
                     ),
                   ],
@@ -500,12 +427,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 AppNumberField(
                   controller: _feeValueController,
                   label: _selectedFeeType == SettingsService.feeTypePercentage
-                      ? DevConfig.feeValueLabel
-                      : DevConfig.feeAmountLabel,
+                      ? SettingsConfig.feeValueLabel
+                      : SettingsConfig.feeAmountLabel,
                   hintText:
                       _selectedFeeType == SettingsService.feeTypePercentage
-                      ? DevConfig.feeValueHint
-                      : DevConfig.feeAmountHint,
+                      ? SettingsConfig.feeValueHint
+                      : SettingsConfig.feeAmountHint,
                 ),
               ],
             ),
@@ -553,7 +480,7 @@ class _SettingsPageState extends State<SettingsPage> {
       context,
       title: const DialogInfoTitle(
         icon: Icons.info_outline,
-        title: DevConfig.feeHelpTitle,
+        title: SettingsConfig.feeHelpTitle,
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -561,14 +488,14 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           const HintRow(
             color: Colors.greenAccent,
-            label: DevConfig.feeTypePercentage,
-            desc: DevConfig.feeHelpRate,
+            label: SettingsConfig.feeTypePercentage,
+            desc: SettingsConfig.feeHelpRate,
           ),
           const SizedBox(height: 12),
           const HintRow(
             color: Colors.orangeAccent,
-            label: DevConfig.feeTypeFixed,
-            desc: DevConfig.feeHelpFixed,
+            label: SettingsConfig.feeTypeFixed,
+            desc: SettingsConfig.feeHelpFixed,
           ),
         ],
       ),
@@ -580,7 +507,7 @@ class _SettingsPageState extends State<SettingsPage> {
       context,
       title: const DialogInfoTitle(
         icon: Icons.info_outline,
-        title: DevConfig.keepStockLabel,
+        title: SettingsConfig.keepStockLabel,
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -588,14 +515,14 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           const HintRow(
             color: Colors.greenAccent,
-            label: DevConfig.keepStockOnLabel,
-            desc: DevConfig.keepStockOnDesc,
+            label: SettingsConfig.keepStockOnLabel,
+            desc: SettingsConfig.keepStockOnDesc,
           ),
           const SizedBox(height: 12),
           const HintRow(
             color: Colors.redAccent,
-            label: DevConfig.keepStockOffLabel,
-            desc: DevConfig.keepStockOffDesc,
+            label: SettingsConfig.keepStockOffLabel,
+            desc: SettingsConfig.keepStockOffDesc,
           ),
         ],
       ),
@@ -630,7 +557,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 Flexible(
                   child: Text(
-                    DevConfig.keepStockLabel,
+                    SettingsConfig.keepStockLabel,
                     style: TextStyle(fontSize: 15, color: Colors.grey[300]),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -690,7 +617,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(width: 10),
             const Text(
-              DevConfig.sortLabel,
+              SettingsConfig.sortLabel,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -765,7 +692,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 const SizedBox(width: 42),
                 const Text(
-                  DevConfig.sortDirectionLabel,
+                  SettingsConfig.sortDirectionLabel,
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const Spacer(),
@@ -803,7 +730,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              DevConfig.sortAscending,
+                              SettingsConfig.sortAscending,
                               style: TextStyle(
                                 fontSize: 13,
                                 color: _isSortAscending
@@ -850,7 +777,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              DevConfig.sortDescending,
+                              SettingsConfig.sortDescending,
                               style: TextStyle(
                                 fontSize: 13,
                                 color: !_isSortAscending
@@ -887,7 +814,7 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSyncTile(
             Icons.cloud_outlined,
             Colors.blueAccent,
-            DevConfig.syncSettingsLabel,
+            SettingsConfig.syncSettingsLabel,
             _syncSettings,
             (v) => setState(() {
               _syncSettings = v;
@@ -908,7 +835,7 @@ class _SettingsPageState extends State<SettingsPage> {
       context,
       title: const DialogInfoTitle(
         icon: Icons.info_outline,
-        title: DevConfig.syncSettingsLabel,
+        title: SettingsConfig.syncSettingsLabel,
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -916,24 +843,24 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           const HintRow(
             color: Colors.blueAccent,
-            label: DevConfig.syncItemSettings,
-            desc: DevConfig.syncHelpSettingsDesc,
+            label: SettingsConfig.syncItemSettings,
+            desc: SettingsConfig.syncHelpSettingsDesc,
           ),
           const SizedBox(height: 12),
           const HintRow(
             color: Color(0xFF4CAF50),
-            label: DevConfig.syncItemStocks,
-            desc: DevConfig.syncHelpStocksDesc,
+            label: SettingsConfig.syncItemStocks,
+            desc: SettingsConfig.syncHelpStocksDesc,
           ),
           const SizedBox(height: 12),
           const HintRow(
             color: Colors.orangeAccent,
-            label: DevConfig.syncItemRecords,
-            desc: DevConfig.syncHelpRecordsDesc,
+            label: SettingsConfig.syncItemRecords,
+            desc: SettingsConfig.syncHelpRecordsDesc,
           ),
           const SizedBox(height: 16),
           Text(
-            DevConfig.syncPrivacyNote,
+            SettingsConfig.syncPrivacyNote,
             style: TextStyle(
               color: Colors.grey[500],
               fontSize: 12,
@@ -1006,16 +933,22 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   static const List<_FormulaItem> _formulas = [
-    _FormulaItem(DevConfig.assetTotalAssets, DevConfig.assetTotalAssetsHelp),
-    _FormulaItem(DevConfig.assetTotalCost, DevConfig.assetTotalCostHelp),
-    _FormulaItem(DevConfig.assetTotalProfit, DevConfig.assetTotalProfitHelp),
     _FormulaItem(
-      DevConfig.assetDividendRateLabel,
-      DevConfig.assetTotalDividendsHelp,
+      StockConfig.assetTotalAssets,
+      StockConfig.assetTotalAssetsHelp,
+    ),
+    _FormulaItem(StockConfig.assetTotalCost, StockConfig.assetTotalCostHelp),
+    _FormulaItem(
+      StockConfig.assetTotalProfit,
+      StockConfig.assetTotalProfitHelp,
     ),
     _FormulaItem(
-      DevConfig.assetPositionRatioLabel,
-      DevConfig.assetPositionRatioHelp,
+      StockConfig.assetDividendRateLabel,
+      StockConfig.assetTotalDividendsHelp,
+    ),
+    _FormulaItem(
+      StockConfig.assetPositionRatioLabel,
+      StockConfig.assetPositionRatioHelp,
     ),
   ];
 
@@ -1036,7 +969,7 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                DevConfig.sectionFormula,
+                SettingsConfig.sectionFormula,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -1045,7 +978,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                DevConfig.formulaDialogSubtitle,
+                SettingsConfig.formulaDialogSubtitle,
                 style: TextStyle(fontSize: 12, color: Colors.grey[500]),
               ),
               const SizedBox(height: 16),
@@ -1101,7 +1034,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                   child: const Text(
-                    DevConfig.btnClose,
+                    AppConfig.btnClose,
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -1129,29 +1062,29 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildGroupItem(
               icon: Icons.rate_review_outlined,
               iconColor: Colors.amber,
-              label: DevConfig.feedbackLabel,
+              label: SettingsConfig.feedbackLabel,
               onTap: _showFeedbackDialog,
             ),
             _buildGroupDivider(),
             _buildGroupItem(
               icon: Icons.calculate_outlined,
               iconColor: Colors.teal,
-              label: DevConfig.sectionFormula,
+              label: SettingsConfig.sectionFormula,
               onTap: _showFormulaDialog,
             ),
             _buildGroupDivider(),
             _buildGroupItem(
               icon: Icons.code,
               iconColor: const Color(0xFF64B5F6),
-              label: DevConfig.openSourceLabel,
+              label: SettingsConfig.openSourceLabel,
               onTap: _showOpenSourceDialog,
             ),
             _buildGroupDivider(),
             _buildGroupItem(
               icon: Icons.info_outline,
               iconColor: Colors.grey,
-              label: DevConfig.versionLabel,
-              trailing: DevConfig.appVersion,
+              label: SettingsConfig.versionLabel,
+              trailing: AppConfig.appVersion,
             ),
           ],
         ),
@@ -1208,7 +1141,7 @@ class _SettingsPageState extends State<SettingsPage> {
         backgroundColor: const Color(0xFF161B22),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          DevConfig.feedbackTitle,
+          SettingsConfig.feedbackTitle,
           style: const TextStyle(color: Colors.white, fontSize: 16),
         ),
         content: Column(
@@ -1216,7 +1149,7 @@ class _SettingsPageState extends State<SettingsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              DevConfig.feedbackHint,
+              SettingsConfig.feedbackHint,
               style: TextStyle(
                 color: Colors.grey[400],
                 fontSize: 13,
@@ -1226,18 +1159,18 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 16),
             _buildContactRow(
               Icons.email_outlined,
-              DevConfig.contactEmail,
-              DevConfig.developerEmail,
-              onTap: () => _launchEmail(DevConfig.developerEmail),
+              SettingsConfig.contactEmail,
+              AppConfig.developerEmail,
+              onTap: () => _launchEmail(AppConfig.developerEmail),
             ),
             const SizedBox(height: 12),
             _buildContactRow(
               Icons.chat_bubble_outline,
-              DevConfig.contactWechat,
-              DevConfig.developerWechat,
+              SettingsConfig.contactWechat,
+              AppConfig.developerWechat,
               onTap: () => _copyToClipboard(
-                DevConfig.developerWechat,
-                DevConfig.toastWechatCopied,
+                AppConfig.developerWechat,
+                AppConfig.toastWechatCopied,
               ),
             ),
           ],
@@ -1246,7 +1179,7 @@ class _SettingsPageState extends State<SettingsPage> {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
-              DevConfig.btnClose,
+              AppConfig.btnClose,
               style: TextStyle(color: Color(0xFF5B9CF6)),
             ),
           ),
@@ -1291,13 +1224,13 @@ class _SettingsPageState extends State<SettingsPage> {
         return;
       }
     } catch (_) {}
-    _copyToClipboard(email, DevConfig.toastEmailCopied);
+    _copyToClipboard(email, AppConfig.toastEmailCopied);
   }
 
   void _copyToClipboard(String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
-      CenterToast.success(context, '$label${DevConfig.toastClipboardSuffix}');
+      CenterToast.success(context, '$label${AppConfig.toastClipboardSuffix}');
     }
   }
 
@@ -1318,7 +1251,7 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                DevConfig.openSourceTitle,
+                SettingsConfig.openSourceTitle,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -1327,7 +1260,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                DevConfig.openSourceDesc,
+                SettingsConfig.openSourceDesc,
                 style: TextStyle(fontSize: 12, color: Colors.grey[500]),
               ),
               const SizedBox(height: 16),
@@ -1336,13 +1269,13 @@ class _SettingsPageState extends State<SettingsPage> {
                   shrinkWrap: true,
                   children: [
                     _buildLicenseSection(
-                      DevConfig.licenseSectionLibs,
-                      _openSourceLibs,
+                      SettingsConfig.licenseSectionLibs,
+                      openSourceLibs,
                     ),
                     const SizedBox(height: 12),
                     _buildLicenseSection(
-                      DevConfig.licenseSectionData,
-                      _dataSources,
+                      SettingsConfig.licenseSectionData,
+                      dataSources,
                     ),
                   ],
                 ),
@@ -1359,7 +1292,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                   child: const Text(
-                    DevConfig.btnClose,
+                    AppConfig.btnClose,
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -1371,7 +1304,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildLicenseSection(String title, List<_OpenSourceLib> libs) {
+  Widget _buildLicenseSection(String title, List<OpenSourceLib> libs) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1445,14 +1378,6 @@ class _SettingsPageState extends State<SettingsPage> {
       ],
     );
   }
-}
-
-class _OpenSourceLib {
-  final String name;
-  final String author;
-  final String license;
-  final String description;
-  const _OpenSourceLib(this.name, this.author, this.license, this.description);
 }
 
 class _FormulaItem {

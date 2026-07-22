@@ -83,7 +83,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       return;
     }
     _debounceTimer = Timer(
-      const Duration(milliseconds: DevConfig.searchDebounceMs),
+      const Duration(milliseconds: AppConfig.searchDebounceMs),
       () {
         _doSearch(keyword);
       },
@@ -96,7 +96,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     final cooldownSecs = _searchService.cooldownRemainingSeconds;
     if (cooldownSecs > 0) {
       setState(() {
-        _errorMessage = DevConfig.searchRateLimit.replaceAll(
+        _errorMessage = StockConfig.searchRateLimit.replaceAll(
           '{secs}',
           '${cooldownSecs}',
         );
@@ -122,7 +122,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
         setState(() {
           _isLoading = false;
           _hasSearched = true;
-          _errorMessage = DevConfig.searchRateLimitShort;
+          _errorMessage = StockConfig.searchRateLimitShort;
         });
         return;
       }
@@ -134,11 +134,11 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
         _hasSearched = true;
         if (_results.isEmpty) {
           _errorMessage = _selectedMarket != null
-              ? DevConfig.searchNotFoundMarket.replaceAll(
+              ? StockConfig.searchNotFoundMarket.replaceAll(
                   '{market}',
                   _selectedMarket ?? '',
                 )
-              : DevConfig.searchNotFound;
+              : StockConfig.searchNotFound;
         }
       });
       // 从 service 缓存中恢复已有行情
@@ -148,7 +148,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       setState(() {
         _isLoading = false;
         _hasSearched = true;
-        _errorMessage = DevConfig.searchFailed;
+        _errorMessage = StockConfig.searchFailed;
       });
     }
   }
@@ -158,7 +158,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     if (widget.existingSymbols.contains(stock.code)) {
       CenterToast.warning(
         context,
-        DevConfig.searchAlreadyExists.replaceAll('{code}', '${stock.code}'),
+        StockConfig.searchAlreadyExists.replaceAll('{code}', '${stock.code}'),
       );
       return;
     }
@@ -171,7 +171,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       if (cooldownSecs > 0) {
         CenterToast.warning(
           context,
-          DevConfig.searchRateLimit.replaceAll('{secs}', '${cooldownSecs}'),
+          StockConfig.searchRateLimit.replaceAll('{secs}', '${cooldownSecs}'),
         );
         return;
       }
@@ -225,8 +225,8 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     // 创建建仓操作记录
     final buyRecord = OperationRecord(
       date: DateTime.now(),
-      type: DevConfig.opBuy,
-      description: DevConfig.opOpenPosition + ' ${stock.code}',
+      type: StockConfig.opBuy,
+      description: StockConfig.opOpenPosition + ' ${stock.code}',
       amount: price,
       shares: shares,
       fee: fee,
@@ -249,7 +249,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth:
-              MediaQuery.of(context).size.width * DevConfig.dialogWidthRatio,
+              MediaQuery.of(context).size.width * AppConfig.dialogWidthRatio,
           maxHeight: 600,
         ),
         child: Column(
@@ -274,7 +274,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
           Row(
             children: [
               const Text(
-                DevConfig.searchTitle,
+                StockConfig.searchTitle,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -307,7 +307,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                     onChanged: _onSearchChanged,
                     style: const TextStyle(color: Colors.white, fontSize: 15),
                     decoration: const InputDecoration(
-                      hintText: DevConfig.searchHint,
+                      hintText: StockConfig.searchHint,
                       hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                       border: InputBorder.none,
                       isDense: true,
@@ -336,16 +336,16 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
           const SizedBox(height: 8),
           Row(
             children: [
-              _buildTag(DevConfig.searchAll, _selectedMarket == null),
+              _buildTag(StockConfig.searchAll, _selectedMarket == null),
               const SizedBox(width: 8),
               _buildTag(
-                DevConfig.searchMarketUS,
-                _selectedMarket == DevConfig.searchMarketUS,
+                StockConfig.searchMarketUS,
+                _selectedMarket == StockConfig.searchMarketUS,
               ),
               const SizedBox(width: 8),
               _buildTag(
-                DevConfig.searchMarketHK,
-                _selectedMarket == DevConfig.searchMarketHK,
+                StockConfig.searchMarketHK,
+                _selectedMarket == StockConfig.searchMarketHK,
               ),
               const Spacer(),
               if (_isLoading)
@@ -368,7 +368,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedMarket = label == DevConfig.searchAll ? null : label;
+          _selectedMarket = label == StockConfig.searchAll ? null : label;
           _results = _applyMarketFilter(_allResults);
         });
       },
@@ -491,12 +491,12 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
               ),
               SizedBox(height: 12),
               Text(
-                DevConfig.searchInitHint,
+                StockConfig.searchInitHint,
                 style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
               SizedBox(height: 6),
               Text(
-                DevConfig.searchInitExample,
+                StockConfig.searchInitExample,
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
@@ -619,7 +619,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                           vertical: 1,
                         ),
                         decoration: BoxDecoration(
-                          color: stock.market == DevConfig.searchMarketUS
+                          color: stock.market == StockConfig.searchMarketUS
                               ? Colors.blue.withValues(alpha: 0.15)
                               : Colors.orange.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(4),
@@ -628,7 +628,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                           stock.market,
                           style: TextStyle(
                             fontSize: 10,
-                            color: stock.market == DevConfig.searchMarketUS
+                            color: stock.market == StockConfig.searchMarketUS
                                 ? const Color(0xFF5B9CF6)
                                 : Colors.orange,
                           ),
@@ -667,7 +667,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                   else if (isFailedQuote)
                     Flexible(
                       child: Text(
-                        DevConfig.searchQuoteUnavailable,
+                        StockConfig.searchQuoteUnavailable,
                         style: TextStyle(color: Colors.grey[600], fontSize: 11),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -720,7 +720,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Text(
-                        DevConfig.btnAdded,
+                        AppConfig.btnAdded,
                         style: TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                     )
@@ -738,7 +738,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
                         ),
                       ),
                       child: const Text(
-                        DevConfig.btnAdd,
+                        AppConfig.btnAdd,
                         style: TextStyle(
                           color: Color(0xFF5B9CF6),
                           fontSize: 12,
@@ -871,7 +871,10 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
           children: [
             Center(
               child: Text(
-                DevConfig.searchAddTitle.replaceAll('{code}', widget.stockCode),
+                StockConfig.searchAddTitle.replaceAll(
+                  '{code}',
+                  widget.stockCode,
+                ),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -884,26 +887,26 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
             const SizedBox(height: 16),
             AppNumberField(
               controller: _priceController,
-              label: DevConfig.searchBuyPrice,
-              hintText: DevConfig.searchBuyPriceHint,
+              label: StockConfig.searchBuyPrice,
+              hintText: StockConfig.searchBuyPriceHint,
             ),
             const SizedBox(height: 12),
             AppNumberField(
               controller: _sharesController,
-              label: DevConfig.searchShares,
-              hintText: DevConfig.searchSharesHint,
+              label: StockConfig.searchShares,
+              hintText: StockConfig.searchSharesHint,
             ),
             const SizedBox(height: 12),
             AppNumberField(
               controller: _feeController,
-              label: DevConfig.editFeeLabel,
-              hintText: DevConfig.editFeePlaceholder,
+              label: StockConfig.editFeeLabel,
+              hintText: StockConfig.editFeePlaceholder,
             ),
             const SizedBox(height: 20),
             actionButtonRow(
               onCancel: () => Navigator.pop(context),
               onConfirm: _onConfirm,
-              confirmText: DevConfig.btnConfirmAdd,
+              confirmText: AppConfig.btnConfirmAdd,
               confirmGradient: const LinearGradient(
                 colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
               ),
@@ -926,15 +929,15 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InfoRowWidget(
-            label: DevConfig.searchStockName,
+            label: StockConfig.searchStockName,
             value: widget.stockName,
           ),
           const SizedBox(height: 8),
-          InfoRowWidget(label: DevConfig.searchMarket, value: widget.market),
+          InfoRowWidget(label: StockConfig.searchMarket, value: widget.market),
           if (widget.defaultPrice > 0) ...[
             const SizedBox(height: 8),
             InfoRowWidget(
-              label: DevConfig.searchRealtimePrice,
+              label: StockConfig.searchRealtimePrice,
               value: CurrencyHelper.formatRate(widget.defaultPrice),
             ),
           ],
@@ -949,11 +952,11 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
     final fee = double.tryParse(_feeController.text) ?? 0.0;
 
     if (price == null || price <= 0) {
-      CenterToast.error(context, DevConfig.searchInvalidPrice);
+      CenterToast.error(context, StockConfig.searchInvalidPrice);
       return;
     }
     if (shares == null || shares <= 0) {
-      CenterToast.error(context, DevConfig.searchInvalidShares);
+      CenterToast.error(context, StockConfig.searchInvalidShares);
       return;
     }
 

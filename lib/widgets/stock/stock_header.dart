@@ -25,7 +25,7 @@ class StockSectionTitle extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                DevConfig.homeTitle,
+                StockConfig.homeTitle,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -35,7 +35,7 @@ class StockSectionTitle extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                DevConfig.homeSubtitle.replaceAll('{count}', '$stockCount'),
+                StockConfig.homeSubtitle.replaceAll('{count}', '$stockCount'),
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey[400],

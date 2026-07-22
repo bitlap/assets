@@ -42,7 +42,7 @@ class EastMoneyQuoteService {
 
       final response = await client
           .get(uri)
-          .timeout(Duration(seconds: DevConfig.httpTimeoutSec));
+          .timeout(Duration(seconds: AppConfig.httpTimeoutSec));
       client.close();
       _breaker.onSuccess();
 
@@ -84,7 +84,7 @@ class EastMoneyQuoteService {
 
     final market = stock.market;
 
-    final logoUrl = market == DevConfig.searchMarketUS
+    final logoUrl = market == StockConfig.searchMarketUS
         ? 'https://logos.stocktwits-cdn.com/${stock.code.toUpperCase()}.png?w=64'
         : null;
 

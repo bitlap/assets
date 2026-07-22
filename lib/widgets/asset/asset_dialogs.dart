@@ -7,7 +7,7 @@ import '../../config/asset_config.dart';
 import '../common/app_number_field.dart';
 import '../common/dialog_utils.dart';
 
-// ─── Add Asset Sheet ───────────────────────────────────────
+// Add Asset Sheet
 
 Future<String?> showAddAssetSheet(BuildContext context) {
   return showDialog<String>(
@@ -74,7 +74,7 @@ Widget _addOption(
   );
 }
 
-// ─── Cash Dialog ───────────────────────────────────────────
+// Cash Dialog
 
 class _CashDialog extends StatefulWidget {
   final CashAccount? cash;
@@ -184,7 +184,7 @@ class _CashDialogState extends State<_CashDialog> {
               );
               Navigator.pop(context, updated);
             },
-            confirmText: isEdit ? DevConfig.btnClose : DevConfig.btnAdd,
+            confirmText: isEdit ? AppConfig.btnClose : AppConfig.btnAdd,
             confirmGradient: const LinearGradient(
               colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
             ),
@@ -211,7 +211,7 @@ Future<CashAccount?> showCashAssetDialog(
   );
 }
 
-// ─── Time Deposit Dialog ───────────────────────────────────
+// Time Deposit Dialog
 
 class _TimeDepositDialog extends StatefulWidget {
   final TimeDeposit? td;
@@ -384,7 +384,7 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
               );
               Navigator.pop(context, updated);
             },
-            confirmText: isEdit ? DevConfig.btnClose : DevConfig.btnAdd,
+            confirmText: isEdit ? AppConfig.btnClose : AppConfig.btnAdd,
             confirmGradient: const LinearGradient(
               colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
             ),
@@ -411,7 +411,7 @@ Future<TimeDeposit?> showTimeDepositDialog(
   );
 }
 
-// ─── Wealth Product Dialog ─────────────────────────────────
+// Wealth Product Dialog
 
 class _WealthProductDialog extends StatefulWidget {
   final WealthProduct? wp;
@@ -533,7 +533,7 @@ class _WealthProductDialogState extends State<_WealthProductDialog> {
               );
               Navigator.pop(context, updated);
             },
-            confirmText: isEdit ? DevConfig.btnClose : DevConfig.btnAdd,
+            confirmText: isEdit ? AppConfig.btnClose : AppConfig.btnAdd,
             confirmGradient: const LinearGradient(
               colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
             ),
@@ -560,7 +560,7 @@ Future<WealthProduct?> showWealthProductDialog(
   );
 }
 
-// ─── Shared Form Widgets ───────────────────────────────────
+// Shared Form Widgets
 
 Widget _label(String text) {
   return Text(text, style: const TextStyle(fontSize: 13, color: Colors.grey));

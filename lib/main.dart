@@ -13,7 +13,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LogoCacher.ensureInit();
   final info = await PackageInfo.fromPlatform();
-  DevConfig.appVersion = info.version;
+  AppConfig.appVersion = info.version;
 
   await Workmanager().initialize(callbackDispatcher);
   await Workmanager().registerPeriodicTask(
@@ -39,11 +39,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: DevConfig.appName,
+      title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       locale: const Locale(
-        DevConfig.defaultLocaleLanguage,
-        DevConfig.defaultLocaleCountry,
+        AppConfig.defaultLocaleLanguage,
+        AppConfig.defaultLocaleCountry,
       ),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -99,7 +99,7 @@ class _AppShellState extends State<_AppShell> {
                   stockTotalValue: _stockKey.currentState?.totalAssets ?? 0,
                   currency:
                       _stockKey.currentState?.selectedCurrency ??
-                      DevConfig.defaultCurrency,
+                      AppConfig.defaultCurrency,
                   onCurrencyChanged: (c) {
                     _stockKey.currentState?.setState(
                       () => _stockKey.currentState!.selectedCurrency = c,
@@ -144,13 +144,13 @@ class _AppShellState extends State<_AppShell> {
             children: [
               _buildTabItem(
                 icon: Icons.show_chart,
-                label: DevConfig.tabStock,
+                label: StockConfig.tabStock,
                 index: 0,
               ),
               const SizedBox(width: 4),
               _buildTabItem(
                 icon: Icons.account_balance_wallet,
-                label: DevConfig.tabAsset,
+                label: StockConfig.tabAsset,
                 index: 1,
               ),
             ],
