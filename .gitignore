@@ -1,3 +1,6 @@
+# iOS 签名配置（含 Apple Developer Team ID，不上传）
+/ios/Config.xcconfig
+
 # App Store 隐私政策（独立 git 仓库，不上传主仓库）
 /iAssets-privacy/
 
