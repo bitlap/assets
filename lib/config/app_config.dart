@@ -46,7 +46,7 @@ class AppConfig {
   static const int exchangeRateCacheTTLMin = 24 * 60;
   static const int cooldownDurationMin = 5;
   static const int failureThreshold = 3;
-  static const int httpTimeoutSec = 10;
+  static const int httpTimeoutSec = 15;
   static const int searchDebounceMs = 1000;
 
   // Toast 文案
