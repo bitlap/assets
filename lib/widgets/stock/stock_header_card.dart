@@ -314,7 +314,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
     return Text(
       '${widget.totalProfit >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(widget.totalProfit)}',
       style: TextStyle(
-        fontSize: 17,
+        fontSize: 15,
         fontWeight: FontWeight.w700,
         color: widget.totalProfit >= 0
             ? const Color(0xFFFF3B30)
@@ -429,7 +429,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
     return Text(
       '${CurrencyHelper.formatCompact(widget.totalAfterTaxDividends)}',
       style: const TextStyle(
-        fontSize: 17,
+        fontSize: 15,
         fontWeight: FontWeight.w700,
         color: Colors.white,
         height: 1.1,
