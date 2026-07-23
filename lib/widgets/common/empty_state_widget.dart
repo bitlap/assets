@@ -25,12 +25,12 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: iconSize, color: Colors.grey[700]),
+            Icon(icon, size: iconSize, color: Color(0xFF48484A)),
             const SizedBox(height: 12),
             Text(
               title,
               style: TextStyle(
-                color: Colors.grey[500],
+                color: Color(0xFF8E8E93),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -39,7 +39,7 @@ class EmptyStateWidget extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 subtitle!,
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                style: TextStyle(color: Color(0xFF636366), fontSize: 12),
               ),
             ],
           ],

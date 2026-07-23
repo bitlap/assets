@@ -40,17 +40,16 @@ class _DraggableFabState extends State<DraggableFab> {
           width: _fabSize,
           height: _fabSize,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
-            ),
+            color: const Color(0xFF2C2C2E),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.blue.withOpacity(0.4),
+                color: Colors.black.withOpacity(0.5),
                 blurRadius: 12,
                 spreadRadius: 2,
               ),
             ],
+            border: Border.all(color: const Color(0xFF3A3A3C), width: 0.5),
           ),
           child: const Icon(Icons.add, color: Colors.white, size: 28),
         ),

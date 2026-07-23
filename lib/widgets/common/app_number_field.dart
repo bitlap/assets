@@ -20,22 +20,22 @@ class AppNumberField extends StatelessWidget {
   static InputDecoration _decoration(String hintText) {
     return InputDecoration(
       filled: true,
-      fillColor: const Color(0xFF161B22),
+      fillColor: const Color(0xFF000000),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF303631)),
+        borderSide: const BorderSide(color: Color(0xFF1C1C1E)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF303631)),
+        borderSide: const BorderSide(color: Color(0xFF1C1C1E)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.blue),
+        borderSide: const BorderSide(color: Color(0xFF636366)),
       ),
       hintText: hintText,
-      hintStyle: TextStyle(color: Colors.grey[600]),
+      hintStyle: TextStyle(color: Color(0xFF636366)),
     );
   }
 
@@ -50,7 +50,7 @@ class AppNumberField extends StatelessWidget {
             label!,
             style: const TextStyle(
               fontSize: 13,
-              color: Colors.grey,
+              color: Color(0xFF8E8E93),
               height: 1.2,
             ),
           ),

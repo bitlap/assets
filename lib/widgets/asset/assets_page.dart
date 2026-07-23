@@ -333,8 +333,8 @@ class _AssetsPageState extends State<AssetsPage> {
             children: [
               RefreshIndicator(
                 onRefresh: _load,
-                color: Colors.blue,
-                backgroundColor: const Color(0xFF1A1F26),
+                color: Colors.white,
+                backgroundColor: const Color(0xFF000000),
                 child: CustomScrollView(
                   slivers: [
                     SliverToBoxAdapter(
@@ -395,7 +395,9 @@ class _AssetsPageState extends State<AssetsPage> {
                   child: Container(
                     color: Colors.black26,
                     alignment: Alignment.center,
-                    child: const CircularProgressIndicator(color: Colors.blue),
+                    child: const CircularProgressIndicator(
+                      color: Color(0xFF8E8E93),
+                    ),
                   ),
                 ),
               DraggableFab(
@@ -422,15 +424,15 @@ class _AssetsPageState extends State<AssetsPage> {
     final total = _totalByType(widget.currency)[type] ?? 0;
 
     final (icon, iconColor, label) = switch (type) {
-      AssetType.cash => (Icons.payments, Colors.teal, AssetConfig.cash),
+      AssetType.cash => (Icons.payments, Color(0xFF34C759), AssetConfig.cash),
       AssetType.timeDeposit => (
         Icons.savings,
-        Colors.orange,
+        Color(0xFFFF9F0A),
         AssetConfig.timeDeposit,
       ),
       AssetType.wealthProduct => (
         Icons.trending_up,
-        Colors.blueAccent,
+        Color(0xFF2C2C2E),
         AssetConfig.wealthProduct,
       ),
     };
@@ -474,7 +476,7 @@ class _AssetsPageState extends State<AssetsPage> {
                       label,
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
@@ -484,7 +486,7 @@ class _AssetsPageState extends State<AssetsPage> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey[500],
+                        color: Color(0xFF8E8E93),
                       ),
                     ),
                     const Spacer(),
@@ -492,8 +494,8 @@ class _AssetsPageState extends State<AssetsPage> {
                       '$sym${CurrencyHelper.formatCompact(total)}',
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[300],
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -502,7 +504,7 @@ class _AssetsPageState extends State<AssetsPage> {
                           ? Icons.keyboard_arrow_up
                           : Icons.keyboard_arrow_down,
                       size: 18,
-                      color: Colors.grey[600],
+                      color: Color(0xFF636366),
                     ),
                   ],
                 ),
@@ -532,7 +534,7 @@ class _AssetsPageState extends State<AssetsPage> {
           ),
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
-          child: const Icon(Icons.delete, color: Colors.redAccent, size: 22),
+          child: const Icon(Icons.delete, color: Color(0xFFFF3B30), size: 22),
         ),
         confirmDismiss: (_) => _confirmDelete(asset),
         onDismissed: (_) => _deleteAsset(asset.id),
@@ -572,11 +574,11 @@ class _AssetsPageState extends State<AssetsPage> {
           width: 28,
           height: 50,
           alignment: Alignment.center,
-          child: Icon(Icons.drag_indicator, size: 20, color: Colors.grey[700]),
+          child: Icon(Icons.drag_indicator, size: 20, color: Color(0xFF48484A)),
         ),
       ),
       icon: Icons.payments,
-      iconColor: Colors.teal,
+      iconColor: Color(0xFF34C759),
       name: cash.name.isNotEmpty
           ? cash.name
           : AssetConfig.defaultNameCash.replaceAll('{currency}', cash.currency),
@@ -588,7 +590,7 @@ class _AssetsPageState extends State<AssetsPage> {
           '$sym${CurrencyHelper.formatCompact(cash.balance)}',
           style: const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
@@ -608,11 +610,11 @@ class _AssetsPageState extends State<AssetsPage> {
           width: 28,
           height: 50,
           alignment: Alignment.center,
-          child: Icon(Icons.drag_indicator, size: 20, color: Colors.grey[700]),
+          child: Icon(Icons.drag_indicator, size: 20, color: Color(0xFF48484A)),
         ),
       ),
       icon: Icons.savings,
-      iconColor: Colors.orange,
+      iconColor: Color(0xFFFF9F0A),
       name: td.name.isNotEmpty ? td.name : AssetConfig.defaultNameTD,
       createdAt: td.createdAt,
       updatedAt: td.updatedAt,
@@ -626,7 +628,7 @@ class _AssetsPageState extends State<AssetsPage> {
               '${CurrencyHelper.getSymbol(td.currency)}${CurrencyHelper.formatCompact(td.totalValue)}',
               style: const TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
             ),
@@ -637,7 +639,7 @@ class _AssetsPageState extends State<AssetsPage> {
                   : AssetConfig.expired,
               style: TextStyle(
                 fontSize: 11,
-                color: daysLeft > 0 ? Colors.grey[500] : Colors.orange,
+                color: daysLeft > 0 ? Color(0xFF8E8E93) : Color(0xFFFF9F0A),
               ),
             ),
           ],
@@ -656,11 +658,11 @@ class _AssetsPageState extends State<AssetsPage> {
           width: 28,
           height: 50,
           alignment: Alignment.center,
-          child: Icon(Icons.drag_indicator, size: 20, color: Colors.grey[700]),
+          child: Icon(Icons.drag_indicator, size: 20, color: Color(0xFF48484A)),
         ),
       ),
       icon: Icons.trending_up,
-      iconColor: Colors.blueAccent,
+      iconColor: Colors.white,
       name: wp.name.isNotEmpty ? wp.name : AssetConfig.defaultNameWP,
       createdAt: wp.createdAt,
       updatedAt: wp.updatedAt,
@@ -670,7 +672,7 @@ class _AssetsPageState extends State<AssetsPage> {
           '${CurrencyHelper.getSymbol(wp.currency)}${CurrencyHelper.formatCompact(wp.totalValue)}',
           style: const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),

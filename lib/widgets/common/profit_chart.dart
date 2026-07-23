@@ -97,13 +97,13 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
           }),
           child: Row(
             children: [
-              const Icon(Icons.timeline, size: 12, color: Colors.amber),
+              const Icon(Icons.timeline, size: 12, color: Color(0xFFFF9F0A)),
               const SizedBox(width: 4),
               const Text(
                 StockConfig.profitChartTitle,
                 style: TextStyle(
                   fontSize: 11,
-                  color: Colors.white70,
+                  color: Color(0xFF8E8E93),
                   height: 1.2,
                 ),
               ),
@@ -111,7 +111,7 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
               Icon(
                 _isExpanded ? Icons.expand_less : Icons.expand_more,
                 size: 16,
-                color: Colors.white70,
+                color: Color(0xFF8E8E93),
               ),
             ],
           ),
@@ -142,11 +142,11 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? Colors.amber.withOpacity(0.3)
+                    ? Color(0xFFFF9F0A).withOpacity(0.3)
                     : Colors.white.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
                 border: isSelected
-                    ? Border.all(color: Colors.amber, width: 1.5)
+                    ? Border.all(color: Color(0xFFFF9F0A), width: 1.5)
                     : null,
               ),
               child: Text(
@@ -173,7 +173,7 @@ class _ProfitChartWidgetState extends State<ProfitChartWidget> {
         alignment: Alignment.center,
         child: Text(
           StockConfig.profitNoData,
-          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+          style: TextStyle(fontSize: 12, color: Color(0xFF8E8E93)),
         ),
       );
     }
@@ -262,7 +262,7 @@ class _ProfitChartPainter extends CustomPainter {
     final paintHeight = size.height;
     final minVal = data.reduce((a, b) => a < b ? a : b);
     final maxVal = data.reduce((a, b) => a > b ? a : b);
-    final color = Colors.amber;
+    final color = Color(0xFFFF9F0A);
 
     double scaleY(double val) {
       if (minVal == maxVal) return paintHeight / 2;
@@ -406,7 +406,7 @@ class _ProfitChartPainter extends CustomPainter {
         Rect.fromLTWH(labelX, 0, labelW, labelH),
         const Radius.circular(4),
       );
-      canvas.drawRRect(labelRect, Paint()..color = const Color(0xFF1A1F26));
+      canvas.drawRRect(labelRect, Paint()..color = const Color(0xFF1C1C1E));
       canvas.drawRRect(
         labelRect,
         Paint()
@@ -442,7 +442,7 @@ class _ProfitChartPainter extends CustomPainter {
         Rect.fromLTWH(dateLabelX, dateLabelY, dateLabelW, dateLabelH),
         const Radius.circular(4),
       );
-      canvas.drawRRect(dateRect, Paint()..color = const Color(0xFF1A1F26));
+      canvas.drawRRect(dateRect, Paint()..color = const Color(0xFF1C1C1E));
       canvas.drawRRect(
         dateRect,
         Paint()

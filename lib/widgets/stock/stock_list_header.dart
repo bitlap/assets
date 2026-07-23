@@ -33,7 +33,11 @@ class StockListHeader extends StatelessWidget {
                     ? Icons.filter_alt
                     : Icons.filter_alt_outlined,
                 size: 18,
-                color: filterMarket != null ? Colors.blue : Colors.grey[500],
+                color: filterMarket == StockConfig.searchMarketHK
+                    ? const Color(0xFF34C759)
+                    : filterMarket == StockConfig.searchMarketUS
+                    ? const Color(0xFFFF3B30)
+                    : const Color(0xFF636366),
               ),
             ),
           ),
@@ -48,10 +52,10 @@ class StockListHeader extends StatelessWidget {
                 children: [
                   Text(
                     StockConfig.homeStockHeader,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[500],
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF8E8E93),
                       height: 1.2,
                     ),
                   ),
@@ -78,7 +82,7 @@ class StockListHeader extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey[500],
+                        color: Color(0xFF8E8E93),
                         height: 1.2,
                       ),
                     ),
@@ -102,10 +106,10 @@ class StockListHeader extends StatelessWidget {
                 children: [
                   Text(
                     StockConfig.homeProfitHeader,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[500],
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF8E8E93),
                       height: 1.2,
                     ),
                   ),

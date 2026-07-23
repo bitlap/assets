@@ -35,9 +35,9 @@ class CurrencySelector {
                 width: dropdownWidth,
                 constraints: BoxConstraints(maxHeight: screenHeight * 0.6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1A1F26),
+                  color: const Color(0xFF000000),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF303631)),
+                  border: Border.all(color: const Color(0xFF1C1C1E)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.6),
@@ -67,13 +67,13 @@ class CurrencySelector {
                             child: Icon(
                               Icons.close,
                               size: 18,
-                              color: Colors.grey[500],
+                              color: Color(0xFF8E8E93),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Divider(height: 1, color: Colors.grey[800]),
+                    Divider(height: 1, color: Color(0xFF1C1C1E)),
                     Flexible(
                       child: ListView(
                         padding: EdgeInsets.zero,
@@ -94,9 +94,7 @@ class CurrencySelector {
                                 horizontal: 14,
                                 vertical: 12,
                               ),
-                              color: isSelected
-                                  ? Colors.blue.withOpacity(0.15)
-                                  : Colors.transparent,
+                              color: Colors.transparent,
                               child: Row(
                                 children: [
                                   SizedBox(
@@ -105,7 +103,7 @@ class CurrencySelector {
                                         ? const Icon(
                                             Icons.check,
                                             size: 16,
-                                            color: Color(0xFF5B9CF6),
+                                            color: Colors.white,
                                           )
                                         : null,
                                   ),
@@ -116,7 +114,7 @@ class CurrencySelector {
                                       style: TextStyle(
                                         fontSize: 15,
                                         color: isSelected
-                                            ? const Color(0xFF5B9CF6)
+                                            ? Colors.white
                                             : Colors.white,
                                         fontWeight: isSelected
                                             ? FontWeight.w600
@@ -129,8 +127,8 @@ class CurrencySelector {
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: isSelected
-                                          ? const Color(0xFF5B9CF6)
-                                          : Colors.grey[500],
+                                          ? Colors.white
+                                          : Color(0xFF8E8E93),
                                     ),
                                   ),
                                 ],

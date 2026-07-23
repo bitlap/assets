@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../config/app_config.dart';
 
-Color get _bg => const Color(0xFF0C1117);
-Color get _borderColor => const Color(0xFF303631);
+Color get _bg => const Color(0xFF000000);
+Color get _borderColor => const Color(0xFF1C1C1E);
 
 BorderRadius _radius20 = BorderRadius.circular(20);
 BorderRadius _radius12 = BorderRadius.circular(12);
@@ -78,7 +78,7 @@ Widget cancelButton({required VoidCallback onTap, String? text}) {
           text ?? AppConfig.btnCancel,
           style: const TextStyle(
             fontSize: 15,
-            color: Colors.grey,
+            color: Color(0xFF8E8E93),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -158,7 +158,7 @@ class DialogInfoTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: iconColor ?? const Color(0xFF5B9CF6)),
+        Icon(icon, size: 20, color: iconColor ?? Colors.white),
         const SizedBox(width: 8),
         Text(title, style: const TextStyle(color: Colors.white, fontSize: 16)),
       ],
@@ -193,8 +193,11 @@ class InfoDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF161B22),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: const Color(0xFF000000),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFF1C1C1E), width: 0.5),
+      ),
       title: title,
       content: content,
       actions: [
@@ -202,7 +205,7 @@ class InfoDialog extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
           child: Text(
             closeText ?? AppConfig.btnClose,
-            style: const TextStyle(color: Color(0xFF5B9CF6)),
+            style: const TextStyle(color: Colors.white),
           ),
         ),
       ],
@@ -242,7 +245,7 @@ class HintRow extends StatelessWidget {
                   text: desc,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey[400],
+                    color: Color(0xFF8E8E93),
                     height: 1.5,
                   ),
                 ),
@@ -253,4 +256,64 @@ class HintRow extends StatelessWidget {
       ],
     );
   }
+}
+
+/// 统一的日期选择器弹窗
+Future<DateTime?> showDatePickerDialog(
+  BuildContext context, {
+  required DateTime initialDate,
+  DateTime? firstDate,
+  DateTime? lastDate,
+}) {
+  return showDatePicker(
+    context: context,
+    initialDate: initialDate,
+    firstDate: firstDate ?? DateTime(2000),
+    lastDate: lastDate ?? DateTime(2100),
+    builder: (context, child) {
+      return Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: Colors.white,
+            onPrimary: Colors.white,
+            surface: Color(0xFF000000),
+            onSurface: Colors.white,
+          ),
+        ),
+        child: child!,
+      );
+    },
+  );
+}
+
+/// 统一的帮助说明弹窗
+Future<void> showHelpDialog(
+  BuildContext context, {
+  required String title,
+  required Widget content,
+  IconData? icon,
+  Color? iconColor,
+}) {
+  return InfoDialog.show(
+    context,
+    title: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null) ...[
+          Icon(icon, color: iconColor ?? Colors.white, size: 28),
+          const SizedBox(height: 8),
+        ],
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ),
+    content: content,
+  );
 }

@@ -26,15 +26,20 @@ Future<String?> showAddAssetSheet(BuildContext context) {
             ),
           ),
           const SizedBox(height: 16),
-          _addOption(Icons.payments, Colors.teal, AssetConfig.cash, () {
+          _addOption(Icons.payments, Color(0xFF34C759), AssetConfig.cash, () {
             Navigator.pop(ctx, 'cash');
           }),
-          _addOption(Icons.savings, Colors.orange, AssetConfig.timeDeposit, () {
-            Navigator.pop(ctx, 'td');
-          }),
+          _addOption(
+            Icons.savings,
+            Color(0xFFFF9F0A),
+            AssetConfig.timeDeposit,
+            () {
+              Navigator.pop(ctx, 'td');
+            },
+          ),
           _addOption(
             Icons.trending_up,
-            Colors.blueAccent,
+            Color(0xFF5B9CF6),
             AssetConfig.wealthProduct,
             () {
               Navigator.pop(ctx, 'wp');
@@ -67,7 +72,7 @@ Widget _addOption(
       label,
       style: const TextStyle(fontSize: 15, color: Colors.white),
     ),
-    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+    trailing: const Icon(Icons.chevron_right, color: Color(0xFF8E8E93)),
     onTap: onTap,
     contentPadding: const EdgeInsets.symmetric(horizontal: 4),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -136,14 +141,14 @@ class _CashDialogState extends State<_CashDialog> {
           const SizedBox(height: 16),
           const Text(
             AssetConfig.fieldName,
-            style: TextStyle(fontSize: 13, color: Colors.grey),
+            style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
           ),
           const SizedBox(height: 6),
           _dialogTextField(nameCtrl, AssetConfig.hintCashName),
           const SizedBox(height: 12),
           const Text(
             AssetConfig.fieldBalance,
-            style: TextStyle(fontSize: 13, color: Colors.grey),
+            style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
           ),
           const SizedBox(height: 6),
           Row(
@@ -185,9 +190,7 @@ class _CashDialogState extends State<_CashDialog> {
               Navigator.pop(context, updated);
             },
             confirmText: isEdit ? AppConfig.btnClose : AppConfig.btnAdd,
-            confirmGradient: const LinearGradient(
-              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
-            ),
+            confirmBgColor: const Color(0xFF2C2C2E),
           ),
         ],
       ),
@@ -286,7 +289,7 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
           const SizedBox(height: 12),
           const Text(
             AssetConfig.fieldPrincipal,
-            style: TextStyle(fontSize: 13, color: Colors.grey),
+            style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
           ),
           const SizedBox(height: 6),
           Row(
@@ -308,7 +311,7 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
           const SizedBox(height: 12),
           const Text(
             AssetConfig.fieldAnnualRate,
-            style: TextStyle(fontSize: 13, color: Colors.grey),
+            style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
           ),
           const SizedBox(height: 6),
           AppNumberField(controller: rateCtrl, hintText: '2.5'),
@@ -325,22 +328,9 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
             children: [
               Expanded(
                 child: _dateButton(startDate, () async {
-                  final picked = await showDatePicker(
-                    context: context,
+                  final picked = await showDatePickerDialog(
+                    context,
                     initialDate: startDate,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                    builder: (c, child) => Theme(
-                      data: Theme.of(c).copyWith(
-                        colorScheme: const ColorScheme.dark(
-                          primary: Color(0xFF5B9CF6),
-                          onPrimary: Colors.white,
-                          surface: Color(0xFF1A1F26),
-                          onSurface: Colors.white,
-                        ),
-                      ),
-                      child: child!,
-                    ),
                   );
                   if (picked != null) setState(() => startDate = picked);
                 }),
@@ -385,9 +375,7 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
               Navigator.pop(context, updated);
             },
             confirmText: isEdit ? AppConfig.btnClose : AppConfig.btnAdd,
-            confirmGradient: const LinearGradient(
-              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
-            ),
+            confirmBgColor: const Color(0xFF2C2C2E),
           ),
         ],
       ),
@@ -482,14 +470,14 @@ class _WealthProductDialogState extends State<_WealthProductDialog> {
           const SizedBox(height: 12),
           const Text(
             AssetConfig.fieldShares,
-            style: TextStyle(fontSize: 13, color: Colors.grey),
+            style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
           ),
           const SizedBox(height: 6),
           AppNumberField(controller: sharesCtrl, hintText: '0.00'),
           const SizedBox(height: 12),
           const Text(
             AssetConfig.fieldNav,
-            style: TextStyle(fontSize: 13, color: Colors.grey),
+            style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
           ),
           const SizedBox(height: 6),
           Row(
@@ -534,9 +522,7 @@ class _WealthProductDialogState extends State<_WealthProductDialog> {
               Navigator.pop(context, updated);
             },
             confirmText: isEdit ? AppConfig.btnClose : AppConfig.btnAdd,
-            confirmGradient: const LinearGradient(
-              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
-            ),
+            confirmBgColor: const Color(0xFF2C2C2E),
           ),
         ],
       ),
@@ -563,7 +549,10 @@ Future<WealthProduct?> showWealthProductDialog(
 // Shared Form Widgets
 
 Widget _label(String text) {
-  return Text(text, style: const TextStyle(fontSize: 13, color: Colors.grey));
+  return Text(
+    text,
+    style: const TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
+  );
 }
 
 Widget _dialogTextField(TextEditingController ctrl, String hint) {
@@ -573,21 +562,21 @@ Widget _dialogTextField(TextEditingController ctrl, String hint) {
     style: const TextStyle(fontSize: 16, color: Colors.white),
     decoration: InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey[600]),
+      hintStyle: TextStyle(color: Color(0xFF636366)),
       filled: true,
-      fillColor: const Color(0xFF161B22),
+      fillColor: const Color(0xFF000000),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF303631)),
+        borderSide: const BorderSide(color: Color(0xFF1C1C1E)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF303631)),
+        borderSide: const BorderSide(color: Color(0xFF1C1C1E)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.blue),
+        borderSide: const BorderSide(color: Color(0xFF636366)),
       ),
     ),
   );
@@ -613,10 +602,10 @@ Widget _currencySelector(
                   button.size,
               Offset.zero & overlay.size,
             ),
-            color: const Color(0xFF1A1F26),
+            color: const Color(0xFF000000),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
-              side: const BorderSide(color: Color(0xFF303631)),
+              side: const BorderSide(color: Color(0xFF1C1C1E)),
             ),
             constraints: const BoxConstraints(maxHeight: 300),
             items: currencies.map((c) {
@@ -631,7 +620,7 @@ Widget _currencySelector(
                       child: isSel
                           ? const Icon(
                               Icons.check,
-                              color: Color(0xFF5B9CF6),
+                              color: Colors.white,
                               size: 16,
                             )
                           : null,
@@ -640,7 +629,7 @@ Widget _currencySelector(
                     Text(
                       c,
                       style: TextStyle(
-                        color: isSel ? const Color(0xFF5B9CF6) : Colors.white,
+                        color: Colors.white,
                         fontSize: 14,
                         fontWeight: isSel ? FontWeight.w600 : FontWeight.normal,
                       ),
@@ -657,9 +646,9 @@ Widget _currencySelector(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: const Color(0xFF161B22),
+            color: const Color(0xFF000000),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF303631)),
+            border: Border.all(color: const Color(0xFF1C1C1E)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -669,7 +658,7 @@ Widget _currencySelector(
                 style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
               const SizedBox(width: 4),
-              Icon(Icons.expand_more, color: Colors.grey, size: 20),
+              Icon(Icons.expand_more, color: Color(0xFF8E8E93), size: 20),
             ],
           ),
         ),
@@ -685,9 +674,9 @@ Widget _dateButton(DateTime date, VoidCallback onTap) {
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
+        color: const Color(0xFF000000),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF303631)),
+        border: Border.all(color: const Color(0xFF1C1C1E)),
       ),
       child: Row(
         children: [
@@ -696,7 +685,7 @@ Widget _dateButton(DateTime date, VoidCallback onTap) {
             style: const TextStyle(fontSize: 14, color: Colors.white),
           ),
           const Spacer(),
-          Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+          Icon(Icons.calendar_today, size: 16, color: Color(0xFF636366)),
         ],
       ),
     ),
@@ -705,31 +694,81 @@ Widget _dateButton(DateTime date, VoidCallback onTap) {
 
 Widget _durationSelector(int selected, ValueChanged<int> onChanged) {
   const options = [1, 3, 6, 12, 24, 36, 60];
-  return Container(
-    height: 48,
-    padding: const EdgeInsets.symmetric(horizontal: 8),
-    decoration: BoxDecoration(
-      color: const Color(0xFF161B22),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFF303631)),
-    ),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<int>(
-        value: selected,
-        dropdownColor: const Color(0xFF1A1F26),
-        style: const TextStyle(color: Colors.white, fontSize: 14),
-        items: options
-            .map(
-              (m) => DropdownMenuItem(
+  return Builder(
+    builder: (btnCtx) {
+      return GestureDetector(
+        onTap: () async {
+          final RenderBox button = btnCtx.findRenderObject() as RenderBox;
+          final overlay =
+              Overlay.of(btnCtx).context.findRenderObject() as RenderBox;
+          final result = await showMenu<int>(
+            context: btnCtx,
+            position: RelativeRect.fromRect(
+              button.localToGlobal(Offset.zero, ancestor: overlay) &
+                  button.size,
+              Offset.zero & overlay.size,
+            ),
+            color: const Color(0xFF000000),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: const BorderSide(color: Color(0xFF1C1C1E)),
+            ),
+            constraints: const BoxConstraints(maxHeight: 300),
+            items: options.map((m) {
+              final isSel = m == selected;
+              return PopupMenuItem<int>(
                 value: m,
-                child: Text(AssetConfig.durationMonths.replaceAll('{m}', '$m')),
-              ),
-            )
-            .toList(),
-        onChanged: (v) {
-          if (v != null) onChanged(v);
+                height: 36,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      child: isSel
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 16,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      AssetConfig.durationMonths.replaceAll('{m}', '$m'),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: isSel ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          );
+          if (result != null) onChanged(result);
         },
-      ),
-    ),
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0xFF000000),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF1C1C1E)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                AssetConfig.durationMonths.replaceAll('{m}', '$selected'),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.expand_more, color: Color(0xFF8E8E93), size: 20),
+            ],
+          ),
+        ),
+      );
+    },
   );
 }

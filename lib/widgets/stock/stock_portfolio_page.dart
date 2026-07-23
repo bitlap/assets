@@ -70,15 +70,13 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // 同步配置
-    _syncSettingsFromCloud();
+    // 先同步云端配置，再加载本地设置（确保新设备拉取 iCloud 设置后生效）
+    _syncSettingsFromCloud().then((_) {
+      _loadSavedCurrency();
+      _loadKeepStockSetting();
+      _loadSortSettings();
+    });
     _syncStockData();
-    // 加载保存的默认货币
-    _loadSavedCurrency();
-    // 加载平仓设置
-    _loadKeepStockSetting();
-    // 加载排序设置
-    _loadSortSettings();
     // 首次打开立即刷新汇率
     _fetchExchangeRatesWithoutRebuild();
     // 启动后延迟刷新价格和汇率，然后定时刷新一次
@@ -416,12 +414,15 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
       StockConfig.searchMarketHK,
     ];
     final icons = [Icons.all_inclusive, Icons.language, Icons.location_city];
-    final colors = [null, Colors.blue, Colors.orange];
+    final colors = [null, const Color(0xFFFF3B30), const Color(0xFF34C759)];
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F26),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: const Color(0xFF000000),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF1C1C1E), width: 0.5),
+        ),
         title: const Text(
           '筛选市场',
           style: TextStyle(fontSize: 16, color: Colors.white),
@@ -445,7 +446,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
                   ),
                   decoration: BoxDecoration(
                     color: selected
-                        ? Colors.blue.withOpacity(0.15)
+                        ? Color(0xFF2C2C2E).withOpacity(0.5)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -455,20 +456,20 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
                         icons[i],
                         size: 20,
                         color: selected
-                            ? Colors.blue
-                            : (colors[i] ?? Colors.grey),
+                            ? (colors[i] ?? Colors.white)
+                            : (colors[i] ?? Color(0xFF8E8E93)),
                       ),
                       const SizedBox(width: 12),
                       Text(
                         labels[i],
                         style: TextStyle(
                           fontSize: 14,
-                          color: selected ? Colors.blue : Colors.white,
+                          color: selected ? Colors.white : Color(0xFF8E8E93),
                         ),
                       ),
                       if (selected) const Spacer(),
                       if (selected)
-                        const Icon(Icons.check, size: 16, color: Colors.blue),
+                        const Icon(Icons.check, size: 16, color: Colors.white),
                     ],
                   ),
                 ),
@@ -788,7 +789,9 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
                 child: Container(
                   color: Colors.black26,
                   alignment: Alignment.center,
-                  child: const CircularProgressIndicator(color: Colors.blue),
+                  child: const CircularProgressIndicator(
+                    color: Color(0xFF8E8E93),
+                  ),
                 ),
               ),
             DraggableFab(
@@ -805,8 +808,8 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   Widget _buildStockTab() {
     return RefreshIndicator(
       onRefresh: _refreshAll,
-      color: Colors.blue,
-      backgroundColor: const Color(0xFF1A1F26),
+      color: Color(0xFF8E8E93),
+      backgroundColor: const Color(0xFF000000),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(

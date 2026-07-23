@@ -117,7 +117,7 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
+        backgroundColor: const Color(0xFF000000),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -180,9 +180,9 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0C1117),
+      backgroundColor: const Color(0xFF000000),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0C1117),
+        backgroundColor: const Color(0xFF000000),
         elevation: 0,
         toolbarHeight: 44,
         scrolledUnderElevation: 0,
@@ -201,7 +201,7 @@ class _SettingsPageState extends State<SettingsPage> {
         centerTitle: true,
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(0.5),
-          child: Divider(height: 0.5, color: Color(0xFF1E2430)),
+          child: Divider(height: 0.5, color: Color(0xFF1C1C1E), thickness: 0.5),
         ),
       ),
       body: ListView(
@@ -218,7 +218,7 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 8),
           _buildStockSettingsGroup(),
           const SizedBox(height: 24),
-          _buildSectionHeader(Icons.cloud_outlined, SettingsConfig.sectionSync),
+          _buildSectionHeader(Icons.sync, SettingsConfig.sectionSync),
           const SizedBox(height: 8),
           _buildSyncGroup(),
           const SizedBox(height: 24),
@@ -242,8 +242,8 @@ class _SettingsPageState extends State<SettingsPage> {
             title,
             style: const TextStyle(
               fontSize: 12,
-              color: Color(0xFF5B9CF6),
-              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
               letterSpacing: 0.5,
             ),
           ),
@@ -323,9 +323,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildStockSettingsGroup() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1F26),
+        color: const Color(0xFF000000),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF303631)),
+        border: Border.all(color: const Color(0xFF1C1C1E), width: 0.5),
       ),
       child: Material(
         color: Colors.transparent,
@@ -455,12 +455,13 @@ class _SettingsPageState extends State<SettingsPage> {
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.teal.withValues(alpha: 0.2)
-              : const Color(0xFF0C1117),
+              : const Color(0xFF000000),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
                 ? Colors.teal.withValues(alpha: 0.5)
-                : const Color(0xFF303631),
+                : const Color(0xFF1C1C1E),
+            width: 0.5,
           ),
         ),
         child: Text(
@@ -476,12 +477,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showFeeHelp() {
-    InfoDialog.show(
+    showHelpDialog(
       context,
-      title: const DialogInfoTitle(
-        icon: Icons.info_outline,
-        title: SettingsConfig.feeHelpTitle,
-      ),
+      title: SettingsConfig.feeHelpTitle,
+      icon: Icons.info_outline,
+      iconColor: Colors.teal,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -503,12 +503,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showKeepStockHint() {
-    InfoDialog.show(
+    showHelpDialog(
       context,
-      title: const DialogInfoTitle(
-        icon: Icons.info_outline,
-        title: SettingsConfig.keepStockLabel,
-      ),
+      title: SettingsConfig.keepStockLabel,
+      icon: Icons.info_outline,
+      iconColor: Colors.orange,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -532,7 +531,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildGroupDivider() {
     return const Padding(
       padding: EdgeInsets.only(left: 48),
-      child: Divider(height: 1, color: Color(0xFF303631)),
+      child: Divider(height: 1, color: Color(0xFF1C1C1E), thickness: 0.5),
     );
   }
 
@@ -558,7 +557,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 Flexible(
                   child: Text(
                     SettingsConfig.keepStockLabel,
-                    style: TextStyle(fontSize: 15, color: Colors.grey[300]),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -577,8 +580,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Switch(
             value: _keepStockAfterClose,
             onChanged: _onKeepStockChanged,
-            activeTrackColor: const Color(0xFF5B9CF6).withValues(alpha: 0.4),
-            activeThumbColor: const Color(0xFF5B9CF6),
+            activeTrackColor: Colors.white.withValues(alpha: 0.4),
+            activeThumbColor: Colors.white,
             inactiveThumbColor: Colors.grey[600],
             inactiveTrackColor: Colors.grey[800],
           ),
@@ -684,7 +687,7 @@ class _SettingsPageState extends State<SettingsPage> {
           // 排序方向切换
           const Padding(
             padding: EdgeInsets.only(left: 56),
-            child: Divider(height: 1, color: Color(0xFF303631)),
+            child: Divider(height: 1, color: Color(0xFF1C1C1E), thickness: 0.5),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
@@ -708,14 +711,15 @@ class _SettingsPageState extends State<SettingsPage> {
                         decoration: BoxDecoration(
                           color: _isSortAscending
                               ? const Color(0xFF5B9CF6).withValues(alpha: 0.25)
-                              : const Color(0xFF1A1F26),
+                              : const Color(0xFF000000),
                           borderRadius: const BorderRadius.horizontal(
                             left: Radius.circular(8),
                           ),
                           border: Border.all(
                             color: _isSortAscending
                                 ? const Color(0xFF5B9CF6).withValues(alpha: 0.5)
-                                : const Color(0xFF303631),
+                                : const Color(0xFF1C1C1E),
+                            width: 0.5,
                           ),
                         ),
                         child: Row(
@@ -755,14 +759,15 @@ class _SettingsPageState extends State<SettingsPage> {
                         decoration: BoxDecoration(
                           color: !_isSortAscending
                               ? const Color(0xFF5B9CF6).withValues(alpha: 0.25)
-                              : const Color(0xFF1A1F26),
+                              : const Color(0xFF000000),
                           borderRadius: const BorderRadius.horizontal(
                             right: Radius.circular(8),
                           ),
                           border: Border.all(
                             color: !_isSortAscending
                                 ? const Color(0xFF5B9CF6).withValues(alpha: 0.5)
-                                : const Color(0xFF303631),
+                                : const Color(0xFF1C1C1E),
+                            width: 0.5,
                           ),
                         ),
                         child: Row(
@@ -805,9 +810,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildSyncGroup() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1F26),
+        color: const Color(0xFF000000),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF303631)),
+        border: Border.all(color: const Color(0xFF1C1C1E), width: 0.5),
       ),
       child: Column(
         children: [
@@ -831,12 +836,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showSyncHelp() {
-    InfoDialog.show(
+    showHelpDialog(
       context,
-      title: const DialogInfoTitle(
-        icon: Icons.info_outline,
-        title: SettingsConfig.syncSettingsLabel,
-      ),
+      title: SettingsConfig.syncSettingsLabel,
+      icon: Icons.info_outline,
+      iconColor: Colors.blueAccent,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -901,7 +905,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 Flexible(
                   child: Text(
                     label,
-                    style: TextStyle(fontSize: 15, color: Colors.grey[300]),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -922,8 +930,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeTrackColor: const Color(0xFF5B9CF6).withValues(alpha: 0.4),
-            activeThumbColor: const Color(0xFF5B9CF6),
+            activeTrackColor: Colors.white.withValues(alpha: 0.4),
+            activeThumbColor: Colors.white,
             inactiveThumbColor: Colors.grey[600],
             inactiveTrackColor: Colors.grey[800],
           ),
@@ -956,14 +964,14 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xFF0C1117),
+        backgroundColor: const Color(0xFF000000),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 400, maxHeight: 420),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF303631)),
+            border: Border.all(color: const Color(0xFF1C1C1E), width: 0.5),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -972,7 +980,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 SettingsConfig.sectionFormula,
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
               ),
@@ -989,9 +997,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF161B22),
+                        color: const Color(0xFF000000),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF303631)),
+                        border: Border.all(
+                          color: const Color(0xFF1C1C1E),
+                          width: 0.5,
+                        ),
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -1049,9 +1060,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildOtherGroup() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1F26),
+        color: const Color(0xFF000000),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF303631)),
+        border: Border.all(color: const Color(0xFF1C1C1E), width: 0.5),
       ),
       child: Material(
         color: Colors.transparent,
@@ -1118,7 +1129,11 @@ class _SettingsPageState extends State<SettingsPage> {
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(fontSize: 15, color: Colors.grey[300]),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
             if (trailing != null)
@@ -1138,11 +1153,15 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
+        backgroundColor: const Color(0xFF000000),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           SettingsConfig.feedbackTitle,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1180,7 +1199,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
               AppConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
+              style: TextStyle(color: Colors.white),
             ),
           ),
         ],
@@ -1238,14 +1257,14 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xFF0C1117),
+        backgroundColor: const Color(0xFF000000),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 400, maxHeight: 560),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF303631)),
+            border: Border.all(color: const Color(0xFF1C1C1E), width: 0.5),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1254,7 +1273,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 SettingsConfig.openSourceTitle,
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
               ),
@@ -1319,9 +1338,9 @@ class _SettingsPageState extends State<SettingsPage> {
         const SizedBox(height: 6),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF161B22),
+            color: const Color(0xFF000000),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF303631)),
+            border: Border.all(color: const Color(0xFF1C1C1E), width: 0.5),
           ),
           child: Column(
             children: libs.map((lib) {

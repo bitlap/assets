@@ -31,12 +31,9 @@ class StockCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1F26),
+        color: const Color(0xFF000000),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isExpanded ? Colors.blue : const Color(0xFF303631),
-          width: isExpanded ? 1.5 : 1,
-        ),
+        border: Border.all(color: const Color(0xFF1C1C1E), width: 0.5),
       ),
       child: Column(
         children: [
@@ -48,25 +45,15 @@ class StockCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: stock.marketType == StockConfig.searchMarketUS
-                            ? Colors.blue
-                            : Colors.orange,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        stock.marketType,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          height: 1.2,
-                        ),
+                    Text(
+                      stock.marketType,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: stock.marketType == StockConfig.searchMarketHK
+                            ? const Color(0xFF34C759)
+                            : const Color(0xFFFF3B30),
+                        height: 1.2,
                       ),
                     ),
                     const Spacer(),
@@ -74,7 +61,7 @@ class StockCard extends StatelessWidget {
                       StockConfig.stockTotalValue,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey[500],
+                        color: Color(0xFF8E8E93),
                         height: 1.2,
                       ),
                     ),
@@ -109,11 +96,11 @@ class StockCard extends StatelessWidget {
           ),
           // 非点击区域：分割线 + 展开详情 + 底部按钮行
           const SizedBox(height: 4),
-          Divider(height: 1, color: const Color(0xFF303631)),
+          Divider(height: 1, color: const Color(0xFF1C1C1E)),
           const SizedBox(height: 4),
           if (isExpanded) ..._buildExpandedDetails(),
           if (isExpanded) const SizedBox(height: 4),
-          if (isExpanded) Divider(height: 1, color: const Color(0xFF303631)),
+          if (isExpanded) Divider(height: 1, color: const Color(0xFF1C1C1E)),
           if (isExpanded) const SizedBox(height: 4),
           Row(
             children: [
@@ -130,7 +117,9 @@ class StockCard extends StatelessWidget {
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       size: 18,
-                      color: isExpanded ? Colors.blue : Colors.grey[600],
+                      color: isExpanded
+                          ? Colors.white
+                          : const Color(0xFF636366),
                     ),
                   ),
                 ),
@@ -156,11 +145,11 @@ class StockCard extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             stock.isPositive
-                ? Colors.red.withOpacity(0.7)
-                : Colors.green.withOpacity(0.7),
+                ? const Color(0xFFFF3B30).withOpacity(0.7)
+                : const Color(0xFF34C759).withOpacity(0.7),
             stock.isPositive
-                ? Colors.redAccent.withOpacity(0.5)
-                : Colors.greenAccent.withOpacity(0.5),
+                ? const Color(0xFFFF3B30).withOpacity(0.4)
+                : const Color(0xFF34C759).withOpacity(0.4),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -198,7 +187,7 @@ class StockCard extends StatelessWidget {
           }
           return _buildFallbackChar(fallbackChar);
         }
-        return Container(color: const Color(0xFF2A3040));
+        return Container(color: const Color(0xFF2C2C2E));
       },
     );
   }
@@ -223,7 +212,7 @@ class StockCard extends StatelessWidget {
       children: [
         Text(
           stock.companyName,
-          style: TextStyle(fontSize: 11, color: Colors.grey[400], height: 1.2),
+          style: TextStyle(fontSize: 11, color: Color(0xFF8E8E93), height: 1.2),
         ),
         const SizedBox(height: 2),
         Text(
@@ -241,8 +230,8 @@ class StockCard extends StatelessWidget {
 
   Widget _buildSharesAndPrice() {
     final changeColor = stock.changePercent >= 0
-        ? const Color(0xFFFF5252)
-        : const Color(0xFF4CAF50);
+        ? const Color(0xFFFF3B30)
+        : const Color(0xFF34C759);
     return Align(
       alignment: Alignment.center,
       child: Column(
@@ -254,7 +243,7 @@ class StockCard extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               '${CurrencyHelper.formatRate(stock.shares)}${StockConfig.stockSharesSuffix}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -272,7 +261,7 @@ class StockCard extends StatelessWidget {
               children: [
                 Text(
                   '${CurrencyHelper.formatRate(stock.currentPrice)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -300,8 +289,10 @@ class StockCard extends StatelessWidget {
   Widget _buildProfitLoss() {
     final isZero = stock.profitLossAmount.abs() < 0.0001;
     final profitColor = isZero
-        ? Colors.grey
-        : (stock.isPositive ? Colors.redAccent : Colors.greenAccent);
+        ? const Color(0xFF636366)
+        : (stock.isPositive
+              ? const Color(0xFFFF3B30)
+              : const Color(0xFF34C759));
     final isPositive = isZero ? '' : (stock.isPositive ? '+' : '-');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -345,9 +336,7 @@ class StockCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
-          ),
+          color: const Color(0xFF2C2C2E),
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -375,8 +364,7 @@ class StockCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: const Color(0xFF252B33),
-          border: Border.all(color: const Color(0xFF404540)),
+          color: const Color(0xFF2C2C2E),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -470,7 +458,7 @@ class StockCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 11, color: Colors.grey[500], height: 1.2),
+          style: TextStyle(fontSize: 11, color: Color(0xFF8E8E93), height: 1.2),
         ),
         const SizedBox(height: 2),
         Text(

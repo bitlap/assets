@@ -36,9 +36,9 @@ class StockSectionTitle extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 StockConfig.homeSubtitle.replaceAll('{count}', '$stockCount'),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 13,
-                  color: Colors.grey[400],
+                  color: Color(0xFF8E8E93),
                   height: 1.2,
                 ),
               ),
@@ -46,11 +46,21 @@ class StockSectionTitle extends StatelessWidget {
           ),
           Row(
             children: [
-              IconButton(
-                onPressed: onAddTap,
-                icon: const Icon(Icons.add, color: Color(0xFF5B9CF6), size: 30),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+              GestureDetector(
+                onTap: onAddTap,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2C2C2E),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFF3A3A3C),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: const Icon(Icons.add, color: Colors.white, size: 18),
+                ),
               ),
               IconButton(
                 onPressed: onSettingsTap,

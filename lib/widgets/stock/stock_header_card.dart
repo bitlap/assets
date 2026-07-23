@@ -53,19 +53,16 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: Color(0xFF000000),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.6),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
+        border: Border.all(color: Color(0xFF1C1C1E), width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,11 +74,11 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
             children: [
               Row(
                 children: [
-                  const Text(
+                  Text(
                     StockConfig.assetTotalAssets,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF8E8E93),
                       height: 1.2,
                     ),
                   ),
@@ -91,7 +88,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
                     child: const Icon(
                       Icons.help_outline,
                       size: 14,
-                      color: Colors.amber,
+                      color: Color(0xFF636366),
                     ),
                   ),
                 ],
@@ -104,8 +101,8 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
           Text(
             '${CurrencyHelper.getSymbol(widget.selectedCurrency)}${CurrencyHelper.formatCompact(widget.totalAssets)}',
             style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
+              fontSize: 34,
+              fontWeight: FontWeight.w700,
               color: Colors.white,
               height: 1.1,
             ),
@@ -138,10 +135,10 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
     return GestureDetector(
       onTap: _toggleDropdown,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(8),
+          color: Color(0xFF3A3A3C),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -168,43 +165,37 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
   }
 
   Widget _buildTotalCostSummaryCard() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.account_balance, size: 12, color: Colors.amber),
-              const SizedBox(width: 4),
-              Text(
-                StockConfig.assetTotalCost,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.white70,
-                  height: 1.2,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.account_balance, size: 10, color: Color(0xFF5B9CF6)),
+            const SizedBox(width: 4),
+            Text(
+              StockConfig.assetTotalCost,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFF8E8E93),
+                height: 1.2,
               ),
-              const SizedBox(width: 2),
-              GestureDetector(
-                onTap: _showTotalCostHelpDialog,
-                child: const Icon(
-                  Icons.help_outline,
-                  size: 12,
-                  color: Colors.amber,
-                ),
+            ),
+            const SizedBox(width: 2),
+            GestureDetector(
+              onTap: _showTotalCostHelpDialog,
+              child: const Icon(
+                Icons.help_outline,
+                size: 10,
+                color: Color(0xFF48484A),
               ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          _buildTotalMarketText(),
-          _buildTotalMarketPercent(),
-        ],
-      ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _buildTotalMarketText(),
+        const SizedBox(height: 1),
+        _buildTotalMarketPercent(),
+      ],
     );
   }
 
@@ -233,50 +224,44 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
         _helpLine(
           StockConfig.assetFloatProfitLabel,
           floatText,
-          floatPL >= 0 ? const Color(0xFFFF5252) : const Color(0xFF69F0AE),
+          floatPL >= 0 ? const Color(0xFFFF3B30) : const Color(0xFF34C759),
         ),
       ],
     );
   }
 
   Widget _buildProfitSummaryCard() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.trending_up, size: 12, color: Colors.amber),
-              const SizedBox(width: 4),
-              Text(
-                StockConfig.assetTotalProfit,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.white70,
-                  height: 1.2,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.trending_up, size: 10, color: Color(0xFFFF3B30)),
+            const SizedBox(width: 4),
+            Text(
+              StockConfig.assetTotalProfit,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFF8E8E93),
+                height: 1.2,
               ),
-              const SizedBox(width: 2),
-              GestureDetector(
-                onTap: _showProfitHelpDialog,
-                child: const Icon(
-                  Icons.help_outline,
-                  size: 12,
-                  color: Colors.amber,
-                ),
+            ),
+            const SizedBox(width: 2),
+            GestureDetector(
+              onTap: _showProfitHelpDialog,
+              child: const Icon(
+                Icons.help_outline,
+                size: 10,
+                color: Color(0xFF48484A),
               ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          _buildProfitText(),
-          _buildProfitPercent(),
-        ],
-      ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _buildProfitText(),
+        const SizedBox(height: 1),
+        _buildProfitPercent(),
+      ],
     );
   }
 
@@ -291,8 +276,8 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
           StockConfig.assetTotalRealizedPL,
           realizedText,
           widget.totalRealizedPL >= 0
-              ? const Color(0xFFFF5252)
-              : const Color(0xFF69F0AE),
+              ? const Color(0xFFFF3B30)
+              : const Color(0xFF34C759),
         ),
       ],
     );
@@ -302,8 +287,8 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
     return Text(
       '${CurrencyHelper.formatCompact(widget.totalMarketValue)}',
       style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
         color: Colors.white,
         height: 1.1,
       ),
@@ -318,7 +303,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
       '${percent.toStringAsFixed(2)}%',
       style: const TextStyle(
         fontSize: 11,
-        color: Colors.white70,
+        color: Color(0xFF8E8E93),
         fontWeight: FontWeight.w500,
         height: 1.2,
       ),
@@ -329,11 +314,11 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
     return Text(
       '${widget.totalProfit >= 0 ? '+' : ''}${CurrencyHelper.formatCompact(widget.totalProfit)}',
       style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
         color: widget.totalProfit >= 0
-            ? const Color(0xFFFF5252)
-            : const Color(0xFF69F0AE),
+            ? const Color(0xFFFF3B30)
+            : const Color(0xFF34C759),
         height: 1.1,
       ),
     );
@@ -345,44 +330,42 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
       style: TextStyle(
         fontSize: 11,
         color: widget.totalProfit >= 0
-            ? const Color(0xFFFF5252)
-            : const Color(0xFF69F0AE),
-        fontWeight: FontWeight.bold,
+            ? const Color(0xFFFF3B30)
+            : const Color(0xFF34C759),
+        fontWeight: FontWeight.w600,
         height: 1.2,
       ),
     );
   }
 
   Widget _buildDividendSummaryCard() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.monetization_on, size: 12, color: Colors.amber),
-              const SizedBox(width: 4),
-              const Text(
-                StockConfig.assetTotalDividends,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.white70,
-                  height: 1.2,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.monetization_on,
+              size: 10,
+              color: Color(0xFFFF9F0A),
+            ),
+            const SizedBox(width: 4),
+            const Text(
+              StockConfig.assetTotalDividends,
+              style: TextStyle(
+                fontSize: 11,
+                color: Color(0xFF8E8E93),
+                height: 1.2,
               ),
-              const SizedBox(width: 2),
-            ],
-          ),
-          const SizedBox(height: 2),
-          _buildDividendText(),
-          _buildDividendPercent(),
-        ],
-      ),
+            ),
+            const SizedBox(width: 2),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _buildDividendText(),
+        const SizedBox(height: 1),
+        _buildDividendPercent(),
+      ],
     );
   }
 
@@ -392,14 +375,14 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
       children: [
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 13),
+          style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 13),
         ),
         Text(
           value,
           style: TextStyle(
             color: valueColor ?? Colors.white,
             fontSize: 14,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],
@@ -411,27 +394,15 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
     required IconData icon,
     required List<Widget> children,
   }) {
-    InfoDialog.show(
+    showHelpDialog(
       context,
-      title: Column(
-        children: [
-          Icon(icon, color: Colors.amber, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
+      title: title,
+      icon: icon,
+      iconColor: const Color(0xFFFF9F0A),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Divider(color: Colors.white12, height: 1),
+          const Divider(color: Color(0xFF1C1C1E), height: 1),
           const SizedBox(height: 12),
           ...children,
         ],
@@ -447,7 +418,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
       '${percent.toStringAsFixed(2)}%',
       style: const TextStyle(
         fontSize: 11,
-        color: Colors.white70,
+        color: Color(0xFF8E8E93),
         fontWeight: FontWeight.w500,
         height: 1.2,
       ),
@@ -458,8 +429,8 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
     return Text(
       '${CurrencyHelper.formatCompact(widget.totalAfterTaxDividends)}',
       style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
         color: Colors.white,
         height: 1.1,
       ),

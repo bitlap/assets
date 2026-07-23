@@ -53,13 +53,13 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
+          seedColor: Color(0xFF636366),
           brightness: Brightness.dark,
-          background: const Color(0xFF0C1117),
-          surface: Colors.grey[900]!,
+          background: const Color(0xFF000000),
+          surface: Color(0xFF1C1C1E),
         ),
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF0C1117),
+        scaffoldBackgroundColor: const Color(0xFF000000),
         textTheme: TextTheme(
           bodyLarge: TextStyle(color: Colors.white),
           bodyMedium: TextStyle(color: Colors.white),
@@ -87,7 +87,7 @@ class _AppShellState extends State<_AppShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: const Color(0xFF0C1117),
+      backgroundColor: const Color(0xFF000000),
       body: SafeArea(
         child: Stack(
           children: [
@@ -127,9 +127,9 @@ class _AppShellState extends State<_AppShell> {
       child: Center(
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1F26),
+            color: const Color(0xFF000000),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF2A3038), width: 0.5),
+            border: Border.all(color: const Color(0xFF1C1C1E), width: 0.5),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.4),
@@ -172,10 +172,11 @@ class _AppShellState extends State<_AppShell> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF5B9CF6).withValues(alpha: 0.15)
-              : Colors.transparent,
+          color: isSelected ? const Color(0xFF2C2C2E) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
+          border: isSelected
+              ? Border.all(color: const Color(0xFF3A3A3C), width: 0.5)
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -183,7 +184,11 @@ class _AppShellState extends State<_AppShell> {
             Icon(
               icon,
               size: 18,
-              color: isSelected ? const Color(0xFF5B9CF6) : Colors.grey[600],
+              color: isSelected
+                  ? (index == 0
+                        ? const Color(0xFF5B9CF6)
+                        : const Color(0xFFFF9F0A))
+                  : const Color(0xFF8E8E93),
             ),
             const SizedBox(width: 6),
             Text(
@@ -191,7 +196,7 @@ class _AppShellState extends State<_AppShell> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? const Color(0xFF5B9CF6) : Colors.grey[600],
+                color: isSelected ? Colors.white : const Color(0xFF8E8E93),
               ),
             ),
           ],

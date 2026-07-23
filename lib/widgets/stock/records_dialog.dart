@@ -57,12 +57,12 @@ class _RecordsDialogState extends State<RecordsDialog>
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF0C1117),
+        color: Color(0xFF000000),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         border: Border(
-          top: BorderSide(color: Color(0xFF303631)),
-          left: BorderSide(color: Color(0xFF303631)),
-          right: BorderSide(color: Color(0xFF303631)),
+          top: BorderSide(color: Color(0xFF1C1C1E), width: 0.5),
+          left: BorderSide(color: Color(0xFF1C1C1E), width: 0.5),
+          right: BorderSide(color: Color(0xFF1C1C1E), width: 0.5),
         ),
       ),
       child: Column(
@@ -118,9 +118,12 @@ class _RecordsDialogState extends State<RecordsDialog>
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF161B22),
+                      color: const Color(0xFF000000),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF303631)),
+                      border: Border.all(
+                        color: const Color(0xFF1C1C1E),
+                        width: 0.5,
+                      ),
                     ),
                     child: const Icon(
                       Icons.close,
@@ -136,13 +139,13 @@ class _RecordsDialogState extends State<RecordsDialog>
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF161B22),
+                color: const Color(0xFF000000),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: TabBar(
                 controller: _tabController,
                 indicator: BoxDecoration(
-                  color: const Color(0xFF1A56DB),
+                  color: const Color(0xFF2C2C2E),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
@@ -225,67 +228,27 @@ class _RecordsDialogState extends State<RecordsDialog>
   }
 
   void _showOpDeleteHint() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.info_outline, size: 20, color: Color(0xFF5B9CF6)),
-            SizedBox(width: 8),
-            Text(
-              StockConfig.recordsOpTab,
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-        content: Text(
-          StockConfig.recordsDeleteHint,
-          style: TextStyle(color: Colors.grey[400], fontSize: 13, height: 1.4),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              AppConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
-            ),
-          ),
-        ],
+    showHelpDialog(
+      context,
+      title: StockConfig.recordsOpTab,
+      icon: Icons.info_outline,
+      iconColor: const Color(0xFF5B9CF6),
+      content: Text(
+        StockConfig.recordsDeleteHint,
+        style: TextStyle(color: Colors.grey[400], fontSize: 13, height: 1.4),
       ),
     );
   }
 
   void _showDivDeleteHint() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.info_outline, size: 20, color: Colors.amber),
-            SizedBox(width: 8),
-            Text(
-              StockConfig.recordsDivTab,
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-        content: Text(
-          StockConfig.recordsDivDeleteHint,
-          style: TextStyle(color: Colors.grey[400], fontSize: 13, height: 1.4),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              AppConfig.btnClose,
-              style: TextStyle(color: Color(0xFF5B9CF6)),
-            ),
-          ),
-        ],
+    showHelpDialog(
+      context,
+      title: StockConfig.recordsDivTab,
+      icon: Icons.info_outline,
+      iconColor: Colors.amber,
+      content: Text(
+        StockConfig.recordsDivDeleteHint,
+        style: TextStyle(color: Colors.grey[400], fontSize: 13, height: 1.4),
       ),
     );
   }
@@ -371,9 +334,9 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF161B22),
+                color: const Color(0xFF000000),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF303631)),
+                border: Border.all(color: const Color(0xFF1C1C1E), width: 0.5),
               ),
               child: Row(
                 children: [
@@ -498,18 +461,24 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
               style: const TextStyle(fontSize: 16, color: Colors.white),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: const Color(0xFF161B22),
+                fillColor: const Color(0xFF000000),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 12,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF1C1C1E),
+                    width: 0.5,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF1C1C1E),
+                    width: 0.5,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -531,18 +500,24 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
               style: const TextStyle(fontSize: 16, color: Colors.white),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: const Color(0xFF161B22),
+                fillColor: const Color(0xFF000000),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 12,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF1C1C1E),
+                    width: 0.5,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF303631)),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF1C1C1E),
+                    width: 0.5,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -666,9 +641,9 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF161B22),
+                color: const Color(0xFF000000),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF303631)),
+                border: Border.all(color: const Color(0xFF1C1C1E), width: 0.5),
               ),
               child: Row(
                 children: [
@@ -798,24 +773,9 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: () async {
-                  final picked = await showDatePicker(
-                    context: ctx,
+                  final picked = await showDatePickerDialog(
+                    ctx,
                     initialDate: selectedDate,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                    builder: (context, child) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          colorScheme: const ColorScheme.dark(
-                            primary: Color(0xFF5B9CF6),
-                            onPrimary: Colors.white,
-                            surface: Color(0xFF1A1F26),
-                            onSurface: Colors.white,
-                          ),
-                        ),
-                        child: child!,
-                      );
-                    },
                   );
                   if (picked != null) {
                     setDialogState(() => selectedDate = picked);
@@ -827,9 +787,12 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF161B22),
+                    color: const Color(0xFF000000),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF303631)),
+                    border: Border.all(
+                      color: const Color(0xFF1C1C1E),
+                      width: 0.5,
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -887,9 +850,9 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
               const SizedBox(height: 8),
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: const Color(0xFF5B9CF6),
-                  inactiveTrackColor: const Color(0xFF303631),
-                  thumbColor: const Color(0xFF5B9CF6),
+                  activeTrackColor: Colors.white,
+                  inactiveTrackColor: const Color(0xFF1C1C1E),
+                  thumbColor: Colors.white,
                   overlayColor: const Color(0xFF5B9CF6).withValues(alpha: 0.2),
                   trackHeight: 4,
                 ),

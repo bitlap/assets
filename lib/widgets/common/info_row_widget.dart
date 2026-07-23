@@ -22,7 +22,7 @@ class InfoRowWidget extends StatelessWidget {
           width: labelWidth,
           child: Text(
             label,
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
+            style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 13),
           ),
         ),
         Expanded(

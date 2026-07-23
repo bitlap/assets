@@ -39,13 +39,13 @@ class AssetCardFrame extends StatelessWidget {
           if (c != null)
             Text(
               AssetConfig.createdLabel.replaceAll('{date}', _f(c)),
-              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 10, color: Color(0xFF636366)),
             ),
           if (c != null && u != null) const SizedBox(height: 2),
           if (u != null)
             Text(
               AssetConfig.updatedLabel.replaceAll('{date}', _f(u)),
-              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 10, color: Color(0xFF636366)),
             ),
         ],
       ),
@@ -57,9 +57,9 @@ class AssetCardFrame extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1F26),
+        color: const Color(0xFF000000),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF303631)),
+        border: Border.all(color: const Color(0xFF1C1C1E)),
       ),
       child: GestureDetector(
         onTap: onTap,
@@ -94,7 +94,7 @@ class AssetCardFrame extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: Color(0xFF8E8E93),
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
