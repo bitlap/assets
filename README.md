@@ -159,6 +159,6 @@ dart format lib/
 | 搜索防抖      | 1 秒                                     | 输入停止后延迟搜索                              |
 | API 熔断    | 3 次/5 分钟                                | 连续失败后冷却，保护 API 配额                      |
 | HTTP 超时   | 15 秒                                    | 单次请求超时上限                               |
-| 后台快照间隔    | 30 分钟                                   | WorkManager 定时记录收益快照                   |
+| 后台快照间隔    | 10 分钟                                   | WorkManager 定时记录收益快照                   |
 | 数据源       | -                                       | 东方财富（搜索）、腾讯行情（价格）、ExchangeRate-API（汇率） |
 | Bundle ID | `YOUR_BUNDLE_ID`（如 `org.bitlap.assets`） | 克隆后需替换为自己的 Bundle ID                   |
