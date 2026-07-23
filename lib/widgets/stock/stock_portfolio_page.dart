@@ -15,12 +15,12 @@ import '../../services/icloud_storage.dart';
 import '../common/empty_state_widget.dart';
 import '../common/draggable_fab.dart';
 import 'stock_card.dart';
-import 'stock_header.dart';
+import 'stock_section_title.dart';
 import 'stock_list_header.dart';
 import 'records_dialog.dart';
 import 'edit_delete_dialogs.dart';
 import 'search_stock_dialog.dart';
-import 'stock_summary_card.dart';
+import 'stock_header_card.dart';
 import '../settings_page.dart';
 
 /// 股票持仓主页 - 仅负责状态管理和页面组装
@@ -182,7 +182,23 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
   }
 
   Future<void> _onResumed() async {
-    if (mounted) await _syncStockData();
+    if (!mounted) return;
+    await _fetchExchangeRatesWithoutRebuild();
+    final quotes = stocks.isEmpty
+        ? <String, StockQuote?>{}
+        : await _fetchQuotesWithoutRebuild();
+    final data = await IcloudStorage.loadStocks();
+    if (!mounted) return;
+    setState(() {
+      stocks = data.$1;
+      _operationRecords
+        ..clear()
+        ..addAll(data.$2);
+      _dividendRecords
+        ..clear()
+        ..addAll(data.$3);
+      _applyQuotes(stocks, quotes);
+    });
     await IcloudStorage.recordProfitIfNeeded(totalProfit, selectedCurrency);
     unawaited(IcloudStorage.syncProfitToCloud());
   }
@@ -811,7 +827,7 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
                       onSettingsTap: _showSettingsPage,
                     ),
                     const SizedBox(height: 8),
-                    StockSummaryCard(
+                    StockHeaderCard(
                       selectedCurrency: selectedCurrency,
                       totalAssets: totalAssets,
                       totalMarketValue: totalMarketValue,

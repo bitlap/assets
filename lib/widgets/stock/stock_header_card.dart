@@ -5,8 +5,7 @@ import '../common/profit_chart.dart';
 import '../common/dialog_utils.dart';
 import '../common/currency_selector.dart';
 
-/// 股票持仓汇总卡片组件（纯UI展示）
-class StockSummaryCard extends StatefulWidget {
+class StockHeaderCard extends StatefulWidget {
   final String selectedCurrency;
   final double totalAssets;
   final double totalMarketValue;
@@ -19,7 +18,7 @@ class StockSummaryCard extends StatefulWidget {
   final ValueChanged<String> onCurrencyChanged;
   final VoidCallback? onCollapse;
 
-  const StockSummaryCard({
+  const StockHeaderCard({
     super.key,
     required this.selectedCurrency,
     required this.totalAssets,
@@ -35,10 +34,10 @@ class StockSummaryCard extends StatefulWidget {
   });
 
   @override
-  State<StockSummaryCard> createState() => _StockSummaryCardState();
+  State<StockHeaderCard> createState() => _StockHeaderCardState();
 }
 
-class _StockSummaryCardState extends State<StockSummaryCard> {
+class _StockHeaderCardState extends State<StockHeaderCard> {
   void _toggleDropdown() {
     CurrencySelector.show(
       context: context,

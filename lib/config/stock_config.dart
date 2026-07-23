@@ -1,7 +1,7 @@
 class StockConfig {
   StockConfig._();
 
-  // StockSummaryCard 文案
+  // StockHeaderCard 文案
   static const String assetTotalAssets = '总资产';
   static const String assetTotalCost = '持仓总市值';
   static const String assetTotalProfit = '总盈亏';
