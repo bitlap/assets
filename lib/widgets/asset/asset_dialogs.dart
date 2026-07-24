@@ -20,6 +20,18 @@ class _AssetOption {
 
 const _assetOptions = [
   _AssetOption(
+    Icons.payments,
+    Color(0xFF34C759),
+    AssetConfig.cash,
+    AssetType.cash,
+  ),
+  _AssetOption(
+    Icons.account_balance,
+    Color(0xFF5AC8FA),
+    AssetConfig.current,
+    AssetType.current,
+  ),
+  _AssetOption(
     Icons.savings,
     Color(0xFFFF9F0A),
     AssetConfig.timeDeposit,
@@ -30,18 +42,6 @@ const _assetOptions = [
     Color(0xFF5B9CF6),
     AssetConfig.wealthProduct,
     AssetType.wealthProduct,
-  ),
-  _AssetOption(
-    Icons.account_balance,
-    Color(0xFF5AC8FA),
-    AssetConfig.current,
-    AssetType.current,
-  ),
-  _AssetOption(
-    Icons.payments,
-    Color(0xFF34C759),
-    AssetConfig.cash,
-    AssetType.cash,
   ),
   _AssetOption(
     Icons.home_work,
