@@ -56,10 +56,10 @@ class SectionTitle extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF2C2C2E),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.add, color: Colors.black, size: 18),
+                    child: const Icon(Icons.add, color: Colors.white, size: 18),
                   ),
                 ),
               if (onSettings != null) ...[
@@ -70,12 +70,12 @@ class SectionTitle extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF2C2C2E),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.settings,
-                      color: Colors.black,
+                      color: Colors.white,
                       size: 18,
                     ),
                   ),

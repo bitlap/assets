@@ -88,8 +88,13 @@ class StockCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(flex: 2, child: _buildCompanyInfo()),
                     Expanded(flex: 2, child: _buildSharesAndPrice()),
-                    const Spacer(),
-                    _buildProfitLoss(),
+                    Expanded(
+                      flex: 1,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: _buildProfitLoss(),
+                      ),
+                    ),
                   ],
                 ),
               ],

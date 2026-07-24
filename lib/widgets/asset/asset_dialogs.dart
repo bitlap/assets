@@ -56,6 +56,7 @@ Future<AssetType?> showAddAssetSheet(BuildContext context) {
     context: context,
     builder: (ctx) => dialogFrame(
       context: ctx,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -68,9 +69,15 @@ Future<AssetType?> showAddAssetSheet(BuildContext context) {
             ),
           ),
           const SizedBox(height: 16),
+          Divider(thickness: 0.5, height: 20, color: const Color(0xFF1C1C1E)),
+          const SizedBox(height: 4),
           for (final option in _assetOptions) ...[
             if (option != _assetOptions.first)
-              Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
+              Divider(
+                thickness: 0.5,
+                height: 20,
+                color: const Color(0xFF1C1C1E),
+              ),
             _addOption(
               option.icon,
               option.color,
@@ -80,7 +87,6 @@ Future<AssetType?> showAddAssetSheet(BuildContext context) {
               },
             ),
           ],
-          const SizedBox(height: 8),
         ],
       ),
     ),
@@ -93,24 +99,27 @@ Widget _addOption(
   String label, {
   required VoidCallback onTap,
 }) {
-  return ListTile(
-    leading: Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(10),
+  return SizedBox(
+    height: 48,
+    child: ListTile(
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, size: 18, color: color),
       ),
-      child: Icon(icon, size: 18, color: color),
+      title: Text(
+        label,
+        style: const TextStyle(fontSize: 15, color: Colors.white),
+      ),
+      trailing: const Icon(Icons.chevron_right, color: Color(0xFF8E8E93)),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
-    title: Text(
-      label,
-      style: const TextStyle(fontSize: 15, color: Colors.white),
-    ),
-    trailing: const Icon(Icons.chevron_right, color: Color(0xFF8E8E93)),
-    onTap: onTap,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
   );
 }
 

@@ -95,27 +95,32 @@ class StockListHeader extends StatelessWidget {
               ),
             ),
           ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () => onColumnTap('profit'),
-            behavior: HitTestBehavior.opaque,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  StockConfig.homeProfitHeader,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF8E8E93),
-                    height: 1.2,
-                  ),
+          Expanded(
+            flex: 1,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: () => onColumnTap('profit'),
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SortIndicator(
+                      isActive: sortColumn == 'profit',
+                      isAscending: sortAscending,
+                    ),
+                    Text(
+                      StockConfig.homeProfitHeader,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF8E8E93),
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
-                SortIndicator(
-                  isActive: sortColumn == 'profit',
-                  isAscending: sortAscending,
-                ),
-              ],
+              ),
             ),
           ),
         ],
