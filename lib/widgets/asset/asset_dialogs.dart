@@ -29,6 +29,7 @@ Future<String?> showAddAssetSheet(BuildContext context) {
           _addOption(Icons.payments, Color(0xFF34C759), AssetConfig.cash, () {
             Navigator.pop(ctx, 'cash');
           }),
+          Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
           _addOption(
             Icons.savings,
             Color(0xFFFF9F0A),
@@ -37,6 +38,7 @@ Future<String?> showAddAssetSheet(BuildContext context) {
               Navigator.pop(ctx, 'td');
             },
           ),
+          Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
           _addOption(
             Icons.trending_up,
             Color(0xFF5B9CF6),
