@@ -154,8 +154,8 @@ class _RecordsDialogState extends State<RecordsDialog>
                 controller: _tabController,
                 indicator: BoxDecoration(
                   color: _selectedTab == 0
-                      ? const Color(0xFF5B9CF6)
-                      : Colors.amber,
+                      ? const Color(0xFF2962FF)
+                      : const Color(0xFF2962FF),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
@@ -186,7 +186,7 @@ class _RecordsDialogState extends State<RecordsDialog>
                             size: 14,
                             color: _selectedTab == 0
                                 ? Colors.white
-                                : const Color(0xFF5B9CF6),
+                                : const Color(0xFF2962FF),
                           ),
                         ),
                       ],
@@ -206,7 +206,7 @@ class _RecordsDialogState extends State<RecordsDialog>
                             size: 14,
                             color: _selectedTab == 1
                                 ? Colors.white
-                                : Colors.amber,
+                                : const Color(0xFF2962FF),
                           ),
                         ),
                       ],
@@ -401,7 +401,7 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                                   '${StockConfig.recordsFormulaLabel}: ${CurrencyHelper.formatRate(record.amount)} × ${CurrencyHelper.formatRate(record.shares)}',
                                   style: TextStyle(
                                     color: Colors.grey[500],
-                                    fontSize: 12,
+                                    fontSize: 11,
                                   ),
                                   softWrap: true,
                                   overflow: TextOverflow.ellipsis,
@@ -422,27 +422,22 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                           ),
                         ],
                         const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                '${StockConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
-                                style: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontSize: 11,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${StockConfig.recordsDateLabel}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.date)}',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          '${StockConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${StockConfig.recordsDateLabel}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.date)}',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -740,7 +735,7 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                                 '${StockConfig.recordsFormulaLabel}: ${CurrencyHelper.formatRate(record.shares)} × ${CurrencyHelper.formatRate(record.amount)} × ${1 - record.taxRate}',
                                 style: TextStyle(
                                   color: Colors.grey[500],
-                                  fontSize: 12,
+                                  fontSize: 11,
                                 ),
                                 softWrap: true,
                                 overflow: TextOverflow.ellipsis,
@@ -758,27 +753,22 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                           ],
                         ),
                         const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                '${StockConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
-                                style: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontSize: 11,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${StockConfig.dividendDateLabel}: ${DateFormat('yyyy-MM-dd').format(record.date)}',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          '${StockConfig.dividendDateLabel}: ${DateFormat('yyyy-MM-dd').format(record.date)}',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${StockConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -935,7 +925,9 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                   Navigator.pop(ctx);
                 },
                 confirmText: AppConfig.btnClose,
-                confirmBgColor: Colors.amber,
+                confirmGradient: const LinearGradient(
+                  colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+                ),
               ),
             ],
           ),

@@ -123,6 +123,7 @@ class _BalanceDialog extends StatefulWidget {
   final String hintName;
   final String defaultCurrency;
   final int assetCount;
+  final AssetBase? asset;
 
   const _BalanceDialog({
     required this.assetType,
@@ -131,6 +132,7 @@ class _BalanceDialog extends StatefulWidget {
     required this.hintName,
     required this.defaultCurrency,
     required this.assetCount,
+    this.asset,
   });
 
   @override
@@ -142,12 +144,19 @@ class _BalanceDialogState extends State<_BalanceDialog> {
   late TextEditingController balanceCtrl;
   late String currency;
 
+  bool get isEdit => widget.asset != null;
+
   @override
   void initState() {
     super.initState();
-    nameCtrl = TextEditingController();
-    balanceCtrl = TextEditingController();
-    currency = widget.defaultCurrency;
+    final a = widget.asset;
+    nameCtrl = TextEditingController(text: a?.name ?? '');
+    balanceCtrl = TextEditingController(
+      text: a != null
+          ? CurrencyHelper.formatRate((a as dynamic).balance ?? 0)
+          : '',
+    );
+    currency = a?.currency ?? widget.defaultCurrency;
   }
 
   @override
@@ -158,36 +167,37 @@ class _BalanceDialogState extends State<_BalanceDialog> {
   }
 
   AssetBase _buildResult(double balance) {
-    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    final id =
+        widget.asset?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
     switch (widget.assetType) {
       case AssetType.cash:
         return CashAccount(
           id: id,
-          sortOrder: widget.assetCount,
+          sortOrder: widget.asset?.sortOrder ?? widget.assetCount,
           currency: currency,
           name: nameCtrl.text.trim(),
           balance: balance,
-          createdAt: DateTime.now(),
+          createdAt: widget.asset?.createdAt ?? DateTime.now(),
           updatedAt: DateTime.now(),
         );
       case AssetType.current:
         return CurrentAccount(
           id: id,
-          sortOrder: widget.assetCount,
+          sortOrder: widget.asset?.sortOrder ?? widget.assetCount,
           currency: currency,
           name: nameCtrl.text.trim(),
           balance: balance,
-          createdAt: DateTime.now(),
+          createdAt: widget.asset?.createdAt ?? DateTime.now(),
           updatedAt: DateTime.now(),
         );
       case AssetType.providentFund:
         return ProvidentFundAccount(
           id: id,
-          sortOrder: widget.assetCount,
+          sortOrder: widget.asset?.sortOrder ?? widget.assetCount,
           currency: currency,
           name: nameCtrl.text.trim(),
           balance: balance,
-          createdAt: DateTime.now(),
+          createdAt: widget.asset?.createdAt ?? DateTime.now(),
           updatedAt: DateTime.now(),
         );
       default:
@@ -205,7 +215,7 @@ class _BalanceDialogState extends State<_BalanceDialog> {
         children: [
           Center(
             child: Text(
-              widget.titleAdd,
+              isEdit ? widget.titleEdit : widget.titleAdd,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -253,8 +263,10 @@ class _BalanceDialogState extends State<_BalanceDialog> {
               }
               Navigator.pop(context, _buildResult(balance));
             },
-            confirmText: AppConfig.btnAdd,
-            confirmBgColor: const Color(0xFF2C2C2E),
+            confirmText: isEdit ? AppConfig.btnClose : AppConfig.btnAdd,
+            confirmGradient: const LinearGradient(
+              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+            ),
           ),
         ],
       ),
@@ -277,6 +289,7 @@ Future<CashAccount?> showCashAssetDialog(
       hintName: AssetConfig.hintCashName,
       defaultCurrency: defaultCurrency,
       assetCount: assetCount,
+      asset: cash,
     ),
   );
 }
@@ -296,6 +309,7 @@ Future<CurrentAccount?> showCurrentAssetDialog(
       hintName: AssetConfig.hintCurrentName,
       defaultCurrency: defaultCurrency,
       assetCount: assetCount,
+      asset: account,
     ),
   );
 }
@@ -315,6 +329,7 @@ Future<ProvidentFundAccount?> showProvidentFundAssetDialog(
       hintName: AssetConfig.hintProvidentFundName,
       defaultCurrency: defaultCurrency,
       assetCount: assetCount,
+      asset: account,
     ),
   );
 }
@@ -480,7 +495,9 @@ class _TimeDepositDialogState extends State<_TimeDepositDialog> {
               Navigator.pop(context, updated);
             },
             confirmText: isEdit ? AppConfig.btnClose : AppConfig.btnAdd,
-            confirmBgColor: const Color(0xFF2C2C2E),
+            confirmGradient: const LinearGradient(
+              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+            ),
           ),
         ],
       ),
@@ -627,7 +644,9 @@ class _WealthProductDialogState extends State<_WealthProductDialog> {
               Navigator.pop(context, updated);
             },
             confirmText: isEdit ? AppConfig.btnClose : AppConfig.btnAdd,
-            confirmBgColor: const Color(0xFF2C2C2E),
+            confirmGradient: const LinearGradient(
+              colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+            ),
           ),
         ],
       ),

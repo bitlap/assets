@@ -913,7 +913,9 @@ class _AddStockConfirmDialogState extends State<_AddStockConfirmDialog> {
               onCancel: () => Navigator.pop(context),
               onConfirm: _onConfirm,
               confirmText: AppConfig.btnConfirmAdd,
-              confirmBgColor: const Color(0xFF2C2C2E),
+              confirmGradient: const LinearGradient(
+                colors: [Color(0xFF1A56DB), Color(0xFF2962FF)],
+              ),
             ),
           ],
         ),
