@@ -13,6 +13,7 @@ import '../common/empty_state_widget.dart';
 import '../common/currency_selector.dart';
 import '../common/confirm_delete_dialog.dart';
 import '../common/draggable_fab.dart';
+import '../common/section_title.dart';
 import 'asset_card.dart';
 import 'asset_header.dart';
 import 'asset_dialogs.dart';
@@ -324,95 +325,96 @@ class _AssetsPageState extends State<AssetsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final usableHeight = constraints.maxHeight;
-          return Stack(
-            children: [
-              RefreshIndicator(
-                onRefresh: _load,
-                color: Colors.white,
-                backgroundColor: const Color(0xFF000000),
-                child: CustomScrollView(
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: AssetSectionTitle(
-                        assetCount: _assets.length,
-                        onAdd: () async {
-                          final action = await showAddAssetSheet(context);
-                          if (action == 'cash') _onAddCash();
-                          if (action == 'td') _onAddTD();
-                          if (action == 'wp') _onAddWP();
-                        },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final usableHeight = constraints.maxHeight;
+        return Stack(
+          children: [
+            RefreshIndicator(
+              onRefresh: _load,
+              color: Colors.white,
+              backgroundColor: const Color(0xFF000000),
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: SectionTitle(
+                      title: StockConfig.tabAsset,
+                      subtitle: AssetConfig.assetCountLabel.replaceAll(
+                        '{count}',
+                        '${_assets.length}',
                       ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: AssetHeader(
-                          totalAssets: _totalAssets,
-                          stockTotalValue: widget.stockTotalValue,
-                          currency: widget.currency,
-                          onCurrencyTap: _showCurrencyMenu,
-                        ),
-                      ),
-                    ),
-                    if (_flatItems.isEmpty)
-                      const SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: EmptyStateWidget(
-                          icon: Icons.account_balance_wallet_outlined,
-                          title: AssetConfig.emptyTitle,
-                          subtitle: AssetConfig.emptySubtitle,
-                          iconSize: 64,
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                        ),
-                      )
-                    else
-                      SliverReorderableList(
-                        itemCount: _flatItems.length,
-                        onReorder: _onFlatReorder,
-                        itemBuilder: (context, index) {
-                          final item = _flatItems[index];
-                          return switch (item) {
-                            SectionHeader(:final type, :final expanded) =>
-                              _buildSectionHeader(type, expanded, index),
-                            AssetCardItem(:final asset) => _buildAssetCardItem(
-                              asset,
-                              index,
-                            ),
-                          };
-                        },
-                      ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 80)),
-                  ],
-                ),
-              ),
-              if (_isLoading)
-                Positioned.fill(
-                  child: Container(
-                    color: Colors.black26,
-                    alignment: Alignment.center,
-                    child: const CircularProgressIndicator(
-                      color: Color(0xFF8E8E93),
+                      onAdd: () async {
+                        final action = await showAddAssetSheet(context);
+                        if (action == 'cash') _onAddCash();
+                        if (action == 'td') _onAddTD();
+                        if (action == 'wp') _onAddWP();
+                      },
                     ),
                   ),
-                ),
-              DraggableFab(
-                onTap: () async {
-                  final action = await showAddAssetSheet(context);
-                  if (action == 'cash') _onAddCash();
-                  if (action == 'td') _onAddTD();
-                  if (action == 'wp') _onAddWP();
-                },
-                maxHeight: usableHeight,
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: AssetHeader(
+                        totalAssets: _totalAssets,
+                        stockTotalValue: widget.stockTotalValue,
+                        currency: widget.currency,
+                        onCurrencyTap: _showCurrencyMenu,
+                      ),
+                    ),
+                  ),
+                  if (_flatItems.isEmpty)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: EmptyStateWidget(
+                        icon: Icons.account_balance_wallet_outlined,
+                        title: AssetConfig.emptyTitle,
+                        subtitle: AssetConfig.emptySubtitle,
+                        iconSize: 64,
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                      ),
+                    )
+                  else
+                    SliverReorderableList(
+                      itemCount: _flatItems.length,
+                      onReorder: _onFlatReorder,
+                      itemBuilder: (context, index) {
+                        final item = _flatItems[index];
+                        return switch (item) {
+                          SectionHeader(:final type, :final expanded) =>
+                            _buildSectionHeader(type, expanded, index),
+                          AssetCardItem(:final asset) => _buildAssetCardItem(
+                            asset,
+                            index,
+                          ),
+                        };
+                      },
+                    ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                ],
               ),
-            ],
-          );
-        },
-      ),
+            ),
+            if (_isLoading)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black26,
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(
+                    color: Color(0xFF8E8E93),
+                  ),
+                ),
+              ),
+            DraggableFab(
+              onTap: () async {
+                final action = await showAddAssetSheet(context);
+                if (action == 'cash') _onAddCash();
+                if (action == 'td') _onAddTD();
+                if (action == 'wp') _onAddWP();
+              },
+              maxHeight: usableHeight,
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -432,7 +434,7 @@ class _AssetsPageState extends State<AssetsPage> {
       ),
       AssetType.wealthProduct => (
         Icons.trending_up,
-        Color(0xFF2C2C2E),
+        Color(0xFF5B9CF6),
         AssetConfig.wealthProduct,
       ),
     };
@@ -475,7 +477,7 @@ class _AssetsPageState extends State<AssetsPage> {
                     Text(
                       label,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
@@ -662,7 +664,7 @@ class _AssetsPageState extends State<AssetsPage> {
         ),
       ),
       icon: Icons.trending_up,
-      iconColor: Colors.white,
+      iconColor: const Color(0xFF5B9CF6),
       name: wp.name.isNotEmpty ? wp.name : AssetConfig.defaultNameWP,
       createdAt: wp.createdAt,
       updatedAt: wp.updatedAt,

@@ -388,7 +388,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Icon(
                         Icons.help_outline,
                         size: 16,
-                        color: Colors.grey[500],
+                        color: Colors.teal,
                       ),
                     ),
                   ),
@@ -571,7 +571,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: Icon(
                     Icons.help_outline,
                     size: 16,
-                    color: Colors.grey[500],
+                    color: Colors.orange,
                   ),
                 ),
               ],
@@ -917,11 +917,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(width: 4),
                   GestureDetector(
                     onTap: onHelp,
-                    child: Icon(
-                      Icons.help_outline,
-                      size: 16,
-                      color: Colors.grey[500],
-                    ),
+                    child: Icon(Icons.help_outline, size: 16, color: iconColor),
                   ),
                 ],
               ],

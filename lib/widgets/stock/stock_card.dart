@@ -88,7 +88,8 @@ class StockCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(flex: 2, child: _buildCompanyInfo()),
                     Expanded(flex: 2, child: _buildSharesAndPrice()),
-                    Expanded(flex: 2, child: _buildProfitLoss()),
+                    const Spacer(),
+                    _buildProfitLoss(),
                   ],
                 ),
               ],
@@ -96,11 +97,12 @@ class StockCard extends StatelessWidget {
           ),
           // 非点击区域：分割线 + 展开详情 + 底部按钮行
           const SizedBox(height: 4),
-          Divider(height: 1, color: const Color(0xFF1C1C1E)),
+          Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
           const SizedBox(height: 4),
           if (isExpanded) ..._buildExpandedDetails(),
           if (isExpanded) const SizedBox(height: 4),
-          if (isExpanded) Divider(height: 1, color: const Color(0xFF1C1C1E)),
+          if (isExpanded)
+            Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
           if (isExpanded) const SizedBox(height: 4),
           Row(
             children: [
@@ -233,7 +235,7 @@ class StockCard extends StatelessWidget {
         ? const Color(0xFFFF3B30)
         : const Color(0xFF34C759);
     return Align(
-      alignment: Alignment.center,
+      alignment: Alignment.centerLeft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -341,7 +343,7 @@ class StockCard extends StatelessWidget {
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.list_alt, size: 14, color: Colors.white),
+            Icon(Icons.list_alt, size: 14, color: Color(0xFF5B9CF6)),
             SizedBox(width: 4),
             Text(
               StockConfig.stockRecord,
@@ -369,7 +371,7 @@ class StockCard extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.more_horiz, size: 14, color: Colors.white),
+            Icon(Icons.more_horiz, size: 14, color: Color(0xFFFF9F0A)),
             const SizedBox(width: 4),
             Text(
               StockConfig.stockMore,

@@ -73,7 +73,7 @@ class StockListHeader extends StatelessWidget {
               onTap: () => onColumnTap('holdings'),
               behavior: HitTestBehavior.opaque,
               child: Align(
-                alignment: Alignment.center,
+                alignment: Alignment.centerLeft,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -95,30 +95,27 @@ class StockListHeader extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
-            child: GestureDetector(
-              onTap: () => onColumnTap('profit'),
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    StockConfig.homeProfitHeader,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF8E8E93),
-                      height: 1.2,
-                    ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () => onColumnTap('profit'),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  StockConfig.homeProfitHeader,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF8E8E93),
+                    height: 1.2,
                   ),
-                  SortIndicator(
-                    isActive: sortColumn == 'profit',
-                    isAscending: sortAscending,
-                  ),
-                ],
-              ),
+                ),
+                SortIndicator(
+                  isActive: sortColumn == 'profit',
+                  isAscending: sortAscending,
+                ),
+              ],
             ),
           ),
         ],

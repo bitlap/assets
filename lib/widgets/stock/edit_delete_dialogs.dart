@@ -11,6 +11,7 @@ import '../common/app_number_field.dart';
 import '../common/info_row_widget.dart';
 import '../common/confirm_delete_dialog.dart';
 import '../common/dialog_utils.dart';
+import '../common/percent_selector.dart';
 
 /// 加仓/减仓对话框
 class EditStockDialog extends StatefulWidget {
@@ -388,7 +389,7 @@ class MoreOptionsDialog extends StatelessWidget {
                     ),
                   ),
                 ),
-                Divider(height: 1, color: const Color(0xFF1C1C1E)),
+                Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
                 ListTile(
                   leading: const Icon(
                     Icons.add_circle,
@@ -403,6 +404,7 @@ class MoreOptionsDialog extends StatelessWidget {
                     onAdd();
                   },
                 ),
+                Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
                 ListTile(
                   leading: const Icon(
                     Icons.remove_circle,
@@ -417,6 +419,7 @@ class MoreOptionsDialog extends StatelessWidget {
                     onReduce();
                   },
                 ),
+                Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
                 ListTile(
                   leading: const Icon(
                     Icons.monetization_on,
@@ -431,6 +434,7 @@ class MoreOptionsDialog extends StatelessWidget {
                     onDividend();
                   },
                 ),
+                Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
                 ListTile(
                   leading: const Icon(Icons.delete, color: Color(0xFFFF3B30)),
                   title: const Text(
@@ -530,13 +534,31 @@ class _DividendDialogState extends State<DividendDialog> {
           const SizedBox(height: 8),
           _buildDatePicker(),
           const SizedBox(height: 12),
-          AppNumberField(
-            controller: _amountController,
-            label: StockConfig.dividendAmountLabel,
-            hintText: StockConfig.dividendAmountHint,
+          Text(
+            StockConfig.dividendAmountLabel,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Color(0xFF8E8E93),
+              height: 1.2,
+            ),
           ),
-          const SizedBox(height: 12),
-          _buildTaxSlider(),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: AppNumberField(
+                  controller: _amountController,
+                  hintText: StockConfig.dividendAmountHint,
+                ),
+              ),
+              const SizedBox(width: 8),
+              buildPercentSelector(
+                context,
+                _taxRate,
+                (v) => setState(() => _taxRate = v),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
           actionButtonRow(
             onCancel: () => Navigator.pop(context),
@@ -608,52 +630,6 @@ class _DividendDialogState extends State<DividendDialog> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildTaxSlider() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              StockConfig.dividendTaxRateLabel,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF8E8E93),
-                height: 1.2,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              '${_taxRate.toStringAsFixed(0)}%',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: Colors.white,
-            inactiveTrackColor: const Color(0xFF1C1C1E),
-            thumbColor: Colors.white,
-            overlayColor: const Color(0xFF636366).withValues(alpha: 0.2),
-            trackHeight: 4,
-          ),
-          child: Slider(
-            value: _taxRate,
-            min: 0,
-            max: 50,
-            divisions: 50,
-            onChanged: (value) => setState(() => _taxRate = value),
-          ),
-        ),
-      ],
     );
   }
 }

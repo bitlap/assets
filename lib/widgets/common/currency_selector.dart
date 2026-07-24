@@ -73,7 +73,7 @@ class CurrencySelector {
                         ],
                       ),
                     ),
-                    Divider(height: 1, color: Color(0xFF1C1C1E)),
+                    Divider(thickness: 0.5, color: Color(0xFF1C1C1E)),
                     Flexible(
                       child: ListView(
                         padding: EdgeInsets.zero,

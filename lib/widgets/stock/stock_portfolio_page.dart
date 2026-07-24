@@ -14,8 +14,8 @@ import '../../services/settings_service.dart';
 import '../../services/icloud_storage.dart';
 import '../common/empty_state_widget.dart';
 import '../common/draggable_fab.dart';
+import '../common/section_title.dart';
 import 'stock_card.dart';
-import 'stock_section_title.dart';
 import 'stock_list_header.dart';
 import 'records_dialog.dart';
 import 'edit_delete_dialogs.dart';
@@ -824,10 +824,14 @@ class StockPortfolioPageState extends State<StockPortfolioPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    StockSectionTitle(
-                      stockCount: stocks.length,
-                      onAddTap: _showSearchStockDialog,
-                      onSettingsTap: _showSettingsPage,
+                    SectionTitle(
+                      title: StockConfig.homeTitle,
+                      subtitle: StockConfig.homeSubtitle.replaceAll(
+                        '{count}',
+                        '${stocks.length}',
+                      ),
+                      onAdd: _showSearchStockDialog,
+                      onSettings: _showSettingsPage,
                     ),
                     const SizedBox(height: 8),
                     StockHeaderCard(

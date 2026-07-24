@@ -88,7 +88,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
                     child: const Icon(
                       Icons.help_outline,
                       size: 14,
-                      color: Color(0xFF636366),
+                      color: Color(0xFFFF9F0A),
                     ),
                   ),
                 ],
@@ -186,7 +186,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
               child: const Icon(
                 Icons.help_outline,
                 size: 10,
-                color: Color(0xFF48484A),
+                color: Color(0xFF5B9CF6),
               ),
             ),
           ],
@@ -204,6 +204,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
     _helpDialogFrame(
       title: StockConfig.assetTotalAssets,
       icon: Icons.account_balance_wallet,
+      iconColor: const Color(0xFFFF9F0A),
       children: [
         _helpLine(StockConfig.assetTotalSellAmount, sellText, Colors.white),
       ],
@@ -218,6 +219,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
     _helpDialogFrame(
       title: StockConfig.assetTotalCost,
       icon: Icons.account_balance,
+      iconColor: const Color(0xFF5B9CF6),
       children: [
         _helpLine(StockConfig.assetCostDetailLabel, costText, Colors.white),
         const SizedBox(height: 6),
@@ -252,7 +254,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
               child: const Icon(
                 Icons.help_outline,
                 size: 10,
-                color: Color(0xFF48484A),
+                color: Color(0xFFFF3B30),
               ),
             ),
           ],
@@ -271,6 +273,7 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
     _helpDialogFrame(
       title: StockConfig.assetTotalProfit,
       icon: Icons.trending_up,
+      iconColor: const Color(0xFFFF3B30),
       children: [
         _helpLine(
           StockConfig.assetTotalRealizedPL,
@@ -392,17 +395,18 @@ class _StockHeaderCardState extends State<StockHeaderCard> {
   void _helpDialogFrame({
     required String title,
     required IconData icon,
+    Color? iconColor,
     required List<Widget> children,
   }) {
     showHelpDialog(
       context,
       title: title,
       icon: icon,
-      iconColor: const Color(0xFFFF9F0A),
+      iconColor: iconColor,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Divider(color: Color(0xFF1C1C1E), height: 1),
+          const Divider(color: Color(0xFF1C1C1E), thickness: 0.5),
           const SizedBox(height: 12),
           ...children,
         ],

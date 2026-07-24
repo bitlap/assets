@@ -128,14 +128,13 @@ class StockConfig {
   static const String recordsOperationTime = '更新时间';
   static const String recordsOpTotalValue = '总市值';
   static const String recordsOpTotalCost = '总成本';
-  static const String recordsDivAfterTax = '税后股息';
   static const String recordsDeleteOpConfirm = '确定删除此条操作记录？';
   static const String recordsDeleteDivConfirm = '确定删除此条派息记录？';
   static const String recordsDeleteHint = '左滑可删除，删除后不可恢复，持仓数据将自动重算，请谨慎操作';
   static const String recordsDivDeleteHint = '左滑可删除，删除后不可恢复，资产数据将自动重算，请谨慎操作';
   static const String recordsFormulaLabel = '计算公式';
   static const String recordsOpLabel = '总金额';
-  static const String recordsDivLabel = '税后股息';
+  static const String recordsDivLabel = '总股息';
   static const String recordsEditTitle = '编辑{desc}';
   static const String recordsEditPrice = '价格';
   static const String recordsEditShares = '股数';

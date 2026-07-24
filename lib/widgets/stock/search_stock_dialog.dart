@@ -256,7 +256,7 @@ class _SearchStockDialogState extends State<SearchStockDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildSearchBar(),
-            const Divider(height: 1, color: Color(0xFF1C1C1E)),
+            const Divider(thickness: 0.5, color: Color(0xFF1C1C1E)),
             FlexibleChild(child: _buildResultsList()),
           ],
         ),

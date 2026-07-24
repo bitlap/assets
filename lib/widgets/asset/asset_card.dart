@@ -94,7 +94,7 @@ class AssetCardFrame extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF8E8E93),
+                              color: Colors.white,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),

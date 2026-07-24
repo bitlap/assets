@@ -178,23 +178,21 @@ class _AppShellState extends State<_AppShell> {
               ? Border.all(color: const Color(0xFF3A3A3C), width: 0.5)
               : null,
         ),
-        child: Row(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               size: 18,
-              color: isSelected
-                  ? (index == 0
-                        ? const Color(0xFF5B9CF6)
-                        : const Color(0xFFFF9F0A))
-                  : const Color(0xFF8E8E93),
+              color: index == 0
+                  ? const Color(0xFF5B9CF6)
+                  : const Color(0xFFFF9F0A),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 color: isSelected ? Colors.white : const Color(0xFF8E8E93),
               ),
