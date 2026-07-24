@@ -8,6 +8,8 @@ class AssetConfig {
   static const String cash = '现金';
   static const String timeDeposit = '定期存款';
   static const String wealthProduct = '理财/基金';
+  static const String current = '活期存款';
+  static const String providentFund = '公积金';
 
   // 对话框标题
   static const String titleAddAsset = '添加资产';
@@ -17,6 +19,10 @@ class AssetConfig {
   static const String titleAddTD = '添加定期存款';
   static const String titleEditWP = '编辑理财/基金';
   static const String titleAddWP = '添加理财/基金';
+  static const String titleEditCurrent = '编辑活期';
+  static const String titleAddCurrent = '添加活期';
+  static const String titleEditProvidentFund = '编辑公积金';
+  static const String titleAddProvidentFund = '添加公积金';
 
   // 字段标签
   static const String fieldName = '名称';
@@ -29,7 +35,9 @@ class AssetConfig {
   static const String fieldNav = '最新净值';
 
   // 输入提示
-  static const String hintCashName = '例：活期账户、钱包';
+  static const String hintCashName = '例：钱包、储蓄卡';
+  static const String hintCurrentName = '例：活期存款';
+  static const String hintProvidentFundName = '例：住房公积金';
   static const String hintTDName = '例：一年定期';
   static const String hintWPName = '例：余额宝、某某基金';
 
@@ -52,6 +60,8 @@ class AssetConfig {
   // 默认名称
   static const String defaultNameFallback = '此项';
   static const String defaultNameCash = '现金 ({currency})';
+  static const String defaultNameCurrent = '活期 ({currency})';
+  static const String defaultNameProvidentFund = '公积金 ({currency})';
   static const String defaultNameTD = '定期存款';
   static const String defaultNameWP = '理财产品';
 
@@ -75,6 +85,8 @@ class AssetConfig {
       AssetType.cash => cash,
       AssetType.timeDeposit => timeDeposit,
       AssetType.wealthProduct => wealthProduct,
+      AssetType.current => current,
+      AssetType.providentFund => providentFund,
     };
   }
 }

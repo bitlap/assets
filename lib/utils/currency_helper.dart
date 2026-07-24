@@ -74,7 +74,7 @@ class CurrencyHelper {
     return rate.toStringAsFixed(4);
   }
 
-  /// 紧凑格式化（超过1万显示“万”单位）
+  /// 紧凑格式化（超过100万显示“万”单位）
   /// [value] 要格式化的数值
   /// [formatBase] 基础数字格式化函数，默认保留2位小数
   static String formatCompact(
@@ -82,7 +82,10 @@ class CurrencyHelper {
     String Function(double)? formatBase,
   }) {
     final fmt = formatBase ?? (v) => v.toStringAsFixed(2);
-    if (value.abs() >= 10000) {
+    if (value.abs() >= 100000000) {
+      return '${fmt(value / 100000000)}${AppConfig.suffixYi}';
+    }
+    if (value.abs() >= 1000000) {
       return '${fmt(value / 10000)}${AppConfig.suffixWan}';
     }
     return fmt(value);

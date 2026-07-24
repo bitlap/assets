@@ -57,6 +57,7 @@ class AppConfig {
   // 通用后缀
   static const String suffixCount = '次';
   static const String suffixWan = '万';
+  static const String suffixYi = '亿';
 
   // 市场 → 币种 映射
   static String currencyForMarket(String marketType) {

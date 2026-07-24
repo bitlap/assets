@@ -162,4 +162,10 @@ class StockConfig {
   static const String exchangeAmerica = '美国';
   static const String exchangeHK = '港股';
   static const String exchangeHongKong = '香港';
+
+  // 东方财富 secid 前缀
+  static const String secidUS = '105';
+  static const String secidUSAlt = '106';
+  static const String secidUS107 = '107';
+  static const String secidHK = '116';
 }

@@ -12,6 +12,18 @@ class AssetCalculator {
           c.currency,
           targetCurrency,
         );
+      case CurrentAccount c:
+        return CurrencyHelper.convertCurrency(
+          c.balance,
+          c.currency,
+          targetCurrency,
+        );
+      case ProvidentFundAccount c:
+        return CurrencyHelper.convertCurrency(
+          c.balance,
+          c.currency,
+          targetCurrency,
+        );
       case TimeDeposit t:
         return CurrencyHelper.convertCurrency(
           t.totalValue,

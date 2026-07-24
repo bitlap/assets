@@ -1,6 +1,6 @@
 import '../config/app_config.dart';
 
-enum AssetType { cash, timeDeposit, wealthProduct }
+enum AssetType { cash, timeDeposit, wealthProduct, current, providentFund }
 
 sealed class AssetBase {
   final String id;
@@ -45,6 +45,10 @@ sealed class AssetBase {
         return TimeDeposit.fromJson(json);
       case AssetType.wealthProduct:
         return WealthProduct.fromJson(json);
+      case AssetType.current:
+        return CurrentAccount.fromJson(json);
+      case AssetType.providentFund:
+        return ProvidentFundAccount.fromJson(json);
     }
   }
 }
@@ -78,6 +82,69 @@ class CashAccount extends AssetBase {
         ? DateTime.parse(json['updatedAt'] as String)
         : DateTime.now(),
   );
+}
+
+class CurrentAccount extends AssetBase {
+  double balance;
+
+  CurrentAccount({
+    required super.id,
+    super.sortOrder = 0,
+    super.currency = AppConfig.defaultCurrency,
+    super.name = '',
+    super.createdAt,
+    super.updatedAt,
+    this.balance = 0,
+  }) : super(type: AssetType.current);
+
+  @override
+  Map<String, dynamic> toJson() => {...super.toJson(), 'balance': balance};
+
+  static CurrentAccount fromJson(Map<String, dynamic> json) => CurrentAccount(
+    id: json['id'] as String,
+    sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
+    currency: json['currency'] as String? ?? AppConfig.defaultCurrency,
+    name: json['name'] as String? ?? '',
+    balance: (json['balance'] as num?)?.toDouble() ?? 0,
+    createdAt: json['createdAt'] != null
+        ? DateTime.parse(json['createdAt'] as String)
+        : DateTime.now(),
+    updatedAt: json['updatedAt'] != null
+        ? DateTime.parse(json['updatedAt'] as String)
+        : DateTime.now(),
+  );
+}
+
+class ProvidentFundAccount extends AssetBase {
+  double balance;
+
+  ProvidentFundAccount({
+    required super.id,
+    super.sortOrder = 0,
+    super.currency = AppConfig.defaultCurrency,
+    super.name = '',
+    super.createdAt,
+    super.updatedAt,
+    this.balance = 0,
+  }) : super(type: AssetType.providentFund);
+
+  @override
+  Map<String, dynamic> toJson() => {...super.toJson(), 'balance': balance};
+
+  static ProvidentFundAccount fromJson(Map<String, dynamic> json) =>
+      ProvidentFundAccount(
+        id: json['id'] as String,
+        sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
+        currency: json['currency'] as String? ?? AppConfig.defaultCurrency,
+        name: json['name'] as String? ?? '',
+        balance: (json['balance'] as num?)?.toDouble() ?? 0,
+        createdAt: json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'] as String)
+            : DateTime.now(),
+        updatedAt: json['updatedAt'] != null
+            ? DateTime.parse(json['updatedAt'] as String)
+            : DateTime.now(),
+      );
 }
 
 class TimeDeposit extends AssetBase {

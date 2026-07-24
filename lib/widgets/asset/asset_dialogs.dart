@@ -9,8 +9,50 @@ import '../common/dialog_utils.dart';
 
 // Add Asset Sheet
 
-Future<String?> showAddAssetSheet(BuildContext context) {
-  return showDialog<String>(
+class _AssetOption {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final AssetType type;
+
+  const _AssetOption(this.icon, this.color, this.label, this.type);
+}
+
+const _assetOptions = [
+  _AssetOption(
+    Icons.savings,
+    Color(0xFFFF9F0A),
+    AssetConfig.timeDeposit,
+    AssetType.timeDeposit,
+  ),
+  _AssetOption(
+    Icons.trending_up,
+    Color(0xFF5B9CF6),
+    AssetConfig.wealthProduct,
+    AssetType.wealthProduct,
+  ),
+  _AssetOption(
+    Icons.account_balance,
+    Color(0xFF5AC8FA),
+    AssetConfig.current,
+    AssetType.current,
+  ),
+  _AssetOption(
+    Icons.payments,
+    Color(0xFF34C759),
+    AssetConfig.cash,
+    AssetType.cash,
+  ),
+  _AssetOption(
+    Icons.home_work,
+    Color(0xFFAF52DE),
+    AssetConfig.providentFund,
+    AssetType.providentFund,
+  ),
+];
+
+Future<AssetType?> showAddAssetSheet(BuildContext context) {
+  return showDialog<AssetType>(
     context: context,
     builder: (ctx) => dialogFrame(
       context: ctx,
@@ -26,27 +68,18 @@ Future<String?> showAddAssetSheet(BuildContext context) {
             ),
           ),
           const SizedBox(height: 16),
-          _addOption(Icons.payments, Color(0xFF34C759), AssetConfig.cash, () {
-            Navigator.pop(ctx, 'cash');
-          }),
-          Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
-          _addOption(
-            Icons.savings,
-            Color(0xFFFF9F0A),
-            AssetConfig.timeDeposit,
-            () {
-              Navigator.pop(ctx, 'td');
-            },
-          ),
-          Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
-          _addOption(
-            Icons.trending_up,
-            Color(0xFF5B9CF6),
-            AssetConfig.wealthProduct,
-            () {
-              Navigator.pop(ctx, 'wp');
-            },
-          ),
+          for (final option in _assetOptions) ...[
+            if (option != _assetOptions.first)
+              Divider(thickness: 0.5, color: const Color(0xFF1C1C1E)),
+            _addOption(
+              option.icon,
+              option.color,
+              option.label,
+              onTap: () {
+                Navigator.pop(ctx, option.type);
+              },
+            ),
+          ],
           const SizedBox(height: 8),
         ],
       ),
@@ -57,9 +90,9 @@ Future<String?> showAddAssetSheet(BuildContext context) {
 Widget _addOption(
   IconData icon,
   Color color,
-  String label,
-  VoidCallback onTap,
-) {
+  String label, {
+  required VoidCallback onTap,
+}) {
   return ListTile(
     leading: Container(
       width: 36,
@@ -81,24 +114,30 @@ Widget _addOption(
   );
 }
 
-// Cash Dialog
+// Balance Dialog (shared by Cash / Current / ProvidentFund)
 
-class _CashDialog extends StatefulWidget {
-  final CashAccount? cash;
+class _BalanceDialog extends StatefulWidget {
+  final AssetType assetType;
+  final String titleEdit;
+  final String titleAdd;
+  final String hintName;
   final String defaultCurrency;
   final int assetCount;
 
-  const _CashDialog({
-    this.cash,
+  const _BalanceDialog({
+    required this.assetType,
+    required this.titleEdit,
+    required this.titleAdd,
+    required this.hintName,
     required this.defaultCurrency,
     required this.assetCount,
   });
 
   @override
-  State<_CashDialog> createState() => _CashDialogState();
+  State<_BalanceDialog> createState() => _BalanceDialogState();
 }
 
-class _CashDialogState extends State<_CashDialog> {
+class _BalanceDialogState extends State<_BalanceDialog> {
   late TextEditingController nameCtrl;
   late TextEditingController balanceCtrl;
   late String currency;
@@ -106,12 +145,9 @@ class _CashDialogState extends State<_CashDialog> {
   @override
   void initState() {
     super.initState();
-    final cash = widget.cash;
-    nameCtrl = TextEditingController(text: cash?.name ?? '');
-    balanceCtrl = TextEditingController(
-      text: cash != null ? CurrencyHelper.formatRate(cash.balance) : '',
-    );
-    currency = cash?.currency ?? widget.defaultCurrency;
+    nameCtrl = TextEditingController();
+    balanceCtrl = TextEditingController();
+    currency = widget.defaultCurrency;
   }
 
   @override
@@ -121,9 +157,46 @@ class _CashDialogState extends State<_CashDialog> {
     super.dispose();
   }
 
+  AssetBase _buildResult(double balance) {
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    switch (widget.assetType) {
+      case AssetType.cash:
+        return CashAccount(
+          id: id,
+          sortOrder: widget.assetCount,
+          currency: currency,
+          name: nameCtrl.text.trim(),
+          balance: balance,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+      case AssetType.current:
+        return CurrentAccount(
+          id: id,
+          sortOrder: widget.assetCount,
+          currency: currency,
+          name: nameCtrl.text.trim(),
+          balance: balance,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+      case AssetType.providentFund:
+        return ProvidentFundAccount(
+          id: id,
+          sortOrder: widget.assetCount,
+          currency: currency,
+          name: nameCtrl.text.trim(),
+          balance: balance,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+      default:
+        throw ArgumentError('Unsupported asset type: ${widget.assetType}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isEdit = widget.cash != null;
     return dialogFrame(
       context: context,
       child: Column(
@@ -132,7 +205,7 @@ class _CashDialogState extends State<_CashDialog> {
         children: [
           Center(
             child: Text(
-              isEdit ? AssetConfig.titleEditCash : AssetConfig.titleAddCash,
+              widget.titleAdd,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -146,7 +219,7 @@ class _CashDialogState extends State<_CashDialog> {
             style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
           ),
           const SizedBox(height: 6),
-          _dialogTextField(nameCtrl, AssetConfig.hintCashName),
+          _dialogTextField(nameCtrl, widget.hintName),
           const SizedBox(height: 12),
           const Text(
             AssetConfig.fieldBalance,
@@ -178,20 +251,9 @@ class _CashDialogState extends State<_CashDialog> {
                 CenterToast.error(context, AssetConfig.toastInvalidBalance);
                 return;
               }
-              final updated = CashAccount(
-                id:
-                    widget.cash?.id ??
-                    DateTime.now().millisecondsSinceEpoch.toString(),
-                sortOrder: widget.cash?.sortOrder ?? widget.assetCount,
-                currency: currency,
-                name: nameCtrl.text.trim(),
-                balance: balance,
-                createdAt: widget.cash?.createdAt ?? DateTime.now(),
-                updatedAt: DateTime.now(),
-              );
-              Navigator.pop(context, updated);
+              Navigator.pop(context, _buildResult(balance));
             },
-            confirmText: isEdit ? AppConfig.btnClose : AppConfig.btnAdd,
+            confirmText: AppConfig.btnAdd,
             confirmBgColor: const Color(0xFF2C2C2E),
           ),
         ],
@@ -208,8 +270,49 @@ Future<CashAccount?> showCashAssetDialog(
 }) {
   return showDialog<CashAccount>(
     context: context,
-    builder: (_) => _CashDialog(
-      cash: cash,
+    builder: (_) => _BalanceDialog(
+      assetType: AssetType.cash,
+      titleEdit: AssetConfig.titleEditCash,
+      titleAdd: AssetConfig.titleAddCash,
+      hintName: AssetConfig.hintCashName,
+      defaultCurrency: defaultCurrency,
+      assetCount: assetCount,
+    ),
+  );
+}
+
+Future<CurrentAccount?> showCurrentAssetDialog(
+  BuildContext context, {
+  CurrentAccount? account,
+  required String defaultCurrency,
+  required int assetCount,
+}) {
+  return showDialog<CurrentAccount>(
+    context: context,
+    builder: (_) => _BalanceDialog(
+      assetType: AssetType.current,
+      titleEdit: AssetConfig.titleEditCurrent,
+      titleAdd: AssetConfig.titleAddCurrent,
+      hintName: AssetConfig.hintCurrentName,
+      defaultCurrency: defaultCurrency,
+      assetCount: assetCount,
+    ),
+  );
+}
+
+Future<ProvidentFundAccount?> showProvidentFundAssetDialog(
+  BuildContext context, {
+  ProvidentFundAccount? account,
+  required String defaultCurrency,
+  required int assetCount,
+}) {
+  return showDialog<ProvidentFundAccount>(
+    context: context,
+    builder: (_) => _BalanceDialog(
+      assetType: AssetType.providentFund,
+      titleEdit: AssetConfig.titleEditProvidentFund,
+      titleAdd: AssetConfig.titleAddProvidentFund,
+      hintName: AssetConfig.hintProvidentFundName,
       defaultCurrency: defaultCurrency,
       assetCount: assetCount,
     ),

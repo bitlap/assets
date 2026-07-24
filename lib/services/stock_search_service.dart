@@ -105,16 +105,16 @@ class StockSearchService {
       String? market;
       String? secid;
       switch (marketId) {
-        case '105':
-        case '106':
+        case StockConfig.secidUS:
+        case StockConfig.secidUSAlt:
           market = StockConfig.searchMarketUS;
           secid = '$marketId.$rawCode';
           break;
-        case '107':
+        case StockConfig.secidUS107:
           market = StockConfig.searchMarketUS;
-          secid = '105.$rawCode';
+          secid = '${StockConfig.secidUS}.$rawCode';
           break;
-        case '116':
+        case StockConfig.secidHK:
           market = StockConfig.searchMarketHK;
           secid = '$marketId.$rawCode';
           break;
@@ -126,11 +126,11 @@ class StockSearchService {
               exchange.contains('NASDAQ') ||
               exchange.contains('ARCA')) {
             market = StockConfig.searchMarketUS;
-            secid = '105.$rawCode';
+            secid = '${StockConfig.secidUS}.$rawCode';
           } else if (exchange.contains(StockConfig.exchangeHK) ||
               exchange.contains(StockConfig.exchangeHongKong)) {
             market = StockConfig.searchMarketHK;
-            secid = '116.$rawCode';
+            secid = '${StockConfig.secidHK}.$rawCode';
           }
           break;
       }

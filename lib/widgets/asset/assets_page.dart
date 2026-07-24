@@ -42,6 +42,8 @@ class _AssetsPageState extends State<AssetsPage> {
     AssetType.cash,
     AssetType.timeDeposit,
     AssetType.wealthProduct,
+    AssetType.current,
+    AssetType.providentFund,
   ];
   List<AssetFlatItem> _flatItems = [];
 
@@ -308,6 +310,45 @@ class _AssetsPageState extends State<AssetsPage> {
     onUpdate: (r) => _updateAsset(wp.id, r),
   );
 
+  void _onAddCurrent() => _openDialog<CurrentAccount>(
+    showCurrentAssetDialog(
+      context,
+      defaultCurrency: widget.currency,
+      assetCount: _assets.length,
+    ),
+    onAdd: (r) => _addAsset(r),
+  );
+
+  void _onEditCurrent(CurrentAccount account) => _openDialog<CurrentAccount>(
+    showCurrentAssetDialog(
+      context,
+      account: account,
+      defaultCurrency: widget.currency,
+      assetCount: _assets.length,
+    ),
+    onUpdate: (r) => _updateAsset(account.id, r),
+  );
+
+  void _onAddProvidentFund() => _openDialog<ProvidentFundAccount>(
+    showProvidentFundAssetDialog(
+      context,
+      defaultCurrency: widget.currency,
+      assetCount: _assets.length,
+    ),
+    onAdd: (r) => _addAsset(r),
+  );
+
+  void _onEditProvidentFund(ProvidentFundAccount account) =>
+      _openDialog<ProvidentFundAccount>(
+        showProvidentFundAssetDialog(
+          context,
+          account: account,
+          defaultCurrency: widget.currency,
+          assetCount: _assets.length,
+        ),
+        onUpdate: (r) => _updateAsset(account.id, r),
+      );
+
   void _openDialog<T extends AssetBase>(
     Future<T?> dialog, {
     Future<void> Function(T)? onAdd,
@@ -344,10 +385,20 @@ class _AssetsPageState extends State<AssetsPage> {
                         '${_assets.length}',
                       ),
                       onAdd: () async {
-                        final action = await showAddAssetSheet(context);
-                        if (action == 'cash') _onAddCash();
-                        if (action == 'td') _onAddTD();
-                        if (action == 'wp') _onAddWP();
+                        final type = await showAddAssetSheet(context);
+                        if (type == null) return;
+                        switch (type) {
+                          case AssetType.cash:
+                            _onAddCash();
+                          case AssetType.timeDeposit:
+                            _onAddTD();
+                          case AssetType.wealthProduct:
+                            _onAddWP();
+                          case AssetType.current:
+                            _onAddCurrent();
+                          case AssetType.providentFund:
+                            _onAddProvidentFund();
+                        }
                       },
                     ),
                   ),
@@ -405,10 +456,20 @@ class _AssetsPageState extends State<AssetsPage> {
               ),
             DraggableFab(
               onTap: () async {
-                final action = await showAddAssetSheet(context);
-                if (action == 'cash') _onAddCash();
-                if (action == 'td') _onAddTD();
-                if (action == 'wp') _onAddWP();
+                final type = await showAddAssetSheet(context);
+                if (type == null) return;
+                switch (type) {
+                  case AssetType.cash:
+                    _onAddCash();
+                  case AssetType.timeDeposit:
+                    _onAddTD();
+                  case AssetType.wealthProduct:
+                    _onAddWP();
+                  case AssetType.current:
+                    _onAddCurrent();
+                  case AssetType.providentFund:
+                    _onAddProvidentFund();
+                }
               },
               maxHeight: usableHeight,
             ),
@@ -436,6 +497,16 @@ class _AssetsPageState extends State<AssetsPage> {
         Icons.trending_up,
         Color(0xFF5B9CF6),
         AssetConfig.wealthProduct,
+      ),
+      AssetType.current => (
+        Icons.account_balance,
+        Color(0xFF5AC8FA),
+        AssetConfig.current,
+      ),
+      AssetType.providentFund => (
+        Icons.home_work,
+        Color(0xFFAF52DE),
+        AssetConfig.providentFund,
       ),
     };
 
@@ -564,6 +635,8 @@ class _AssetsPageState extends State<AssetsPage> {
       CashAccount c => _buildCashCard(c, index),
       TimeDeposit t => _buildTimeDepositCard(t, index),
       WealthProduct w => _buildWealthProductCard(w, index),
+      CurrentAccount c => _buildCurrentCard(c, index),
+      ProvidentFundAccount p => _buildProvidentFundCard(p, index),
     };
   }
 
@@ -680,6 +753,82 @@ class _AssetsPageState extends State<AssetsPage> {
         ),
       ),
       onTap: () => _onEditWP(wp),
+      onLongPress: () {},
+    );
+  }
+
+  Widget _buildCurrentCard(CurrentAccount account, int index) {
+    final sym = CurrencyHelper.getSymbol(account.currency);
+    return AssetCardFrame(
+      leading: ReorderableDragStartListener(
+        index: index,
+        child: Container(
+          width: 28,
+          height: 50,
+          alignment: Alignment.center,
+          child: Icon(Icons.drag_indicator, size: 20, color: Color(0xFF48484A)),
+        ),
+      ),
+      icon: Icons.account_balance,
+      iconColor: const Color(0xFF5AC8FA),
+      name: account.name.isNotEmpty
+          ? account.name
+          : AssetConfig.defaultNameCurrent.replaceAll(
+              '{currency}',
+              account.currency,
+            ),
+      createdAt: account.createdAt,
+      updatedAt: account.updatedAt,
+      trailing: Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          '$sym${CurrencyHelper.formatCompact(account.balance)}',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      onTap: () => _onEditCurrent(account),
+      onLongPress: () {},
+    );
+  }
+
+  Widget _buildProvidentFundCard(ProvidentFundAccount account, int index) {
+    final sym = CurrencyHelper.getSymbol(account.currency);
+    return AssetCardFrame(
+      leading: ReorderableDragStartListener(
+        index: index,
+        child: Container(
+          width: 28,
+          height: 50,
+          alignment: Alignment.center,
+          child: Icon(Icons.drag_indicator, size: 20, color: Color(0xFF48484A)),
+        ),
+      ),
+      icon: Icons.home_work,
+      iconColor: const Color(0xFFAF52DE),
+      name: account.name.isNotEmpty
+          ? account.name
+          : AssetConfig.defaultNameProvidentFund.replaceAll(
+              '{currency}',
+              account.currency,
+            ),
+      createdAt: account.createdAt,
+      updatedAt: account.updatedAt,
+      trailing: Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          '$sym${CurrencyHelper.formatCompact(account.balance)}',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      onTap: () => _onEditProvidentFund(account),
       onLongPress: () {},
     );
   }
