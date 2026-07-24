@@ -422,12 +422,27 @@ class _OperationRecordsTabState extends State<_OperationRecordsTab> {
                           ),
                         ],
                         const SizedBox(height: 2),
-                        Text(
-                          '${StockConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 11,
-                          ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                '${StockConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 11,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${StockConfig.recordsDateLabel}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.date)}',
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -745,14 +760,17 @@ class _DividendRecordsTabState extends State<_DividendRecordsTab> {
                         const SizedBox(height: 2),
                         Row(
                           children: [
-                            Text(
-                              '${StockConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 11,
+                            Flexible(
+                              child: Text(
+                                '${StockConfig.recordsOperationTime}: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(record.operationTime)}',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 11,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const Spacer(),
+                            const SizedBox(width: 8),
                             Text(
                               '${StockConfig.dividendDateLabel}: ${DateFormat('yyyy-MM-dd').format(record.date)}',
                               style: TextStyle(

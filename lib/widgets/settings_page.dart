@@ -580,8 +580,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Switch(
             value: _keepStockAfterClose,
             onChanged: _onKeepStockChanged,
-            activeTrackColor: Colors.white.withValues(alpha: 0.4),
-            activeThumbColor: Colors.white,
+            activeTrackColor: const Color(0xFF5B9CF6).withValues(alpha: 0.6),
+            activeThumbColor: const Color(0xFF5B9CF6),
             inactiveThumbColor: Colors.grey[600],
             inactiveTrackColor: Colors.grey[800],
           ),
@@ -926,8 +926,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeTrackColor: Colors.white.withValues(alpha: 0.4),
-            activeThumbColor: Colors.white,
+            activeTrackColor: const Color(0xFF5B9CF6).withValues(alpha: 0.6),
+            activeThumbColor: const Color(0xFF5B9CF6),
             inactiveThumbColor: Colors.grey[600],
             inactiveTrackColor: Colors.grey[800],
           ),
